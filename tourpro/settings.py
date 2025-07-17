@@ -1,6 +1,7 @@
 
 import os
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,8 +16,13 @@ SECRET_KEY = 'django-insecure-%e@cg%)coz(6q-fh)fvv*s5$pj+9g%sog%(8u4%)pjkn^p5#a0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['echorabia.com', 'echorabia.up.railway.app']
-
+ALLOWED_HOSTS = [
+    'echorabia.com',
+    'www.echorabia.com',
+    'echorabia.up.railway.app',
+    '127.0.0.1',
+    'localhost',
+]
 
 # Application definition
 
@@ -66,11 +72,13 @@ WSGI_APPLICATION = 'tourpro.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+    )
 }
+# رفع ملفات كبيرة (مثل الصور)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 
 
 # Password validation

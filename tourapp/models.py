@@ -45,12 +45,12 @@ class Booking(models.Model):
     email = models.EmailField(max_length=254)
     phone = models.CharField(max_length=15)
     numofadult = models.IntegerField()
-    date = models.CharField()
+    date = models.CharField(max_length = 50)
     hotel = models.CharField(max_length=10, blank=True, null=True)
     room = models.CharField(max_length=10, blank=True, null=True)
-    dropoff = models.CharField(default="I don't need")
+    dropoff = models.CharField(max_length = 50,default="I don't need")
     policy = models.BooleanField(default= True)
-    disease = models.CharField(blank=True, null=True)
+    disease = models.CharField(max_length = 50,blank=True, null=True)
     def __str__(self):
         return f"{self.name}"
 
