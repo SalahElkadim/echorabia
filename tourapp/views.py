@@ -22,7 +22,7 @@ def login_view(request):
         else:
             messages.error(request, 'اسم المستخدم أو كلمة المرور غير صحيحة')
 
-    return render(request, 'accounts/login.html')
+    return render(request, 'tourapp/home.html')
 
 
 def logout_view(request):
