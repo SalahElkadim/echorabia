@@ -136,5 +136,5 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'echorabia@gmail.com'         # بريد صاحب الموقع
-EMAIL_HOST_PASSWORD = 'your_app_password'       # استخدم "App Password" لو حساب Gmail
+EMAIL_HOST_PASSWORD = 'tjfj smhr ejil khyv'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
