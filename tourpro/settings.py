@@ -15,14 +15,8 @@ SECRET_KEY = 'django-insecure-%e@cg%)coz(6q-fh)fvv*s5$pj+9g%sog%(8u4%)pjkn^p5#a0
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ALLOWED_HOSTS = ['web-production-ad9b.up.railway.app', '127.0.0.1', 'localhost']
 
-ALLOWED_HOSTS = [
-    'echorabia.com',
-    'www.echorabia.com',
-    'echorabia.up.railway.app',
-    '127.0.0.1',
-    'localhost',
-]
 
 # Application definition
 
@@ -73,8 +67,7 @@ WSGI_APPLICATION = 'tourpro.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://postgres:WSlIGzFIaSQswVMTGCAbGaKitkGvCKrs@crossover.proxy.rlwy.net:53453/railway'
-,
+        default='postgresql://postgres:WSlIGzFIaSQswVMTGCAbGaKitkGvCKrs@crossover.proxy.rlwy.net:53453/railway',
         conn_max_age=600,
         engine='django.db.backends.postgresql_psycopg2' 
 
