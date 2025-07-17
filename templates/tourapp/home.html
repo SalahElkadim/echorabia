@@ -1,0 +1,318 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/overlay.css' %}">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echorabia - Discover Saudi Arabia</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/css/intlTelInput.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/js/intlTelInput.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- سكريبت المكتبة -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+</head>
+<!-- Overlay + Login Modal -->
+<div id="login-overlay" class="overlay hidden"></div>
+
+<div id="login-modal" class="modal hidden">
+  <div class="modal-content">
+    <h2><i class="fas fa-user-circle"></i> تسجيل الدخول</h2>
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <input type="text" name="username" placeholder="اسم المستخدم" required>
+      <input type="password" name="password" placeholder="كلمة المرور" required>
+      <button type="submit" class="btn-submit"><i class="fas fa-sign-in-alt"></i> دخول</button>
+    </form>
+    <span id="close-login-modal" class="close-btn">&times;</span>
+  </div>
+</div>
+<a href="https://wa.me/966590807306" class="whatsapp-float" target="_blank" title="Chat with us on WhatsApp">
+    <img src="https://img.icons8.com/color/96/whatsapp--v1.png" alt="WhatsApp" />
+
+</a>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="logo">
+                <img src="{% static 'images/1.png' %}" alt="logo">
+            </a>
+            <ul class="nav-links">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="{% url "privacy" %}">Privacy</a></li>
+                <li><a href="#contact">Contact</a></li>
+                {% if request.user.is_authenticated and request.user.is_superuser %}
+                <li><a href="{% url 'dashboard' %}"> Dashboard</a></li>
+                {% endif %}
+                {% if request.user.is_authenticated %}
+                    <li>
+                        <a href="{% url 'logout' %}"  class="auth-btn skyblue logout">
+                            <i class="fas fa-sign-out-alt"></i> Sign out
+                        </a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{% url 'login' %}" id="open-login-modal" class="auth-btn skyblue">
+                            <i class="fas fa-sign-in-alt"></i> Sign in
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+            <button class="mobile-menu" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>Discover Saudi Arabia</h1>
+            <p>Experience the magic of the Kingdom through authentic tours and unforgettable adventures</p>
+            <a href="#services" class="cta-button">Explore Tours</a>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="container">
+            <h2 class="section-title">Enjoy Our Tours</h2>
+            <br></br>
+            <div class="services-grid">
+                {% for card in servicecards %}
+                <div class="service-card">
+                    {% if card.image %}
+                        <img src="{{ card.image.url }}" alt="{{ card.title }}" class="service-image">
+                    {% endif %}
+                    <div class="service-content">
+                        <h3 class="service-title">{{card.title}}</h3>
+                        <p class="service-description">{{card.description}}</p>
+                        <a href="{% url 'service_detail' card.id %}" class="book-btn">Book Now</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <br></br>
+        <hr>
+        <br></br>
+        <!---->
+        <div class="container">
+            <h2 class="section-title">Create Your Tour Now !!</h2>
+            <br></br>
+            <form action="{% url 'create_tour' %}" method="POST">
+            {% csrf_token %}
+
+            <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 600px; margin: auto;">
+
+            <!-- Full Name -->
+            <div>
+            <label for="full_name">Your Name:</label>
+            <input type="text" id="full_name" name="full_name" placeholder="Enter your name" required>
+            </div>
+
+            <!-- Destination -->
+            <div>
+            <label for="destination">Place you want to visit:</label>
+            <input type="text" id="destination" name="destination" placeholder="e.g. AlUla, Riyadh" required>
+            </div>
+
+            <!-- Date -->
+            <div>
+            <label for="tour_date">Preferred Date:</label>
+            <input type="date" id="tour_date" name="tour_date" lang="en" placeholder="Press to choose date" required>
+            </div>
+
+            <!-- Number of People -->
+            <div>
+            <label for="num_people">Number of People:</label>
+            <input type="number" id="num_people" name="num_people" min="1" required>
+            </div>
+
+            <!-- Phone Number with intl-tel-input -->
+            <div>
+                <label for="phone">Phone Number:</label>
+                <input type="tel" id="phone" name="phone" required>
+            </div>
+
+            <!-- Email -->
+            <div>
+            <label for="email">Email Address:</label>
+            <input type="email" id="email" name="email" placeholder="example@email.com" required>
+            </div>
+
+            <!-- Submit -->
+            <div style="text-align: center;">
+            <button type="submit" class="book-btn">Submit Tour Request</button>
+            </div>
+
+            </div>
+            </form>
+        </div>
+
+        
+    </section>
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>About EchoRabia</h2>
+                    <p class="tagline">"Where Stories of the Kingdom Resound"</p>
+                    
+                    <p>EchoRabi is a premium tour operator company based in the heart of Riyadh, dedicated to curating immersive travel experiences that echo the rich history, culture, and natural wonders of Saudi Arabia. We specialize in crafting unforgettable journeys for our guests, blending adventure with authenticity, and luxury with heritage.</p>
+                    
+                    <p>At EchoRabi, we believe that every destination tells a story — and we exist to help you hear it.</p>
+                    
+                    <div class="mission-vision">
+                        <h3>Our Mission</h3>
+                        <p>To connect global travelers with the soul of our kingdom by offering authentic, lovely, and exceptional experiences rooted in Saudi culture, landscapes, and traditions.</p>
+                        
+                        <h3>Our Vision</h3>
+                        <p>To become the leading brand in Saudi heritage tourism — echoing the past, shaping the present, and inspiring the future of travel in the Kingdom.</p>
+                    </div>
+                    
+                    <h3 class = "titleabout"style="margin-bottom: 1.5rem;">Why EchoRabi?</h3>
+                    <div class="why-echorabi">
+                        <div class="feature-item">
+                            <i class="fas fa-users"></i>
+                            <span>Deep cultural insight from local expert guides</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-language"></i>
+                            <span>Multi-language guides & concierge service</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-leaf"></i>
+                            <span>Focus on sustainability and cultural preservation</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-crown"></i>
+                            <span>Premium service with Saudi hospitality</span>
+                        </div>
+                    </div>
+                </div>
+                <img src="{% static 'images/1.jpeg' %}" alt="Saudi Arabia Landscape" class="about-image">
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Riyadh, Saudi Arabia</p>
+                    <p><i class="fas fa-phone"></i> +966 11 123 4567</p>
+                    <p><i class="fas fa-envelope"></i> info@echorabi.com</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <p><a href="#home">Home</a></p>
+                    <p><a href="#services">Services</a></p>
+                    <p><a href="#about">About</a></p>
+                    <p><a href="#contact">Contact</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>Our Services</h3>
+                    <p><a href="#">Cultural Tours</a></p>
+                    <p><a href="#">Adventure & Desert Experiences</a></p>
+                    <p><a href="#">Historical Excursions</a></p>
+                    <p><a href="#">Local Immersion Activities</a></p>
+                </div>
+                <div class= "logofoot">
+                <a href="{% url 'home' %}" class="logo">
+                <img src="{% static 'images/1.png' %}" alt="logo">
+                </a>
+                </div> 
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 EchoRabi Tourism. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        // Service booking function
+        function bookService(serviceName) {
+            alert(`Thank you for your interest in "${serviceName}"! Our team will contact you shortly to complete your booking.`);
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        
+
+        // Service cards animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.service-card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+    <script>
+  const phoneInput = document.querySelector("#phone");
+  const iti = window.intlTelInput(phoneInput, {
+    initialCountry: "sa",
+    preferredCountries: ["sa", "eg", "ae", "kw", "qa"],
+    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/js/utils.js"
+  });
+
+  // Replace phone input value with full international number on submit
+  document.querySelector("form").addEventListener("submit", function (e) {
+    phoneInput.value = iti.getNumber();
+  });
+</script>
+<script>
+  flatpickr("#tour_date", {
+    dateFormat: "Y-m-d",
+    locale: "en" // يضمن إن اللغة تظل إنجليزية بغض النظر عن إعدادات الجهاز
+  });
+</script>
+    <script src="{% static 'js/overlay.js' %}"></script>
+</body>
+</html>

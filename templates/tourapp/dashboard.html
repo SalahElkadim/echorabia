@@ -1,0 +1,276 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - خدمات السياحة</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h1>
+            <p>إدارة خدمات السياحة والحجوزات</p>
+            
+        </div>
+        <a href="{% url 'home' %}">Home</a>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-concierge-bell"></i>
+                <h3 id="total-services">{{ servicecards|length }}</h3>
+                <p>إجمالي كروت الخدمات</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-calendar-check"></i>
+                <h3 id="total-bookings">0</h3>
+                <p>إجمالي تفصيل  الخدمات</p>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="action-btn" onclick="openModal('service-modal')">
+                <i class="fas fa-plus"></i>
+                إضافة كارت خدمة 
+            </button>
+            <button class="action-btn secondary" onclick="openModal('booking-modal')">
+                <i class="fas fa-calendar-plus"></i>
+                إضافة تفصيل خدمة 
+            </button>
+        </div>
+
+        <!-- Services Grid -->
+        <div class="services-grid" id="services-grid">
+            {% for service in servicecards %}
+                <div class="service-card" id="item-{{ service.id }}">
+                {% if service.image %}
+                <img src="{{ service.image.url }}" alt="{{ service.title }}" class="image-preview">
+                {% endif %}
+                    <h3>{{ service.title }}</h3>
+                    <p>{{ service.description }}</p>
+                    <p>{{ service.price }}</p>
+                    <button class="delete-btn" data-id="{{ service.id }}">
+                    <i class="fas fa-trash"></i> حذف
+                    </button>
+                </div>
+                {% empty %}
+                <div class="no-services">
+                    <i class="fas fa-spa"></i>
+                    <h3>لا توجد كروت خدمات متاحة</h3>
+                    <p>ابدأ بإضافة خدمة جديدة لعرضها هنا</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Service Modal -->
+    <div id="service-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle"></i> إضافة كارت خدمة </h2>
+                <span class="close" onclick="closeModal('service-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form method="POST" enctype="multipart/form-data" onsubmit="showLoading()">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_card">
+                    
+                    <div class="form-group">
+                        <label for="card_title">
+                            <i class="fas fa-heading"></i> عنوان الخدمة
+                        </label>
+                        <input type="text" id="card_title" name="card_title" required placeholder="أدخل عنوان الخدمة">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="card_description">
+                            <i class="fas fa-align-left"></i> وصف الخدمة
+                        </label>
+                        <textarea id="card_description" name="card_description" rows="4" required placeholder="أدخل وصف مفصل للخدمة"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="card_image">
+                            <i class="fas fa-image"></i> صورة الخدمة
+                        </label>
+                        <div class="file-upload">
+                            <input type="file" id="card_image" name="card_image" accept="image/*">
+                            <div class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>اختر صورة أو اسحبها هنا</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="servicecard">
+                            <i class="fas fa-list"></i> اختر الخدمة
+                        </label>
+                    <select id="card_id" name="card_id">
+                        <option value="">-- اختر خدمة --</option>
+                    {% for booking in servicebooking %}
+                        <option value="{{ booking.id }}">{{ booking.title }}</option>
+                    {% endfor %}
+                    </select>
+                    </div>
+
+                    <div class="loading" id="service-loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>جاري إضافة الخدمة...</p>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-save"></i> حفظ الخدمة
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-calendar-plus"></i> إضافة تفصيل خدمة</h2>
+                <span class="close" onclick="closeModal('booking-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form method="POST" enctype="multipart/form-data" onsubmit="showLoading()">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_booking">
+                    
+                    <div class="form-group">
+                        <label for="title">
+                            <i class="fas fa-heading"></i> عنوان الخدمة
+                        </label>
+                        <input type="text" id="title" name="title" required placeholder="أدخل عنوان الحجز">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">
+                            <i class="fas fa-align-left"></i> وصف الخدمة
+                        </label>
+                        <textarea id="description" name="description" rows="4" required placeholder="أدخل وصف مفصل للحجز"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="included">
+                            <i class="fas fa-align-left"></i> ما تتضمنه الرحلة
+                        </label>
+                        <textarea id="included" name="included" rows="4" required placeholder="أدخل ما تتضمنه الرحلة مثل الطعام والشراب  "></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="exclusion">
+                            <i class="fas fa-align-left"></i> ما لا تتضمنه الرحلة
+                        </label>
+                        <textarea id="exclusion" name="exclusion" rows="4" required placeholder="الاستثناءات "></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="note">
+                            <i class="fas fa-align-left"></i> ملاحظات
+                        </label>
+                        <textarea id="note" name="note" rows="4" required placeholder="ملاحظات "></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="period">
+                        <i class="fas fa-clock"></i> المدة الزمنية
+                        </label>
+                        <input type="text" id="period" name="period" required>
+                    </div>
+
+                    
+                    <div class="form-group">
+                        <label for="image1">
+                            <i class="fas fa-image"></i> الصورة الأولى
+                        </label>
+                        <div class="file-upload">
+                            <input type="file" id="image1" name="image1" accept="image/*">
+                            <div class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>اختر الصورة الأولى</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="image2">
+                            <i class="fas fa-image"></i> الصورة الثانية
+                        </label>
+                        <div class="file-upload">
+                            <input type="file" id="image2" name="image2" accept="image/*">
+                            <div class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>اختر الصورة الثانية</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="image3">
+                            <i class="fas fa-image"></i> الصورة الثالثة
+                        </label>
+                        <div class="file-upload">
+                            <input type="file" id="image3" name="image3" accept="image/*">
+                            <div class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>اختر الصورة الثالثة</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="video">
+                            <i class="fas fa-image"></i> الفيديو
+                        </label>
+                        <div class="file-upload">
+                            <input type="file" id="video" name="video" accept="video/*">
+                            <div class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>اختر فيديو </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="loading" id="booking-loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>جاري إضافة الحجز...</p>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-save"></i> حفظ الحجز
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+   <script src="{% static 'js/dashboard.js' %}"></script>
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>$(document).on("click", ".delete-btn", function () {
+  const itemId = $(this).data("id");
+
+  $.ajax({
+    url: "{% url 'delete_item' %}",
+    type: "POST",
+    data: {
+      item_id: itemId,
+      csrfmiddlewaretoken: "{{ csrf_token }}",
+    },
+    success: function (response) {
+      if (response.status === "success") {
+        $("#item-" + itemId).remove();
+      } else {
+        alert("حدث خطأ أثناء الحذف");
+      }
+    },
+  });
+});
+</script>
+</body>
+</html>

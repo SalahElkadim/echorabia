@@ -1,0 +1,198 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echorabia - Services</title>
+    <link rel="stylesheet" href="{% static 'css/service_detail.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/css/intlTelInput.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/js/intlTelInput.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- سكريبت المكتبة -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  </head>
+  <a href="https://wa.me/966590807306" class="whatsapp-float" target="_blank" title="Chat with us on WhatsApp">
+    <img src="https://img.icons8.com/color/96/whatsapp--v1.png" alt="WhatsApp" />
+
+</a>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <img src="{% static 'images/1.png' %}" alt="logo">
+            </a>
+            <ul class="nav-links">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'home' %}#services">Services</a></li>
+                <li><a href="{% url 'home' %}#about">About</a></li>
+                <li><a href="{% url "privacy" %}">Privacy</a></li>
+                <li><a href="{% url 'home' %}#contact">Contact</a></li>
+                {% if request.user.is_authenticated and request.user.is_superuser %}
+                <li><a href="{% url 'dashboard' %}"> Dashboard</a></li>
+                {% endif %}
+            </ul>
+            <button class="mobile-menu" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+    <section class="services">
+      
+      <div class="container">
+        <div class="service-details" dir="ltr" style="text-align: left;">
+        <div class="service-images">
+        {% if service_booking.image1 %}
+        <img src="{{ service_booking.image1.url }}" alt="{{ service_booking.title }}" class="image-preview">
+        {% endif %}
+        {% if service_booking.image2 %}
+        <img src="{{ service_booking.image2.url }}" alt="{{ service_booking.title }}" class="image-preview">
+        {% endif %}
+        {% if service_booking.image3 %}
+        <img src="{{ service_booking.image3.url }}" alt="{{ service_booking.title }}" class="image-preview">
+        {% endif %}
+        {% if service_booking.video %}
+        <video class="image-preview" controls>
+        <source src="{{ service_booking.video.url }}" type="video/mp4">
+        </video>
+        {% endif %}
+        </div>
+
+        <h1>{{ service_booking.title }}</h1>
+        <br></br>
+        <p>{{ service_booking.description|linebreaksbr }}</p>
+
+        <button class="accordion"> What's included?  </button>
+        <div class="panel">
+        <p>{{ service_booking.included }}</p>
+        </div>
+        <button class="accordion"> Exclusions </button>
+        <div class="panel">
+        <p>{{ service_booking.exclusion }}</p>
+        </div>
+        <button class="accordion"> Please note </button>
+        <div class="panel">
+        <p>{{ service_booking.note }}</p>
+        </div>
+        <br></br>
+        <button class="book-btn">Book Now</button>
+        <!-- Overlay & Modal -->
+        <form id="bookingForm">
+        <div id="bookingModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Complete Booking</h2>
+          {% csrf_token %}
+        <label>Number of Adults:</label>
+        <input type="number" name="adults" required>
+
+        <label>Full Name:</label>
+        <input type="text" name="name" required>
+
+        <label>Email Address:</label>
+        <input type="email" name="email" required>
+
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" name="phone" required>
+
+        <label>Booking Date:</label>
+        <input type="date" id="tour_date" name="booking_date" lang="en" required>
+
+        <label>Do you have any medical conditions?</label>
+        <input type="text" name="disease" placeholder="If you have a condition, please specify" required>
+
+
+        <br></br>
+        <button class="accordion"> Would you like us to pick you up from your hotel? </button>
+        <div class="panel">
+        <label>Hotel Name (Optional):</label>
+        <input type="text" name="hotel">
+
+        <label>Room Number (Optional):</label>
+        <input type="text" name="room_number">
+        </div>
+
+
+        <br></br>
+        <button class="accordion"> Where should we drop you off? </button>
+        <div class="panel">
+        <select name="dropoff" id="dropoff" required>
+        <option value="">-- Please choose an option --</option>
+        <option value="none">I don’t need</option>
+        <option value="riyadh">Riyadh</option>
+        </select>
+        </div>
+
+        <br></br>
+
+        <button class="accordion"> Cancellation Policy </button>
+        <div class="panel">
+        <p id="cancellationPolicyText">
+            <!-- سيتم ملء النص تلقائياً بالـ JS -->
+        </p>
+        </div>
+
+        <label>
+        <input type="checkbox" name="cancellation_policy" required>
+        I agree to the cancellation policy
+        </label>
+
+        <button type="submit">Confirm Booking</button>
+        </form>
+        </div>
+        </div>
+        <div id="successOverlay" style="display: none;">
+        <div class="overlay-message">
+            Booking confirmed successfully!
+            We Will Contact You Soon...
+        <br><br>
+        <button onclick="document.getElementById('successOverlay').style.display='none'">Close</button>
+        </div>
+        </div>
+      </div>
+    </section>
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Riyadh, Saudi Arabia</p>
+                    <p><i class="fas fa-phone"></i> +966 590 807 306</p>
+                    <p><i class="fas fa-envelope"></i> info@echorabi.com</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <p><a href="#home">Home</a></p>
+                    <p><a href="#services">Services</a></p>
+                    <p><a href="#about">About</a></p>
+                    <p><a href="#contact">Contact</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>Our Services</h3>
+                    <p><a href="#">Cultural Tours</a></p>
+                    <p><a href="#">Adventure & Desert Experiences</a></p>
+                    <p><a href="#">Historical Excursions</a></p>
+                    <p><a href="#">Local Immersion Activities</a></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 EchoRabi Tourism. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>    
+    <script src="{% static 'js/new.js' %}"></script>
+    <script src="{% static 'js/service_detail.js' %}"></script>
+  </body>
+</html>
