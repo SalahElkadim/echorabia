@@ -47,7 +47,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
 ]
-
+USER_AGENTS_CACHE = 'default'
 ROOT_URLCONF = 'tourpro.urls'
 
 TEMPLATES = [
@@ -73,7 +73,7 @@ WSGI_APPLICATION = 'tourpro.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
+        default=os.getenv('postgresql://postgres:WSlIGzFIaSQswVMTGCAbGaKitkGvCKrs@crossover.proxy.rlwy.net:53453/railway'),
         conn_max_age=600,
     )
 }
