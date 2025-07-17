@@ -73,13 +73,15 @@ WSGI_APPLICATION = 'tourpro.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('postgresql://postgres:WSlIGzFIaSQswVMTGCAbGaKitkGvCKrs@crossover.proxy.rlwy.net:53453/railway'),
+        default='postgresql://postgres:WSlIGzFIaSQswVMTGCAbGaKitkGvCKrs@crossover.proxy.rlwy.net:53453/railway'
+,
         conn_max_age=600,
+        engine='django.db.backends.postgresql_psycopg2' 
+
     )
 }
 # رفع ملفات كبيرة (مثل الصور)
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
