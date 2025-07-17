@@ -66,12 +66,12 @@ WSGI_APPLICATION = 'tourpro.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://postgres:WSlIGzFIaSQswVMTGCAbGaKitkGvCKrs@crossover.proxy.rlwy.net:53453/railway',
-        conn_max_age=600,
-        engine='django.db.backends.postgresql_psycopg2' 
+    'default': dj_database_url.parse(
+    'postgresql://postgres:FYqSJheEPRhkrNQLlzcdzYJtADCwiIYz@tramway.proxy.rlwy.net:50177/railway',
+    conn_max_age=600,
+    engine='django.db.backends.postgresql_psycopg2'
+)
 
-    )
 }
 # رفع ملفات كبيرة (مثل الصور)
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
