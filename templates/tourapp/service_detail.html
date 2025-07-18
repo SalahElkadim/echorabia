@@ -1,4 +1,6 @@
 {% load static %}
+{% load cloudinary_tags %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -47,19 +49,23 @@
       <div class="container">
         <div class="service-details" dir="ltr" style="text-align: left;">
         <div class="service-images">
+        
         {% if service_booking.image1 %}
-        <img src="{{ service_booking.image1.url }}" alt="{{ service_booking.title }}" class="image-preview">
+        <img src="{% cloudinary_url service_booking.image1 width=400 height=300 crop='fill' quality='auto' %}" alt="صورة">
         {% endif %}
+
         {% if service_booking.image2 %}
-        <img src="{{ service_booking.image2.url }}" alt="{{ service_booking.title }}" class="image-preview">
+        <img src="{% cloudinary_url service_booking.image2 width=400 height=300 crop='fill' quality='auto' %}" alt="صورة">
         {% endif %}
+
         {% if service_booking.image3 %}
-        <img src="{{ service_booking.image3.url }}" alt="{{ service_booking.title }}" class="image-preview">
+        <img src="{% cloudinary_url service_booking.image3 width=400 height=300 crop='fill' quality='auto' %}" alt="صورة">
         {% endif %}
+        
         {% if service_booking.video %}
-        <video class="image-preview" controls>
-        <source src="{{ service_booking.video.url }}" type="video/mp4">
-        </video>
+            <video controls>
+            <source src="{% cloudinary_url service_booking.video %}" type="video/mp4">
+            </video>
         {% endif %}
         </div>
 

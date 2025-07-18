@@ -7,6 +7,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
+import cloudinary.uploader
+
 
 
 def login_view(request):
@@ -40,60 +42,113 @@ def privacy(request):
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
     servicecards = ServiceCard.objects.all()
-    servicebooking =ServiceBooking.objects.all()
-
+    servicebooking = ServiceBooking.objects.all()
+    
     if request.method == 'POST':
         action = request.POST.get('action')
-
-        if action == 'add_card':
-            # إضافة كارت خدمة
-            title = request.POST.get('card_title')
-            description = request.POST.get('card_description')
-            image = request.FILES.get('card_image')
-            card_id = request.POST.get('card_id')
-            servicebooking = ServiceBooking.objects.get(id=card_id) if card_id else None
-            
-
-            ServiceCard.objects.create(
-                title=title,
-                description=description,
-                image=image, 
-                servicebooking=servicebooking
+        
+        try:
+            if action == 'add_card':
+                # إضافة كارت خدمة
+                title = request.POST.get('card_title')
+                description = request.POST.get('card_description')
+                image = request.FILES.get('card_image')
+                card_id = request.POST.get('card_id')
+                servicebooking = ServiceBooking.objects.get(id=card_id) if card_id else None
                 
-
-            )
-
-        elif action == 'add_booking':
-            # إضافة حجز
-            title = request.POST.get('title')
-            description = request.POST.get('description')
-            included = request.POST.get('included')
-            exclusion = request.POST.get('exclusion')
-            note = request.POST.get('note')
-            period = request.POST.get('period')
-            image1 = request.FILES.get('image1')
-            image2 = request.FILES.get('image2')
-            image3 = request.FILES.get('image3')
-            video = request.FILES.get('video')
-
+                # رفع الصورة إلى Cloudinary إذا كانت البيئة إنتاج
+                if image and (os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PRODUCTION')):
+                    image_result = cloudinary.uploader.upload(
+                        image,
+                        folder='ServiceImages/',
+                        transformation=[
+                            {'width': 800, 'height': 600, 'crop': 'fill'},
+                            {'quality': 'auto'}
+                        ]
+                    )
+                    image = image_result['public_id']
+                
+                ServiceCard.objects.create(
+                    title=title,
+                    description=description,
+                    image=image,
+                    servicebooking=servicebooking
+                )
+                messages.success(request, 'تم إضافة الكارت بنجاح!')
+                
+            elif action == 'add_booking':
+                # إضافة حجز
+                title = request.POST.get('title')
+                description = request.POST.get('description')
+                included = request.POST.get('included')
+                exclusion = request.POST.get('exclusion')
+                note = request.POST.get('note')
+                period = request.POST.get('period')
+                
+                # معالجة الملفات
+                files_data = {}
+                
+                # رفع الصور والفيديو
+                for field_name in ['image1', 'image2', 'image3']:
+                    file = request.FILES.get(field_name)
+                    if file:
+                        if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PRODUCTION'):
+                            # رفع إلى Cloudinary
+                            result = cloudinary.uploader.upload(
+                                file,
+                                folder='ServiceImages/',
+                                transformation=[
+                                    {'width': 1200, 'height': 800, 'crop': 'fill'},
+                                    {'quality': 'auto'}
+                                ]
+                            )
+                            files_data[field_name] = result['public_id']
+                        else:
+                            # حفظ محلي
+                            files_data[field_name] = file
+                
+                # رفع الفيديو
+                video = request.FILES.get('video')
+                if video:
+                    if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PRODUCTION'):
+                        # رفع الفيديو إلى Cloudinary
+                        video_result = cloudinary.uploader.upload(
+                            video,
+                            resource_type='video',
+                            folder='videos/',
+                            transformation=[
+                                {'width': 1280, 'height': 720, 'crop': 'fill'},
+                                {'quality': 'auto'}
+                            ]
+                        )
+                        files_data['video'] = video_result['public_id']
+                    else:
+                        files_data['video'] = video
+                
+                # إنشاء الحجز
+                ServiceBooking.objects.create(
+                    title=title,
+                    description=description,
+                    included=included,
+                    exclusion=exclusion,
+                    note=note,
+                    period=period,
+                    image1=files_data.get('image1'),
+                    image2=files_data.get('image2'),
+                    image3=files_data.get('image3'),
+                    video=files_data.get('video')
+                )
+                messages.success(request, 'تم إضافة الحجز بنجاح!')
+                
+        except Exception as e:
+            messages.error(request, f'حدث خطأ: {str(e)}')
             
-
-            ServiceBooking.objects.create(
-                title=title,
-                description=description,
-                included = included,
-                exclusion = exclusion, 
-                note = note, 
-                period =period, 
-                image1=image1,
-                image2=image2,
-                image3=image3,
-                video = video
-            )
-
         return redirect('dashboard')
-
-    return render(request, 'tourapp/dashboard.html', {'servicecards': servicecards, 'servicebooking':servicebooking})
+    
+    return render(request, 'tourapp/dashboard.html', {
+        'servicecards': servicecards, 
+        'servicebooking': servicebooking
+    })
 
 @user_passes_test(lambda u: u.is_superuser)
 def delete_item(request):
@@ -201,3 +256,29 @@ def create_tour_request(request):
         return redirect('home')  # أو redirect('create_tour') لو عندك صفحة تأكيد
 
     return render(request, 'tourapp/home.html')
+
+def validate_file(file, file_type='image'):
+    """
+    التحقق من صحة الملف
+    """
+    if not file:
+        return True, None
+    
+    # التحقق من الحجم
+    max_size = 50 * 1024 * 1024  # 50MB للفيديو
+    if file_type == 'image':
+        max_size = 10 * 1024 * 1024  # 10MB للصور
+    
+    if file.size > max_size:
+        return False, f'حجم الملف كبير جداً. الحد الأقصى {max_size/1024/1024}MB'
+    
+    # التحقق من نوع الملف
+    if file_type == 'image':
+        allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    else:
+        allowed_types = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv']
+    
+    if file.content_type not in allowed_types:
+        return False, 'نوع الملف غير مدعوم'
+    
+    return True, None

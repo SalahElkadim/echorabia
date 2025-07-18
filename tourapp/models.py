@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import datetime
+from cloudinary.models import CloudinaryField
+import os
 
 
 
@@ -15,19 +17,46 @@ class CustomUser(AbstractUser):
 
 
 class ServiceBooking(models.Model):
-    image1 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
-    image2 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
-    image3 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
-    video = models.FileField(upload_to='videos/', blank=True, null=True)
+    # استخدام CloudinaryField للصور والفيديوهات
+    if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PRODUCTION'):
+        image1 = CloudinaryField('image', folder='ServiceImages/', blank=True, null=True)
+        image2 = CloudinaryField('image', folder='ServiceImages/', blank=True, null=True)
+        image3 = CloudinaryField('image', folder='ServiceImages/', blank=True, null=True)
+        video = CloudinaryField('video', folder='videos/', blank=True, null=True)
+    else:
+        # للتطوير المحلي
+        image1 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
+        image2 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
+        image3 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
+        video = models.FileField(upload_to='videos/', blank=True, null=True)
+    
     title = models.CharField(max_length=50)
     description = models.TextField()
-    included = models.TextField(default = "",blank=True, null=True)
-    exclusion = models.TextField(default = "", blank=True, null=True)
-    note = models.TextField(default = "", blank=True, null=True)
+    included = models.TextField(default="", blank=True, null=True)
+    exclusion = models.TextField(default="", blank=True, null=True)
+    note = models.TextField(default="", blank=True, null=True)
     period = models.CharField(max_length=50)
-
+    
     def __str__(self):
-        return self.title 
+        return self.title
+
+    # دالة للحصول على URL الصورة
+    def get_image_url(self, image_field):
+        if image_field:
+            if hasattr(image_field, 'url'):
+                return image_field.url
+            else:
+                return str(image_field)
+        return None
+
+    # دالة للحصول على URL الفيديو
+    def get_video_url(self):
+        if self.video:
+            if hasattr(self.video, 'url'):
+                return self.video.url
+            else:
+                return str(self.video)
+        return None
 
 class ServiceCard(models.Model):
     servicebooking = models.ForeignKey(ServiceBooking, on_delete=models.SET_NULL, null=True, blank=True )

@@ -1,1 +1,1 @@
-web: gunicorn tourpro.wsgi
+web: gunicorn tourpro.wsgi:application --timeout 120 --workers 2
