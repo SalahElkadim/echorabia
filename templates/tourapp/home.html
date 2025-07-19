@@ -1,5 +1,5 @@
 {% load static %}
-{% load cloudinary %}
+{% load cloudinary_extras %}
 
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 <link rel="stylesheet" href="{% static 'css/overlay.css' %}">
@@ -93,7 +93,7 @@
                 {% for card in servicecards %}
                     <div class="service-card">
                     {% if card.image %}
-                    {% cloudinary card.image.name width=400 height=300 crop="fill" quality="auto" as card_img_url %}
+                    {% cloudinary card.image.url width=400 height=300 crop="fill" quality="auto" as card_img_url %}
                     <img src="{{ card_img_url }}" alt="{{ card.title }}" class="service-image">
                     {% endif %}
 

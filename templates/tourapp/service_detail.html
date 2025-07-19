@@ -1,5 +1,5 @@
 {% load static %}
-{% load cloudinary %}
+{% load cloudinary_extras %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -50,28 +50,30 @@
         <div class="service-details" dir="ltr" style="text-align: left;">
         <div class="service-images">
         
-        {% load cloudinary %}
 
-        {% if service_booking.image1 %}
-            {% cloudinary service_booking.image1 width=400 height=300 crop="fill" quality="auto" as img1_url %}
-            <img src="{{ img1_url }}" alt="صورة">
-        {% endif %}
+<!-- للفيديو -->
+{% if service.video %}
+    <video controls class="video-responsive">
+        <source src="{% get_video_url service.video %}" type="video/mp4">
+        متصفحك لا يدعم عرض الفيديوهات
+    </video>
+{% endif %}
 
-        {% if service_booking.image2 %}
-            {% cloudinary service_booking.image2 width=400 height=300 crop="fill" quality="auto" as img2_url %}
-            <img src="{{ img2_url }}" alt="صورة">
-        {% endif %}
+<!-- للصور المتعددة -->
+{% if service_booking.image1 %}
+    <img src="{% get_image_url service_booking.image1 width=800 height=600 crop='fill' quality='auto' %}" 
+         alt="صورة 1">
+{% endif %}
 
-        {% if service_booking.image3 %}
-            {% cloudinary service_booking.image3 width=400 height=300 crop="fill" quality="auto" as img3_url %}
-            <img src="{{ img3_url }}" alt="صورة">
-        {% endif %}
-        
-        {% cloudinary service_booking.video as video_url %}
-            <video controls>
-            <source src="{{ video_url }}" type="video/mp4">
-            </video>
-        </div>
+{% if service_booking.image2 %}
+    <img src="{% get_image_url service_booking.image2 width=800 height=600 crop='fill' quality='auto' %}" 
+         alt="صورة 2">
+{% endif %}
+
+{% if service_booking.image3 %}
+    <img src="{% get_image_url service_booking.image3 width=800 height=600 crop='fill' quality='auto' %}" 
+         alt="صورة 3">
+{% endif %}
 
         <h1>{{ service_booking.title }}</h1>
         <br></br>
