@@ -22,13 +22,15 @@ class ServiceBooking(models.Model):
         image1 = CloudinaryField('image', folder='ServiceImages/', blank=True, null=True)
         image2 = CloudinaryField('image', folder='ServiceImages/', blank=True, null=True)
         image3 = CloudinaryField('image', folder='ServiceImages/', blank=True, null=True)
-        video = CloudinaryField('video', folder='videos/', blank=True, null=True)
+        video = CloudinaryField(resource_type='video', folder='videos/', blank=True, null=True)
+
     else:
         # للتطوير المحلي
         image1 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
         image2 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
         image3 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
-        video = models.FileField(upload_to='videos/', blank=True, null=True)
+        video = CloudinaryField(resource_type='video', folder='videos/', blank=True, null=True)
+
     
     title = models.CharField(max_length=50)
     description = models.TextField()
