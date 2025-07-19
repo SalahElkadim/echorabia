@@ -93,9 +93,10 @@
                 {% for card in servicecards %}
                     <div class="service-card">
                     {% if card.image %}
-                    {% cloudinary card.image width=400 height=300 crop="fill" quality="auto" as card_img_url %}
-                        <img src="{{ card_img_url }}" alt="{{ card.title }}" class="service-image">
+                    {% cloudinary card.image.name width=400 height=300 crop="fill" quality="auto" as card_img_url %}
+                    <img src="{{ card_img_url }}" alt="{{ card.title }}" class="service-image">
                     {% endif %}
+
                         <div class="service-content">
                         <h3 class="service-title">{{ card.title }}</h3>
                         <p class="service-description">{{ card.description }}</p>
