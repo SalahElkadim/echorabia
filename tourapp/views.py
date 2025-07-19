@@ -40,7 +40,6 @@ def home(request):
 def privacy(request):
     return render(request, 'tourapp/privacy.html')
 
-
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
     servicecards = ServiceCard.objects.all()
@@ -106,6 +105,113 @@ def dashboard(request):
         'servicecards': servicecards, 
         'servicebooking': servicebooking
     })
+
+@user_passes_test(lambda u: u.is_superuser)
+def delete_item(request):
+    if request.method == "POST":
+        card_id = request.POST.get("item_id")
+        card = get_object_or_404(ServiceCard, id=card_id)
+        card.delete()
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error", "message": "Invalid request"})
+
+
+
+def service_detail(request, service_id):
+    service_card = get_object_or_404(ServiceCard, id=service_id)  
+    service_booking = service_card.servicebooking
+    context = {
+        'service_card': service_card,
+        'service_booking': service_booking, 
+    }
+    
+    return render(request, 'tourapp/service_detail.html', context)
+
+
+def book_service(request, service_id):
+    if request.method == 'POST':
+        service = get_object_or_404(ServiceBooking, id=service_id)
+
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        numofadult = int(request.POST.get('adults'))
+        date = request.POST.get('booking_date')
+        hotel = request.POST.get('hotel', '')
+        room = request.POST.get('room_number', '')
+        dropoff = request.POST.get('dropoff', 'I don’t need')
+        policy = request.POST.get('cancellation_policy') == 'on'
+        disease = request.POST.get('disease')
+
+        booking = Booking.objects.create(
+            servicebooking=service,
+            name=name,
+            email=email,
+            phone=phone,
+            numofadult=numofadult,
+            date=date,
+            hotel=hotel,
+            room=room,
+            dropoff=dropoff,
+            policy=policy,
+            disease=disease
+        )
+
+        # إرسال الإيميل لصاحب الموقع
+        subject = f'New Booking: {service.title}'
+        message = f'''
+        A new booking has been made:
+
+        Service: {service.title}
+        Name: {name}
+        Email: {email}
+        Phone: {phone}
+        Number of Adults: {numofadult}
+        Booking Date: {date}
+        Hotel: {hotel}
+        Room Number: {room}
+        Drop-off: {dropoff}
+        Medical Conditions: {disease}
+        Agreed to Cancellation Policy: {'Yes' if policy else 'No'}
+        '''
+
+        admin_email = 'echorabia@gmail.com'  # استبدلها ببريد صاحب الموقع
+
+        send_mail(
+            subject,
+            message,
+            None,               # from email, يستخدم DEFAULT_FROM_EMAIL
+            [admin_email],
+            fail_silently=False,
+        )
+
+        return JsonResponse({'message': 'Booking successful'})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def create_tour_request(request):
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name')
+        destination = request.POST.get('destination')
+        tour_date = request.POST.get('tour_date')
+        num_people = request.POST.get('num_people')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+
+        # حفظ الطلب
+        TourRequest.objects.create(
+            full_name=full_name,
+            destination=destination,
+            tour_date=tour_date,
+            num_people=num_people,
+            phone=phone,
+            email=email
+        )
+
+        messages.success(request, 'Your tour request has been submitted successfully!')
+        return redirect('home')  # أو redirect('create_tour') لو عندك صفحة تأكيد
+
+    return render(request, 'tourapp/home.html')
 
 def validate_file(file, file_type='image'):
     """
