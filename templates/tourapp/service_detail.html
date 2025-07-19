@@ -50,23 +50,27 @@
         <div class="service-details" dir="ltr" style="text-align: left;">
         <div class="service-images">
         
+        {% load cloudinary %}
+
         {% if service_booking.image1 %}
-        <img src="{% cloudinary_url service_booking.image1 width=400 height=300 crop='fill' quality='auto' %}" alt="صورة">
+            {% cloudinary service_booking.image1 width=400 height=300 crop="fill" quality="auto" as img1_url %}
+            <img src="{{ img1_url }}" alt="صورة">
         {% endif %}
 
         {% if service_booking.image2 %}
-        <img src="{% cloudinary_url service_booking.image2 width=400 height=300 crop='fill' quality='auto' %}" alt="صورة">
+            {% cloudinary service_booking.image2 width=400 height=300 crop="fill" quality="auto" as img2_url %}
+            <img src="{{ img2_url }}" alt="صورة">
         {% endif %}
 
         {% if service_booking.image3 %}
-        <img src="{% cloudinary_url service_booking.image3 width=400 height=300 crop='fill' quality='auto' %}" alt="صورة">
+            {% cloudinary service_booking.image3 width=400 height=300 crop="fill" quality="auto" as img3_url %}
+            <img src="{{ img3_url }}" alt="صورة">
         {% endif %}
         
-        {% if service_booking.video %}
+        {% cloudinary service_booking.video as video_url %}
             <video controls>
-            <source src="{% cloudinary_url service_booking.video %}" type="video/mp4">
+            <source src="{{ video_url }}" type="video/mp4">
             </video>
-        {% endif %}
         </div>
 
         <h1>{{ service_booking.title }}</h1>

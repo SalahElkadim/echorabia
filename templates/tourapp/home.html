@@ -91,16 +91,17 @@
             <br></br>
             <div class="services-grid">
                 {% for card in servicecards %}
-                <div class="service-card">
+                    <div class="service-card">
                     {% if card.image %}
-                        <img src="{{ card.image.url }}" alt="{{ card.title }}" class="service-image">
+                    {% cloudinary card.image width=400 height=300 crop="fill" quality="auto" as card_img_url %}
+                        <img src="{{ card_img_url }}" alt="{{ card.title }}" class="service-image">
                     {% endif %}
-                    <div class="service-content">
-                        <h3 class="service-title">{{card.title}}</h3>
-                        <p class="service-description">{{card.description}}</p>
+                        <div class="service-content">
+                        <h3 class="service-title">{{ card.title }}</h3>
+                        <p class="service-description">{{ card.description }}</p>
                         <a href="{% url 'service_detail' card.id %}" class="book-btn">Book Now</a>
+                        </div>
                     </div>
-                </div>
                 {% endfor %}
             </div>
         </div>

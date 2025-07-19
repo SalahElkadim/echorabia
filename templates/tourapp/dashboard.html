@@ -51,7 +51,8 @@
             {% for service in servicecards %}
                 <div class="service-card" id="item-{{ service.id }}">
                 {% if service.image %}
-                <img src="{{ service.image.url }}" alt="{{ service.title }}" class="image-preview">
+                {% cloudinary service.image width=400 height=300 crop="fill" quality="auto" as service_img_url %}
+                <img src="{{ service_img_url }}" alt="{{ service.title }}" class="image-preview">
                 {% endif %}
                     <h3>{{ service.title }}</h3>
                     <p>{{ service.description }}</p>
