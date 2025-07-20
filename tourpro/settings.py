@@ -3,13 +3,12 @@ from pathlib import Path
 import dj_database_url
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-%e@cg%)coz(6q-fh)fvv*s5$pj+9g%sog%(8u4%)pjkn^p5#a0'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'echorabia-production.up.railway.app',
