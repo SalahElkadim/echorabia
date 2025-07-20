@@ -8,16 +8,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-%e@cg%)coz(6q-fh)fvv*s5$pj+9g%sog%(8u4%)pjkn^p5#a0'
 
-DEBUG = True
 
 ALLOWED_HOSTS = [
     'echorabia-production.up.railway.app',
     '127.0.0.1',
-    'localhost'
+    'localhost',
+    'echorabia.com', 'www.echorabia.com'
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://echorabia-production.up.railway.app',
+    'https://echorabia-production.up.railway.app','https://echorabia.com', 'https://www.echorabia.com',
 ]
 
 # Application definition
@@ -120,3 +120,13 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'echorabia@gmail.com'
 EMAIL_HOST_PASSWORD = 'tjfj smhr ejil khyv'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# إعدادات الأمان عند تفعيل HTTPS
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+# مهم جداً مع Railway ونطاق مخصص
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

@@ -317,16 +317,15 @@ body::-webkit-scrollbar-thumb:hover {
         }
 
         .about-text p {
-            font-size: 1.1rem;
             line-height: 1.8;
             opacity: 0.9;
             margin-bottom: 1.5rem;
         }
 
         .tagline {
-            font-size: 1.8rem;
-            font-style: italic;
+            font-size: 1.5rem;
             color: rgb(246, 200, 48);
+            font-weight: 800;
             margin-bottom: 2rem;
             text-align: center;
         }
