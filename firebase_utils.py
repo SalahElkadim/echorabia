@@ -15,7 +15,7 @@ cred = credentials.Certificate(firebase_config)
 # تهيئة التطبيق (مرة واحدة فقط)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred, {
-        'storageBucket': f"{firebase_config['project_id']}.appspot.com"
+        'storageBucket': 'echorabia-f8f1a.appspot.com'
     })
 
 def upload_file_to_firebase(file, file_name):
