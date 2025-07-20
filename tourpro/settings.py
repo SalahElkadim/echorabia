@@ -64,7 +64,7 @@ WSGI_APPLICATION = 'tourpro.wsgi.application'
 # Database
 DATABASES = {
     'default': dj_database_url.parse(
-        'postgresql://postgres:moEaqzdGJqWtTFxDbrKdprqwDbNnNyTj@yamabiko.proxy.rlwy.net:12538/railway',
+        'postgresql://postgres:eMaUnJHvwJPuppTBbiNVDjrnTkWgSPOj@yamabiko.proxy.rlwy.net:33907/railway',
         conn_max_age=600,
         engine='django.db.backends.postgresql_psycopg2'
     )
