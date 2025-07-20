@@ -3,13 +3,20 @@ from firebase_admin import credentials, storage
 import json
 import os
 
-# تحميل بيانات الاتصال
+# تحميل بيانات الاتصال من المتغير البيئي
 firebase_config = json.loads(os.environ['FIREBASE_CONFIG'])
+
+# إصلاح private_key من \\n إلى \n
+firebase_config['private_key'] = firebase_config['private_key'].replace('\\n', '\n')
+
+# إنشاء الشهادة
 cred = credentials.Certificate(firebase_config)
+
 # تهيئة التطبيق (مرة واحدة فقط)
-firebase_admin.initialize_app(cred, {
-    'storageBucket': f"{firebase_config['project_id']}.appspot.com"
-})
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred, {
+        'storageBucket': f"{firebase_config['project_id']}.appspot.com"
+    })
 
 def upload_file_to_firebase(file, file_name):
     bucket = storage.bucket()
