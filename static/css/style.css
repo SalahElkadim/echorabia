@@ -123,7 +123,7 @@ body::-webkit-scrollbar-thumb:hover {
         /* Hero Section */
         .hero {
             height: 100vh;
-            background: linear-gradient(360deg,rgba(129, 108, 83, 0.4) ,rgba(231, 204, 176, 0.0) ),url('../images/background.jpeg');
+            background: linear-gradient(360deg,rgba(129, 108, 83, 0.0) ,rgba(231, 204, 176, 0.0) ),url('../images/background.png');
             background-size: cover;
             background-position: center;
             display: flex;
@@ -317,16 +317,15 @@ body::-webkit-scrollbar-thumb:hover {
         }
 
         .about-text p {
-            font-size: 1.1rem;
             line-height: 1.8;
             opacity: 0.9;
             margin-bottom: 1.5rem;
         }
 
         .tagline {
-            font-size: 1.3rem;
-            font-style: italic;
+            font-size: 1.5rem;
             color: rgb(246, 200, 48);
+            font-weight: 800;
             margin-bottom: 2rem;
             text-align: center;
         }
@@ -677,4 +676,48 @@ body::-webkit-scrollbar-thumb:hover {
     border-radius: 10%;
     display: flex;
     justify-content: center;
+}
+#message-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.4s ease;
+}
+
+.message-box {
+  background-color: #bdbdbd;
+  color: #2a2a2a;
+  padding: 20px 40px;
+  border-radius: 16px;
+  font-size: 1.4rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-shadow: 0 0 30px rgba(0,0,0,0.2);
+  animation: popUp 0.4s ease;
+}
+
+@keyframes popUp {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    background-color: rgba(0,0,0,0);
+  }
+  to {
+    background-color: rgba(0,0,0,0.5);
+  }
 }

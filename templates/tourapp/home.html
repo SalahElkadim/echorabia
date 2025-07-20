@@ -39,6 +39,13 @@
 </a>
 
 <body>
+    {% if messages %}
+  <div id="message-overlay">
+    {% for message in messages %}
+      <div class="message-box">{{ message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
@@ -63,7 +70,7 @@
                 {% else %}
                     <li>
                         <a href="{% url 'login' %}" id="open-login-modal" class="auth-btn skyblue">
-                            <i class="fas fa-sign-in-alt"></i> Sign in for staff 
+                            <i class="fas fa-sign-in-alt"></i> Official Use
                         </a>
                     </li>
                 {% endif %}
@@ -111,7 +118,7 @@
         <div class="container">
             <h2 class="section-title">Create Your Tour Now !!</h2>
             <br></br>
-            <form action="{% url 'create_tour' %}" method="POST">
+            <form id="tour-form" action="{% url 'create_tour' %}" method="POST">
             {% csrf_token %}
 
             <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 600px; margin: auto;">
@@ -157,7 +164,7 @@
             <button type="submit" class="book-btn">Submit Tour Request</button>
             </div>
 
-            </div>
+            </div> 
             </form>
         </div>
 
@@ -203,7 +210,7 @@
                         </div>
                     </div>
                 </div>
-                <img src="{% static 'images/1.jpeg' %}" alt="Saudi Arabia Landscape" class="about-image">
+                <img src="{% static 'images/5.webp' %}" alt="Saudi Arabia Landscape" class="about-image">
             </div>
         </div>
     </section>
@@ -229,7 +236,7 @@
                     <p><a href="#home">Home</a></p>
                     <p><a href="#services">Services</a></p>
                     <p><a href="#about">About</a></p>
-                    <p><a href="#contact">Contact</a></p>
+                    <p><a href="https://wa.me/966590807306">Contact</a></p>
                 </div>
                 <div class="footer-section">
                     <h3>Our Services</h3>
@@ -315,6 +322,15 @@
     locale: "en" // يضمن إن اللغة تظل إنجليزية بغض النظر عن إعدادات الجهاز
   });
 </script>
+<script>
+  setTimeout(function () {
+    const overlay = document.getElementById('message-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+  }, 3000);
+</script>
+
     <script src="{% static 'js/overlay.js' %}"></script>
 </body>
 </html>

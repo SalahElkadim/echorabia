@@ -200,33 +200,8 @@ def create_tour_request(request):
             email=email
         )
 
-        messages.success(request, 'Your tour request has been submitted successfully!')
+        messages.success(request, "Thanks, we'll contact you soon!")
         return redirect('home')  # أو redirect('create_tour') لو عندك صفحة تأكيد
 
     return render(request, 'tourapp/home.html')
 
-def validate_file(file, file_type='image'):
-    """
-    التحقق من صحة الملف
-    """
-    if not file:
-        return True, None
-    
-    # التحقق من الحجم
-    max_size = 50 * 1024 * 1024  # 50MB للفيديو
-    if file_type == 'image':
-        max_size = 10 * 1024 * 1024  # 10MB للصور
-    
-    if file.size > max_size:
-        return False, f'حجم الملف كبير جداً. الحد الأقصى {max_size/1024/1024}MB'
-    
-    # التحقق من نوع الملف
-    if file_type == 'image':
-        allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-    else:
-        allowed_types = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv']
-    
-    if file.content_type not in allowed_types:
-        return False, 'نوع الملف غير مدعوم'
-    
-    return True, None
