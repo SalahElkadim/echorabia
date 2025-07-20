@@ -1,5 +1,4 @@
 {% load static %}
-{% load cloudinary_extras %}
 
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -51,7 +50,7 @@
             {% for service in servicecards %}
                 <div class="service-card" id="item-{{ service.id }}">
                 {% if service.image %}
-                <img src="{% get_image_url service.image width=400 height=300 crop='fill' quality='auto' %}" alt="{{ service.title }}" class="image-preview">
+                    <img src="{{ service.image.url }}" alt="{{ service.title }}" class="image-preview" width="400" height="300">
                 {% endif %}
                     <h3>{{ service.title }}</h3>
                     <p>{{ service.description }}</p>

@@ -7,8 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
-import cloudinary.uploader
-import os
+
 
 
 
@@ -60,39 +59,17 @@ def dashboard(request):
                     period=request.POST.get('period')
                 )
                 
-                # معالجة الملفات
+                # رفع الصور محليًا
                 for field_name in ['image1', 'image2', 'image3']:
                     file = request.FILES.get(field_name)
                     if file:
-                        if os.environ.get('RAILWAY_ENVIRONMENT'):
-                            # رفع إلى Cloudinary
-                            result = cloudinary.uploader.upload(
-                                file,
-                                folder='ServiceImages/',
-                                transformation=[
-                                    {'width': 1200, 'height': 800, 'crop': 'fill'},
-                                    {'quality': 'auto'}
-                                ]
-                            )
-                            # حفظ الـ public_id
-                            setattr(booking, f'{field_name}_cloudinary', result['public_id'])
-                        else:
-                            # حفظ محلي
-                            setattr(booking, field_name, file)
+                        setattr(booking, field_name, file)
                 
-                # معالجة الفيديو
+                # رفع الفيديو محليًا
                 video = request.FILES.get('video')
                 if video:
-                    if os.environ.get('RAILWAY_ENVIRONMENT'):
-                        video_result = cloudinary.uploader.upload(
-                            video,
-                            resource_type='video',
-                            folder='videos/'
-                        )
-                        booking.video_cloudinary = video_result['public_id']
-                    else:
-                        booking.video = video
-                
+                    booking.video = video
+
                 booking.save()
                 messages.success(request, 'تم إضافة الحجز بنجاح!')
                 

@@ -51,29 +51,27 @@
         <div class="service-images">
         
 
-<!-- للفيديو -->
-{% if service.video %}
-    <video controls class="video-responsive">
-        <source src="{% get_video_url service.video %}" type="video/mp4">
-        متصفحك لا يدعم عرض الفيديوهات
-    </video>
-{% endif %}
+        <!-- للفيديو -->
+        {% if service_booking.video %}
+            <video controls class="video-responsive" width="800" height="600">
+                <source src="{{ service_booking.video.url }}" type="video/mp4">
+                متصفحك لا يدعم عرض الفيديوهات.
+            </video>
+        {% endif %}
 
-<!-- للصور المتعددة -->
-{% if service_booking.image1 %}
-    <img src="{% get_image_url service_booking.image1 width=800 height=600 crop='fill' quality='auto' %}" 
-         alt="صورة 1">
-{% endif %}
+        <!-- للصور المتعددة -->
+        {% if service_booking.image1 %}
+            <img src="{{ service_booking.image1.url }}" alt="صورة 1" width="800" height="600">
+        {% endif %}
 
-{% if service_booking.image2 %}
-    <img src="{% get_image_url service_booking.image2 width=800 height=600 crop='fill' quality='auto' %}" 
-         alt="صورة 2">
-{% endif %}
+        {% if service_booking.image2 %}
+            <img src="{{ service_booking.image2.url }}" alt="صورة 2" width="800" height="600">
+        {% endif %}
 
-{% if service_booking.image3 %}
-    <img src="{% get_image_url service_booking.image3 width=800 height=600 crop='fill' quality='auto' %}" 
-         alt="صورة 3">
-{% endif %}
+        {% if service_booking.image3 %}
+            <img src="{{ service_booking.image3.url }}" alt="صورة 3" width="800" height="600">
+        {% endif %}
+
 
         <h1>{{ service_booking.title }}</h1>
         <br></br>
