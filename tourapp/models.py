@@ -12,30 +12,29 @@ class CustomUser(AbstractUser):
         return f"{self.username} ({self.role})"
 
 class ServiceBooking(models.Model):
-    # الحقول النصية
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=200)
     description = models.TextField()
-    included = models.TextField(default="", blank=True, null=True)
-    exclusion = models.TextField(default="", blank=True, null=True)
-    note = models.TextField(default="", blank=True, null=True)
-    period = models.CharField(max_length=50)
+    included = models.TextField(blank=True, null=True)
+    exclusion = models.TextField(blank=True, null=True)
+    note = models.TextField(blank=True, null=True)
+    period = models.CharField(max_length=100, blank=True, null=True)
 
-    # الصور والفيديوهات - الطريقة العادية لدجانغو
-    image1 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
-    image2 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
-    image3 = models.ImageField(upload_to='ServiceImages/', blank=True, null=True)
-    video = models.FileField(upload_to='videos/', blank=True, null=True)
+    image1_url = models.URLField(blank=True, null=True)
+    image2_url = models.URLField(blank=True, null=True)
+    image3_url = models.URLField(blank=True, null=True)
+    video_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return self.title
 
 class ServiceCard(models.Model):
-    servicebooking = models.ForeignKey(ServiceBooking, on_delete=models.SET_NULL, null=True, blank=True )
+    servicebooking = models.ForeignKey(ServiceBooking, on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=50)
     description = models.TextField()
-    image = models.ImageField(upload_to="ServiceImages")
+    image_url = models.URLField(blank=True, null=True)  # ← استخدم رابط الصورة من Firebase
+
     def __str__(self):
-        return self.title 
+        return self.title
 
 
 

@@ -7,6 +7,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
+from firebase_utils import upload_file_to_firebase
+import uuid 
 
 
 def login_view(request):
@@ -37,19 +39,15 @@ def home(request):
 def privacy(request):
     return render(request, 'tourapp/privacy.html')
 
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from .models import ServiceCard, ServiceBooking
 
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
     servicecards = ServiceCard.objects.all()
     servicebooking = ServiceBooking.objects.all()
-    
+
     if request.method == 'POST':
         action = request.POST.get('action')
-        
+
         try:
             # إنشاء حجز خدمة
             if action == 'add_booking':
@@ -61,30 +59,41 @@ def dashboard(request):
                     note=request.POST.get('note'),
                     period=request.POST.get('period')
                 )
-                
-                for field_name in ['image1', 'image2', 'image3']:
+
+                # الصور
+                for i, field_name in enumerate(['image1', 'image2', 'image3'], start=1):
                     file = request.FILES.get(field_name)
                     if file:
-                        setattr(booking, field_name, file)
-                
+                        unique_name = f"booking_images/{uuid.uuid4()}_{file.name}"
+                        firebase_url = upload_file_to_firebase(file, unique_name)
+                        setattr(booking, f'image{i}_url', firebase_url)
+
+                # الفيديو
                 video = request.FILES.get('video')
                 if video:
-                    booking.video = video
+                    unique_name = f"booking_videos/{uuid.uuid4()}_{video.name}"
+                    firebase_url = upload_file_to_firebase(video, unique_name)
+                    booking.video_url = firebase_url
 
                 booking.save()
                 messages.success(request, 'تم إضافة الحجز بنجاح!')
 
-            # إنشاء كرت خدمة (ServiceCard)
+            # إنشاء كرت خدمة
             elif action == 'add_card':
                 card_title = request.POST.get('card_title')
                 card_description = request.POST.get('card_description')
                 card_image = request.FILES.get('card_image')
                 booking_id = request.POST.get('card_id')
 
+                image_url = None
+                if card_image:
+                    unique_name = f"card_images/{uuid.uuid4()}_{card_image.name}"
+                    image_url = upload_file_to_firebase(card_image, unique_name)
+
                 card = ServiceCard(
                     title=card_title,
                     description=card_description,
-                    image=card_image
+                    image_url=image_url
                 )
 
                 if booking_id:
@@ -99,13 +108,14 @@ def dashboard(request):
 
         except Exception as e:
             messages.error(request, f'حدث خطأ: {str(e)}')
-            
+
         return redirect('dashboard')
-    
+
     return render(request, 'tourapp/dashboard.html', {
-        'servicecards': servicecards, 
+        'servicecards': servicecards,
         'servicebooking': servicebooking
     })
+
 
 
 @user_passes_test(lambda u: u.is_superuser)
