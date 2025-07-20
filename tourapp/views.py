@@ -37,6 +37,11 @@ def home(request):
 def privacy(request):
     return render(request, 'tourapp/privacy.html')
 
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from .models import ServiceCard, ServiceBooking
+
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
     servicecards = ServiceCard.objects.all()
@@ -46,8 +51,8 @@ def dashboard(request):
         action = request.POST.get('action')
         
         try:
+            # إنشاء حجز خدمة
             if action == 'add_booking':
-                # إنشاء الحجز أولاً
                 booking = ServiceBooking.objects.create(
                     title=request.POST.get('title'),
                     description=request.POST.get('description'),
@@ -57,20 +62,41 @@ def dashboard(request):
                     period=request.POST.get('period')
                 )
                 
-                # رفع الصور محليًا
                 for field_name in ['image1', 'image2', 'image3']:
                     file = request.FILES.get(field_name)
                     if file:
                         setattr(booking, field_name, file)
                 
-                # رفع الفيديو محليًا
                 video = request.FILES.get('video')
                 if video:
                     booking.video = video
 
                 booking.save()
                 messages.success(request, 'تم إضافة الحجز بنجاح!')
-                
+
+            # إنشاء كرت خدمة (ServiceCard)
+            elif action == 'add_card':
+                card_title = request.POST.get('card_title')
+                card_description = request.POST.get('card_description')
+                card_image = request.FILES.get('card_image')
+                booking_id = request.POST.get('card_id')
+
+                card = ServiceCard(
+                    title=card_title,
+                    description=card_description,
+                    image=card_image
+                )
+
+                if booking_id:
+                    try:
+                        booking = ServiceBooking.objects.get(id=booking_id)
+                        card.servicebooking = booking
+                    except ServiceBooking.DoesNotExist:
+                        pass
+
+                card.save()
+                messages.success(request, 'تم إضافة كرت الخدمة بنجاح!')
+
         except Exception as e:
             messages.error(request, f'حدث خطأ: {str(e)}')
             
@@ -80,6 +106,7 @@ def dashboard(request):
         'servicecards': servicecards, 
         'servicebooking': servicebooking
     })
+
 
 @user_passes_test(lambda u: u.is_superuser)
 def delete_item(request):
