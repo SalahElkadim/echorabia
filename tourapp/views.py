@@ -9,8 +9,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 
 
-
-
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
