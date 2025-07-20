@@ -121,12 +121,11 @@ EMAIL_HOST_USER = 'echorabia@gmail.com'
 EMAIL_HOST_PASSWORD = 'tjfj smhr ejil khyv'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-DEBUG = True
-#DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 # إعدادات الأمان عند تفعيل HTTPS
-#SECURE_SSL_REDIRECT = not DEBUG
-#SESSION_COOKIE_SECURE = not DEBUG
-#CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 # مهم جداً مع Railway ونطاق مخصص
-#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
