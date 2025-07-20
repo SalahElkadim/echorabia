@@ -612,9 +612,7 @@ body::-webkit-scrollbar-thumb:hover {
   background: #fcf9f6;
   transition: border-color 0.3s ease;
 }
-.container form input[type="tel"]{
-    width: 27rem;
-}
+
 
 .container form input:focus {
   outline: none;

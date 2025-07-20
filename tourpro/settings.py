@@ -3,8 +3,9 @@ import os
 from pathlib import Path
 import dj_database_url
 import os
+import logging
 
-
+logging.basicConfig(level=logging.DEBUG)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -16,25 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-%e@cg%)coz(6q-fh)fvv*s5$pj+9g%sog%(8u4%)pjkn^p5#a0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
+DEBUG = False
 ALLOWED_HOSTS = ['echorabia-production.up.railway.app', '127.0.0.1', 'localhost']
 CSRF_TRUSTED_ORIGINS = [
     'https://echorabia-production.up.railway.app',

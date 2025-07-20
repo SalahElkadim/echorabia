@@ -51,24 +51,24 @@
         
 
         <!-- للفيديو -->
-        {% if service_booking.video %}
-            <video controls class="video-responsive" width="800" height="600">
-                <source src="{{ service_booking.video.url }}" type="video/mp4">
-                متصفحك لا يدعم عرض الفيديوهات.
+        {% if service.video_url %}
+            <video controls class="video-responsive">
+                <source src="{{ service.video_url }}" type="video/mp4">
+                متصفحك لا يدعم عرض الفيديوهات
             </video>
         {% endif %}
 
         <!-- للصور المتعددة -->
-        {% if service_booking.image1 %}
-            <img src="{{ service_booking.image1.url }}" alt="صورة 1" width="800" height="600">
+        {% if service.image1_url %}
+            <img src="{{ service.image1_url }}" alt="صورة 1" width="800" height="600">
         {% endif %}
 
-        {% if service_booking.image2 %}
-            <img src="{{ service_booking.image2.url }}" alt="صورة 2" width="800" height="600">
+        {% if service.image2_url %}
+            <img src="{{ service.image2_url }}" alt="صورة 2" width="800" height="600">
         {% endif %}
 
-        {% if service_booking.image3 %}
-            <img src="{{ service_booking.image3.url }}" alt="صورة 3" width="800" height="600">
+        {% if service.image3_url %}
+            <img src="{{ service.image3_url }}" alt="صورة 3" width="800" height="600">
         {% endif %}
 
 
