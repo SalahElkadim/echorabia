@@ -1,32 +1,27 @@
-
 import os
 from pathlib import Path
 import dj_database_url
-import os
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-%e@cg%)coz(6q-fh)fvv*s5$pj+9g%sog%(8u4%)pjkn^p5#a0'
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-ALLOWED_HOSTS = ['echorabia-production.up.railway.app', '127.0.0.1', 'localhost']
+
+ALLOWED_HOSTS = [
+    'echorabia-production.up.railway.app',
+    '127.0.0.1',
+    'localhost'
+]
+
 CSRF_TRUSTED_ORIGINS = [
     'https://echorabia-production.up.railway.app',
 ]
 
-
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -34,22 +29,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tourapp', 
-
+    'tourapp',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-
 ]
-USER_AGENTS_CACHE = 'default'
+
 ROOT_URLCONF = 'tourpro.urls'
 
 TEMPLATES = [
@@ -69,23 +62,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tourpro.wsgi.application'
 
-
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': dj_database_url.parse(
-    'postgresql://postgres:moEaqzdGJqWtTFxDbrKdprqwDbNnNyTj@yamabiko.proxy.rlwy.net:12538/railway',
-    conn_max_age=600,
-    engine='django.db.backends.postgresql_psycopg2'
-)
-
+        'postgresql://postgres:moEaqzdGJqWtTFxDbrKdprqwDbNnNyTj@yamabiko.proxy.rlwy.net:12538/railway',
+        conn_max_age=600,
+        engine='django.db.backends.postgresql_psycopg2'
+    )
 }
-# رفع ملفات كبيرة (مثل الصور)
 
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -100,11 +86,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
 AUTH_USER_MODEL = 'tourapp.CustomUser'
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -114,14 +97,10 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # لو عندك مجلد static في المشروع
+    BASE_DIR / 'static',
 ]
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -129,19 +108,16 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Send Email
+# Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'echorabia@gmail.com'         # بريد صاحب الموقع
+EMAIL_HOST_USER = 'echorabia@gmail.com'
 EMAIL_HOST_PASSWORD = 'tjfj smhr ejil khyv'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

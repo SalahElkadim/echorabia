@@ -7,8 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
-from firebase_utils import upload_file_to_firebase
-import uuid 
+
 
 
 def login_view(request):
@@ -57,25 +56,11 @@ def dashboard(request):
                     included=request.POST.get('included'),
                     exclusion=request.POST.get('exclusion'),
                     note=request.POST.get('note'),
-                    period=request.POST.get('period')
+                    period=request.POST.get('period'),
+                    image1=request.FILES.get('image1'),
+                    image2=request.FILES.get('image2'),
+                    image3=request.FILES.get('image3'),
                 )
-
-                # الصور
-                for i, field_name in enumerate(['image1', 'image2', 'image3'], start=1):
-                    file = request.FILES.get(field_name)
-                    if file:
-                        unique_name = f"booking_images/{uuid.uuid4()}_{file.name}"
-                        firebase_url = upload_file_to_firebase(file, unique_name)
-                        setattr(booking, f'image{i}_url', firebase_url)
-
-                # الفيديو
-                video = request.FILES.get('video')
-                if video:
-                    unique_name = f"booking_videos/{uuid.uuid4()}_{video.name}"
-                    firebase_url = upload_file_to_firebase(video, unique_name)
-                    booking.video_url = firebase_url
-
-                booking.save()
                 messages.success(request, 'تم إضافة الحجز بنجاح!')
 
             # إنشاء كرت خدمة
@@ -85,15 +70,10 @@ def dashboard(request):
                 card_image = request.FILES.get('card_image')
                 booking_id = request.POST.get('card_id')
 
-                image_url = None
-                if card_image:
-                    unique_name = f"card_images/{uuid.uuid4()}_{card_image.name}"
-                    image_url = upload_file_to_firebase(card_image, unique_name)
-
                 card = ServiceCard(
                     title=card_title,
                     description=card_description,
-                    image_url=image_url
+                    image=card_image  # مباشرة من الـ request.FILES
                 )
 
                 if booking_id:

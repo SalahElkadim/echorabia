@@ -49,8 +49,8 @@
         <div class="services-grid" id="services-grid">
             {% for service in servicecards %}
                 <div class="service-card" id="item-{{ service.id }}">
-                {% if service.image_url %}
-                    <img src="{{ service.image_url }}" alt="{{ service.title }}" class="image-preview" width="400" height="300">
+                {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.title }}" class="image-preview" width="400" height="300">
                 {% endif %}
                     <h3>{{ service.title }}</h3>
                     <p>{{ service.description }}</p>

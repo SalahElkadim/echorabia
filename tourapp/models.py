@@ -19,19 +19,19 @@ class ServiceBooking(models.Model):
     note = models.TextField(blank=True, null=True)
     period = models.CharField(max_length=100, blank=True, null=True)
 
-    image1_url = models.URLField(blank=True, null=True)
-    image2_url = models.URLField(blank=True, null=True)
-    image3_url = models.URLField(blank=True, null=True)
-    video_url = models.URLField(blank=True, null=True)
+    image1 = models.ImageField(upload_to='servicebooking_images/', blank=True, null=True)
+    image2 = models.ImageField(upload_to='servicebooking_images/', blank=True, null=True)
+    image3 = models.ImageField(upload_to='servicebooking_images/', blank=True, null=True)
 
     def __str__(self):
         return self.title
+
 
 class ServiceCard(models.Model):
     servicebooking = models.ForeignKey(ServiceBooking, on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=50)
     description = models.TextField()
-    image_url = models.URLField(blank=True, null=True)  # ← استخدم رابط الصورة من Firebase
+    image = models.ImageField(upload_to='servicecard_images/', blank=True, null=True)
 
     def __str__(self):
         return self.title

@@ -50,25 +50,19 @@
         <div class="service-images">
         
 
-        <!-- للفيديو -->
-        {% if service.video_url %}
-            <video controls class="video-responsive">
-                <source src="{{ service.video_url }}" type="video/mp4">
-                متصفحك لا يدعم عرض الفيديوهات
-            </video>
-        {% endif %}
+        
 
         <!-- للصور المتعددة -->
-        {% if service.image1_url %}
-            <img src="{{ service.image1_url }}" alt="صورة 1" width="800" height="600">
+        {% if service.image1 %}
+            <img src="{{ service.image1.url }}" alt="صورة 1" width="800" height="600">
         {% endif %}
 
-        {% if service.image2_url %}
-            <img src="{{ service.image2_url }}" alt="صورة 2" width="800" height="600">
+        {% if service.image2 %}
+            <img src="{{ service.image2.url }}" alt="صورة 2" width="800" height="600">
         {% endif %}
 
-        {% if service.image3_url %}
-            <img src="{{ service.image3_url }}" alt="صورة 3" width="800" height="600">
+        {% if service.image3 %}
+            <img src="{{ service.image3.url }}" alt="صورة 3" width="800" height="600">
         {% endif %}
 
 
