@@ -7,7 +7,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Echorabia - Discover Saudi Arabia</title>
+    <meta name="description" content="EchoRabia offers authentic and unforgettable tours across Saudi Arabia, including Riyadh, AlUla, and more. Discover culture, heritage, and adventure.">
+    <meta name="keywords" content="Saudi Arabia tours, Riyadh tourism, AlUla trips, EchoRabia, discover Saudi, heritage tourism, cultural experiences">
+    <meta name="author" content="EchoRabia">
+    <meta name="robots" content="index, follow">
+    <title>EchoRabia | Authentic Saudi Arabia Tours & Cultural Experiences</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -330,7 +334,30 @@
     }
   }, 3000);
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TouristTrip",
+  "name": "EchoRabia - Saudi Arabia Tours",
+  "description": "Discover Saudi Arabia through EchoRabia's guided cultural and heritage tours.",
+  "image": "https://yourdomain.com/static/images/1.png",
+  "brand": {
+    "@type": "Brand",
+    "name": "EchoRabia"
+  },
+  "provider": {
+    "@type": "Organization",
+    "name": "EchoRabia",
+    "url": "https://www.echorabi.com"
+  },
+  "areaServed": {
+    "@type": "Country",
+    "name": "Saudi Arabia"
+  }
+}
+</script>
 
-    <script src="{% static 'js/overlay.js' %}"></script>
+
+    <script src="{% static 'js/overlay.js' %}" defer></script>
 </body>
 </html>
