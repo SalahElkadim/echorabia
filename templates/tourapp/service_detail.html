@@ -49,6 +49,7 @@
         <div class="service-details" dir="ltr" style="text-align: left;">
         <div class="service-images">
         <!-- للصور المتعددة -->
+         {% for service in service_booking %}
         {% if service.image1 %}
             <img src="{{ service.image1.url }}" alt="صورة 1" >
         {% endif %}
@@ -60,6 +61,7 @@
         {% if service.image3 %}
             <img src="{{ service.image3.url }}" alt="صورة 3">
         {% endif %}
+        {% endfor %}
         </div>
         <h1>{{ service_booking.title }}</h1>
         <br></br>
