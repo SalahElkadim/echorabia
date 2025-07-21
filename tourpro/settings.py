@@ -1,9 +1,6 @@
 import os
 from pathlib import Path
 import dj_database_url
-import cloudinary
-import cloudinary.uploader
-import cloudinary.storage
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
