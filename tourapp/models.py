@@ -21,9 +21,9 @@ class ServiceBooking(models.Model):
     note = models.TextField(blank=True, null=True)
     period = models.CharField(max_length=100, blank=True, null=True)
 
-    image1 = CloudinaryField('image', blank=True, null=True)
-    image2 = CloudinaryField('image', blank=True, null=True)
-    image3 = CloudinaryField('image', blank=True, null=True)
+    image1 = CloudinaryField('image1', blank=True, null=True)
+    image2 = CloudinaryField('image2', blank=True, null=True)
+    image3 = CloudinaryField('image3', blank=True, null=True)
 
     def __str__(self):
         return self.title
