@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 import dj_database_url
-import logging
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,14 +10,12 @@ SECRET_KEY = 'django-insecure-%e@cg%)coz(6q-fh)fvv*s5$pj+9g%sog%(8u4%)pjkn^p5#a0
 
 ALLOWED_HOSTS = [
     'echorabia-production.up.railway.app',
-    '127.0.0.1',
+    '127.0.0.1:8000',
     'localhost',
     'echorabia.com', 'www.echorabia.com'
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://echorabia-production.up.railway.app','https://echorabia.com', 'https://www.echorabia.com',
-]
+CSRF_TRUSTED_ORIGINS = ['https://echorabia-production.up.railway.app','https://echorabia.com', 'https://www.echorabia.com',]
 
 # Application definition
 INSTALLED_APPS = [
@@ -29,7 +26,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tourapp',
+    'cloudinary',
+    'cloudinary_storage',
 ]
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dq0ccrcbt',
+    'API_KEY': '927618814766216',
+    'API_SECRET': 'Ar9WZbl_PYEbSzOmpXxn7zEWJpc',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -104,8 +109,6 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
@@ -120,7 +123,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'echorabia@gmail.com'
 EMAIL_HOST_PASSWORD = 'tjfj smhr ejil khyv'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 # إعدادات الأمان عند تفعيل HTTPS
 SECURE_SSL_REDIRECT = not DEBUG
