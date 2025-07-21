@@ -49,16 +49,16 @@
         <div class="service-details" dir="ltr" style="text-align: left;">
         <div class="service-images">
         <!-- للصور المتعددة -->
-        {% if service.image1 %}
-            <img src="{{ service.image1.url }}" alt="صورة 1" >
+        {% if service_booking.image1 %}
+            <img src="{{ service_booking.image1.url }}" alt="صورة 1" >
         {% endif %}
 
-        {% if service.image2 %}
-            <img src="{{ service.image2.url }}" alt="صورة 2" >
+        {% if service_booking.image2 %}
+            <img src="{{ service_booking.image2.url }}" alt="صورة 2" >
         {% endif %}
 
-        {% if service.image3 %}
-            <img src="{{ service.image3.url }}" alt="صورة 3">
+        {% if service_booking.image3 %}
+            <img src="{{ service_booking.image3.url }}" alt="صورة 3">
         {% endif %}
 
     </div>
