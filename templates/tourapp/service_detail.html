@@ -47,104 +47,102 @@
       
       <div class="container">
         <div class="service-details" dir="ltr" style="text-align: left;">
-        <div class="service-images">
-        <!-- للصور المتعددة -->
-        {% if service_booking.image1 %}
-            <img src="{{ service_booking.image1.url }}" alt="صورة 1" >
-        {% endif %}
+            <div class="service-images">
+            <!-- للصور المتعددة -->
+            {% if service_booking.image1 %}
+                <img src="{{ service_booking.image1.url }}" alt="صورة 1" >
+            {% endif %}
 
-        {% if service_booking.image2 %}
-            <img src="{{ service_booking.image2.url }}" alt="صورة 2" >
-        {% endif %}
+            {% if service_booking.image2 %}
+                <img src="{{ service_booking.image2.url }}" alt="صورة 2" >
+            {% endif %}
 
-        {% if service_booking.image3 %}
-            <img src="{{ service_booking.image3.url }}" alt="صورة 3">
-        {% endif %}
+            {% if service_booking.image3 %}
+                <img src="{{ service_booking.image3.url }}" alt="صورة 3">
+            {% endif %}
+            </div>
+            <h1>{{ service_booking.title }}</h1>
+            <br></br>
+            <p>{{ service_booking.description|linebreaksbr }}</p>
 
-    </div>
-        <h1>{{ service_booking.title }}</h1>
-        <br></br>
-        <p>{{ service_booking.description|linebreaksbr }}</p>
-
-        <button class="accordion"> What's included?  </button>
-        <div class="panel">
-        <p>{{ service_booking.included }}</p>
+            <button class="accordion"> What's included?  </button>
+            <div class="panel">
+            <p>{{ service_booking.included }}</p>
+            </div>
+            <button class="accordion"> Exclusions </button>
+            <div class="panel">
+            <p>{{ service_booking.exclusion }}</p>
+            </div>
+            <button class="accordion"> Please note </button>
+            <div class="panel">
+            <p>{{ service_booking.note }}</p>
+            </div>
+            <br></br>
+            <button class="book-btn">Book Now</button>
         </div>
-        <button class="accordion"> Exclusions </button>
-        <div class="panel">
-        <p>{{ service_booking.exclusion }}</p>
-        </div>
-        <button class="accordion"> Please note </button>
-        <div class="panel">
-        <p>{{ service_booking.note }}</p>
-        </div>
-        <br></br>
-        <button class="book-btn">Book Now</button>
         <!-- Overlay & Modal -->
         <form id="bookingForm">
-        <div id="bookingModal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h2>Complete Booking</h2>
-          {% csrf_token %}
-        <label>Number of Adults:</label>
-        <input type="number" name="adults" required>
+            <div id="bookingModal" class="modal-overlay" style="display:none;">
+            <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Complete Booking</h2>
+            {% csrf_token %}
+            <label>Number of Adults:</label>
+            <input type="number" name="adults" required>
 
-        <label>Full Name:</label>
-        <input type="text" name="name" required>
+            <label>Full Name:</label>
+            <input type="text" name="name" required>
 
-        <label>Email Address:</label>
-        <input type="email" name="email" required>
+            <label>Email Address:</label>
+            <input type="email" name="email" required>
 
-        <label for="phone">Phone Number:</label>
-        <input type="tel" id="phone" name="phone" required>
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" name="phone" required>
 
-        <label>Booking Date:</label>
-        <input type="date" id="tour_date" name="booking_date" lang="en" required>
+            <label>Booking Date:</label>
+            <input type="date" id="tour_date" name="booking_date" lang="en" required>
 
-        <label>Do you have any medical conditions?</label>
-        <input type="text" name="disease" placeholder="If you have a condition, please specify" required>
-
-
-        <br></br>
-        <button class="accordion"> Would you like us to pick you up from your hotel? </button>
-        <div class="panel">
-        <label>Hotel Name (Optional):</label>
-        <input type="text" name="hotel">
-
-        <label>Room Number (Optional):</label>
-        <input type="text" name="room_number">
-        </div>
+            <label>Do you have any medical conditions?</label>
+            <input type="text" name="disease" placeholder="If you have a condition, please specify" required>
 
 
-        <br></br>
-        <button class="accordion"> Where should we drop you off? </button>
-        <div class="panel">
-        <select name="dropoff" id="dropoff" required>
-        <option value="">-- Please choose an option --</option>
-        <option value="none">I don’t need</option>
-        <option value="riyadh">Riyadh</option>
-        </select>
-        </div>
+            <br></br>
+            <button class="accordion"> Would you like us to pick you up from your hotel? </button>
+            <div class="panel">
+            <label>Hotel Name (Optional):</label>
+            <input type="text" name="hotel">
 
-        <br></br>
+            <label>Room Number (Optional):</label>
+            <input type="text" name="room_number">
+            </div>
 
-        <button class="accordion"> Cancellation Policy </button>
-        <div class="panel">
-        <p id="cancellationPolicyText">
-            <!-- سيتم ملء النص تلقائياً بالـ JS -->
-        </p>
-        </div>
 
-        <label>
-        <input type="checkbox" name="cancellation_policy" required>
-        I agree to the cancellation policy
-        </label>
+            <br></br>
+            <button class="accordion"> Where should we drop you off? </button>
+            <div class="panel">
+            <select name="dropoff" id="dropoff" required>
+            <option value="">-- Please choose an option --</option>
+            <option value="none">I don’t need</option>
+            <option value="riyadh">Riyadh</option>
+            </select>
+            </div>
 
-        <button type="submit">Confirm Booking</button>
+            <br></br>
+
+            <button class="accordion"> Cancellation Policy </button>
+            <div class="panel">
+            <p id="cancellationPolicyText">
+                <!-- سيتم ملء النص تلقائياً بالـ JS -->
+            </p>
+            </div>
+
+            <label>
+            <input type="checkbox" name="cancellation_policy" required>
+            I agree to the cancellation policy
+            </label>
+
+            <button type="submit">Confirm Booking</button>
         </form>
-        </div>
-        </div>
         <div id="successOverlay" style="display: none;">
         <div class="overlay-message">
             Booking confirmed successfully!
