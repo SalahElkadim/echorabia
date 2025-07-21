@@ -10,6 +10,7 @@ from django.core.mail import send_mail
 
 
 
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -43,13 +44,14 @@ def privacy(request):
 def dashboard(request):
     servicecards = ServiceCard.objects.all()
     servicebooking = ServiceBooking.objects.all()
-
+    
     if request.method == 'POST':
         action = request.POST.get('action')
-
+        
         try:
             # إنشاء حجز خدمة
             if action == 'add_booking':
+                # مع CloudinaryField، Django بيتعامل مع رفع الصور تلقائياً
                 booking = ServiceBooking.objects.create(
                     title=request.POST.get('title'),
                     description=request.POST.get('description'),
@@ -57,40 +59,42 @@ def dashboard(request):
                     exclusion=request.POST.get('exclusion'),
                     note=request.POST.get('note'),
                     period=request.POST.get('period'),
-                    image1=request.FILES.get('image1'),
+                    image1=request.FILES.get('image1'),  # CloudinaryField بيرفع الصورة تلقائياً
                     image2=request.FILES.get('image2'),
                     image3=request.FILES.get('image3'),
                 )
                 messages.success(request, 'تم إضافة الحجز بنجاح!')
-
+            
             # إنشاء كرت خدمة
             elif action == 'add_card':
                 card_title = request.POST.get('card_title')
                 card_description = request.POST.get('card_description')
                 card_image = request.FILES.get('card_image')
                 booking_id = request.POST.get('card_id')
-
+                
+                # إنشاء الكرت - CloudinaryField بيتعامل مع الصورة تلقائياً
                 card = ServiceCard(
                     title=card_title,
                     description=card_description,
                     image=card_image  # مباشرة من الـ request.FILES
                 )
-
+                
+                # ربط الكرت بالحجز إذا كان موجود
                 if booking_id:
                     try:
                         booking = ServiceBooking.objects.get(id=booking_id)
                         card.servicebooking = booking
                     except ServiceBooking.DoesNotExist:
                         pass
-
+                
                 card.save()
                 messages.success(request, 'تم إضافة كرت الخدمة بنجاح!')
-
+        
         except Exception as e:
             messages.error(request, f'حدث خطأ: {str(e)}')
-
+        
         return redirect('dashboard')
-
+    
     return render(request, 'tourapp/dashboard.html', {
         'servicecards': servicecards,
         'servicebooking': servicebooking

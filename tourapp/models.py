@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import datetime
+from cloudinary.models import CloudinaryField
+
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -19,9 +21,9 @@ class ServiceBooking(models.Model):
     note = models.TextField(blank=True, null=True)
     period = models.CharField(max_length=100, blank=True, null=True)
 
-    image1 = models.ImageField(upload_to='servicebooking_images/', blank=True, null=True)
-    image2 = models.ImageField(upload_to='servicebooking_images/', blank=True, null=True)
-    image3 = models.ImageField(upload_to='servicebooking_images/', blank=True, null=True)
+    image1 = CloudinaryField('image', blank=True, null=True)
+    image2 = CloudinaryField('image', blank=True, null=True)
+    image3 = CloudinaryField('image', blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -31,7 +33,7 @@ class ServiceCard(models.Model):
     servicebooking = models.ForeignKey(ServiceBooking, on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=50)
     description = models.TextField()
-    image = models.ImageField(upload_to='servicecard_images/', blank=True, null=True)
+    image = CloudinaryField('image', blank=True, null=True)
 
     def __str__(self):
         return self.title
