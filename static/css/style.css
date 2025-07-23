@@ -763,3 +763,8 @@ animation: pulse 3s ease-in-out infinite;
     box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
   }
 }
+@media (max-width: 480px) {
+    .video{
+        width: 280px;
+    }
+}
