@@ -734,10 +734,13 @@ border-radius: 20px;
 overflow: hidden;
 box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
 background-color: #fff;
-width: 100%;
+width: 600px;
 animation: pulse 3s ease-in-out infinite;
 }
-#cont{
+.cont{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
