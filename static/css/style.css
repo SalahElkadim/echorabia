@@ -735,7 +735,7 @@ overflow: hidden;
 box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
 background-color: #fff;
 max-width: 800px;
-width: 30%;
+width: 100%;
 animation: pulse 3s ease-in-out infinite;
 }
 
