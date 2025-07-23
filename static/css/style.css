@@ -211,6 +211,42 @@ body::-webkit-scrollbar-thumb:hover {
             background: #ffae00;
             text-shadow: 2px 2px 4px rgba(209, 170, 129, 0.9);
         }
+        .cont{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+    .video{
+    border: 8px solid #8B4513; /* بني غامق */
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
+    background-color: #fff;
+    width: 600px;
+    animation: pulse 3s ease-in-out infinite;
+    }
+
+
+
+/* Animation */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 45px rgba(139, 69, 19, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
+  }
+}
 
         .services-grid {
             display: grid;
@@ -459,6 +495,9 @@ body::-webkit-scrollbar-thumb:hover {
             .mobile-menu {
                 display: block;
             }
+            .video{
+                width: 280px;
+            }
 
             .nav-links {
                 position: fixed;
@@ -521,6 +560,9 @@ body::-webkit-scrollbar-thumb:hover {
 
             .about {
                 padding: 3rem 0;
+            }
+            .video{
+                width: 280px;
             }
         }
         #policy{
@@ -664,7 +706,9 @@ body::-webkit-scrollbar-thumb:hover {
 .iti {
   width: 100%;
 }
-
+.video{
+        width: 280px;
+    }
 .iti--allow-dropdown {
   display: flex;
   align-items: center;
@@ -726,45 +770,4 @@ body::-webkit-scrollbar-thumb:hover {
   to {
     background-color: rgba(0,0,0,0.5);
   }
-}
-.cont{
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-.video{
-border: 8px solid #8B4513; /* بني غامق */
-border-radius: 20px;
-overflow: hidden;
-box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
-background-color: #fff;
-width: 600px;
-animation: pulse 3s ease-in-out infinite;
-}
-
-
-
-/* Animation */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
-  }
-  50% {
-    transform: scale(1.02);
-    box-shadow: 0 0 45px rgba(139, 69, 19, 0.6);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
-  }
-}
-@media (max-width: 480px) {
-    .video{
-        width: 280px;
-    }
 }
