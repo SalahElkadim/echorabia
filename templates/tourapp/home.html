@@ -112,7 +112,6 @@
     <section class="services" id="services">
         <div class="container">
             <h2 class="section-title">Enjoy Our Tours</h2>
-            <br></br>
             <div class="services-grid">
                 {% for card in servicecards %}
                     <div class="service-card">
@@ -135,7 +134,6 @@
         <!---->
         <div class="container">
             <h2 class="section-title">Create Your Tour Now !!</h2>
-            <br></br>
             <form id="tour-form" action="{% url 'create_tour' %}" method="POST">
             {% csrf_token %}
 
@@ -208,7 +206,7 @@
                         <p>To become the leading brand in Saudi heritage tourism — echoing the past, shaping the present, and inspiring the future of travel in the Kingdom.</p>
                     </div>
                     
-                    <h3 class = "titleabout"style="margin-bottom: 1.5rem;">Why EchoRabi?</h3>
+                    <h3 class = "titleabout"style="margin-bottom: 1.5rem;">Why EchoRabia?</h3>
                     <div class="why-echorabi">
                         <div class="feature-item">
                             <i class="fas fa-users"></i>
