@@ -172,8 +172,8 @@ body::-webkit-scrollbar-thumb:hover {
     }
 
     .image-preview {
-      width: 350px;
-      height: 230px;
+      width: 400px;
+      height: 400px;
       object-fit: cover;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       transition: transform 0.3s ease;
@@ -508,6 +508,7 @@ button.book-btn:hover {
             padding-top: 2rem;
             border-top: 1px solid #444;
             color: #999;
+            font-size: 12px;
         }
 
         /* Animations */
