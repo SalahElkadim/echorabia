@@ -728,22 +728,17 @@ body::-webkit-scrollbar-thumb:hover {
   }
 }
 
-.video-container {
-  border: 8px solid #8B4513; /* بني غامق */
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
-  animation: pulse 3s ease-in-out infinite;
-  background-color: #fff;
-  max-width: 800px;
-  width: 100%;
+.video{
+border: 8px solid #8B4513; /* بني غامق */
+border-radius: 20px;
+overflow: hidden;
+box-shadow: 0 0 30px rgba(139, 69, 19, 0.4);
+background-color: #fff;
+max-width: 800px;
+width: 30%;
+animation: pulse 3s ease-in-out infinite;
 }
 
-.video-container video {
-  width: 100%;
-  height: auto;
-  display: block;
-}
 
 /* Animation */
 @keyframes pulse {
