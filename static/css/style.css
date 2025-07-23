@@ -728,7 +728,7 @@ body::-webkit-scrollbar-thumb:hover {
   }
 }
 
-video{
+.video{
 border: 8px solid #8B4513; /* بني غامق */
 border-radius: 20px;
 overflow: hidden;
