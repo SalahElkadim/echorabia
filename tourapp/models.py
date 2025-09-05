@@ -75,7 +75,7 @@ from django.utils import timezone
 class Review(models.Model):
     name = models.CharField(max_length=100)  # اسم العميل
     email = models.EmailField()  # البريد (اختياري تعرضه أو تخزنه بس)
-    rating = models.PositiveIntegerField(default=5)  # التقييم من 1 لـ 5
+    rating = models.PositiveIntegerField()  # التقييم من 1 لـ 5
     comment = models.TextField()  # نص الريفيو
     created_at = models.DateTimeField(default=timezone.now)
 

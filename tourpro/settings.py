@@ -10,10 +10,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-%e@cg%)coz(6q-fh)fvv*s5$pj+9g%sog%(8u4%)pjkn^p5#a0'
 
+CLOUDINARY_CLOUD_NAME='dwbj2vy74'
+CLOUDINARY_API_KEY='284199794227834'
+CLOUDINARY_API_SECRET='yCEYIorrpcNScBUf-TjeffHQRjg'
+
+USE_L10N = False
+
 
 ALLOWED_HOSTS = [
     'echorabia-production.up.railway.app',
-    '127.0.0.1:8000',
+    '127.0.0.1',
     'localhost',
     'echorabia.com', 'www.echorabia.com'
 ]
@@ -35,18 +41,18 @@ INSTALLED_APPS = [
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+    'CLOUD_NAME': 'dwbj2vy74',
+    'API_KEY': '284199794227834',
+    'API_SECRET': 'yCEYIorrpcNScBUf-TjeffHQRjg'
 }
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
 cloudinary.config(
-    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    api_key=os.environ.get('CLOUDINARY_API_KEY'),
-    api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+    cloud_name='dwbj2vy74',
+    api_key='284199794227834',
+    api_secret='yCEYIorrpcNScBUf-TjeffHQRjg'
 )
 
 MIDDLEWARE = [

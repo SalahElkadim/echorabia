@@ -7,8 +7,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
-
-
+from .models import Review
+from .forms import ReviewForm
 
 
 def login_view(request):
@@ -35,14 +35,25 @@ def logout_view(request):
 def home(request):
     servicecards = ServiceCard.objects.all()
     reviews = Review.objects.order_by('-created_at')  # كل الريفيوز
+
     if request.method == "POST":
         form = ReviewForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('home')  # إعادة تحميل الصفحة
     else:
-        form = ReviewForm() # آخر 5 ريفيوز
-    return render(request, 'tourapp/home.html', {'servicecards' : servicecards, "reviews": reviews})
+        form = ReviewForm()
+
+    return render(
+        request,
+        'tourapp/home.html',
+        {
+            'servicecards': servicecards,
+            'reviews': reviews,
+            'form': form,   # ✅ لازم تبعتها هنا
+        }
+    )
+
 
 def privacy(request):
     return render(request, 'tourapp/privacy.html')
@@ -217,18 +228,3 @@ def create_tour_request(request):
 
     return render(request, 'tourapp/home.html')
 
-from django.shortcuts import render, redirect
-from .models import Review
-from .forms import ReviewForm
-
-def reviews_section(request):
-    reviews = Review.objects.order_by('-created_at')  # آخر الريفيوز
-    if request.method == "POST":
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('reviews')  # نفس الصفحة بعد الإرسال
-    else:
-        form = ReviewForm()
-
-    return render(request, "reviews_section.html", {"reviews": reviews, "form": form})

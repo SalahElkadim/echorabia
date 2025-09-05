@@ -226,53 +226,67 @@
                         </div>
                     </div>
                 </div>
-                <img src="{% static 'images/5.webp' %}" alt="Saudi Arabia Landscape" class="about-image">
+                <img src="{% static 'images/888.jpg' %}" alt="Saudi Arabia Landscape" class="about-image">
             </div>
         </div>
     </section>
 
     <!-- قسم الريفيوز -->
-    <section id="reviews" class="p-10 bg-gray-100 rounded-2xl my-12">
-    <h2 class="text-3xl font-bold text-center mb-8">آراء عملاؤنا</h2>
+    <!-- قسم الريفيوز -->
+    <section id="reviews" class="reviews-section">
+    <h2 class="section-title">Reviews</h2>
 
     <!-- Carousel -->
-    <div id="carouselExample" class="relative overflow-hidden w-full max-w-3xl mx-auto">
-        <div class="flex transition-transform duration-500" id="carousel-inner">
+    <div id="carouselExample" class="carousel">
+        <div class="carousel-inner" id="carousel-inner">
         {% for review in reviews %}
-        <div class="min-w-full p-6 bg-white rounded-xl shadow mx-2">
-            <p class="font-semibold text-lg mb-2">{{ review.name }}</p>
-            <p class="text-yellow-500 mb-2">⭐ {{ review.rating }}/5</p>
-            <p class="text-gray-700 italic">"{{ review.comment }}"</p>
-            <small class="text-gray-500">{{ review.created_at|date:"d M Y" }}</small>
+        <div class="review-card">
+            <p class="review-name">{{ review.name }}</p>
+
+            <!-- النجوم -->
+            <div class="stars">
+            {% for i in "12345" %}
+                {% if forloop.counter <= review.rating %}
+                    <span class="star filled">★</span>
+                {% else %}
+                    <span class="star">★</span>
+                {% endif %}
+            {% endfor %}
+            </div>
+
+            <p class="review-comment">"{{ review.comment }}"</p>
+            <small class="review-date">{{ review.created_at|date:"d M Y" }}</small>
         </div>
         {% empty %}
-        <div class="min-w-full p-6 bg-white rounded-xl shadow text-center">
-            <p class="text-gray-500">لا يوجد تقييمات بعد 👌</p>
+        <div class="review-card">
+            <p class="no-reviews">No Reviews</p>
         </div>
         {% endfor %}
         </div>
 
         <!-- أزرار التنقل -->
-        <button onclick="moveSlide(-1)" class="absolute top-1/2 left-0 -translate-y-1/2 bg-gray-700 text-white px-3 py-2 rounded-r">
-        ‹
-        </button>
-        <button onclick="moveSlide(1)" class="absolute top-1/2 right-0 -translate-y-1/2 bg-gray-700 text-white px-3 py-2 rounded-l">
-        ›
-        </button>
+        <button onclick="moveSlide(-1)" class="carousel-btn left">‹</button>
+        <button onclick="moveSlide(1)" class="carousel-btn right">›</button>
     </div>
 
     <!-- Form -->
-    <div class="mt-10 bg-white p-6 rounded-xl shadow max-w-xl mx-auto">
-        <h3 class="text-xl font-semibold mb-4">شاركنا رأيك</h3>
+    <div class="review-form">
         <form method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-            أرسل رأيك
-        </button>
+        {{ form.name }}
+        {{ form.email }}
+
+        <!-- البوكس والنجوم -->
+        <div class="rating-wrapper">
+            {{ form.rating }}
+        </div>
+
+        {{ form.comment }}
+        <button type="submit" class="submit-btn">Post your review Now!!</button>
         </form>
     </div>
     </section>
+
     <!-- Footer -->
     <footer class="footer" id="contact">
         <div class="container">
@@ -284,11 +298,13 @@
                     <p><i class="fas fa-envelope"></i> info@echorabi.com</p>
                     <p><a href="https://wa.me/966590807306">Contact</a></p>
                     <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://www.facebook.com/share/17FWEssHkG/"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/echorabia?igsh=NTE4NnN4ZnE4bHdi"><i class="fab fa-instagram"></i></a>
                     </div>
+                    <div>
+                        <img src="{% static 'images/333.jpg' %}" class = "minstry" alt="وزارة السياحة">
+                        <p>Licence.No: 7050645949</p>
+                        </div>
                 </div>
                 <div class="footer-section">
                     <h3>Our Services</h3>
@@ -404,22 +420,101 @@
   }
 }
 </script>
-<!-- Script للـ Carousel -->
-    <script>
-    let index = 0;
-    const slides = document.querySelectorAll("#carousel-inner > div");
-    function showSlide(i) {
-    index = (i + slides.length) % slides.length;
-    document.getElementById("carousel-inner").style.transform = 
-        `translateX(-${index * 100}%)`;
-    }
-    function moveSlide(step) {
-    showSlide(index + step);
-    }
-    // Auto slide
-    setInterval(() => moveSlide(1), 5000);
-    </script>
+<script>
+// الكاروسيل - كويس
+let index = 0;
+const slides = document.querySelectorAll("#carousel-inner > div");
 
-    <script src="{% static 'js/overlay.js' %}" defer></script>
+function showSlide(i) {
+  index = (i + slides.length) % slides.length;
+  document.getElementById("carousel-inner").style.transform =
+    `translateX(-${index * 100}%)`;
+}
+
+function moveSlide(step) {
+  showSlide(index + step);
+}
+
+// Auto slide
+setInterval(() => moveSlide(1), 5000);
+
+// النجوم التفاعلية - مُصحح
+document.addEventListener('DOMContentLoaded', function() {
+  const ratingInput = document.querySelector("#id_rating");
+  
+  // إنشاء div للنجوم إذا لم يكن موجود
+  let starsDiv = document.getElementById("interactive-stars");
+  if (!starsDiv) {
+    starsDiv = document.createElement("div");
+    starsDiv.id = "interactive-stars";
+    starsDiv.className = "interactive-stars";
+    
+    // إدراج النجوم بعد rating input
+    if (ratingInput) {
+      ratingInput.parentNode.insertBefore(starsDiv, ratingInput.nextSibling);
+    }
+  }
+
+  if (!ratingInput || !starsDiv) return; // تأكد من وجود العناصر
+
+  // إنشاء 5 نجوم
+  starsDiv.innerHTML = ''; // مسح النجوم السابقة
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement("span");
+    star.innerHTML = "★";
+    star.dataset.value = i;
+    star.className = "interactive-star";
+    starsDiv.appendChild(star);
+  }
+
+  // دالة عرض النجوم بناءً على قيمة البوكس
+  function renderStars(value) {
+    const stars = starsDiv.querySelectorAll(".interactive-star");
+    stars.forEach(star => {
+      star.classList.toggle("active", star.dataset.value <= value);
+    });
+  }
+
+  // أول مرة
+  renderStars(ratingInput.value || 0);
+
+  // تغيير الرقم → يغير النجوم
+  ratingInput.addEventListener("input", () => {
+    renderStars(ratingInput.value);
+  });
+
+  // الضغط على النجمة → يغير قيمة البوكس
+  starsDiv.addEventListener("click", e => {
+    if (e.target.classList.contains("interactive-star")) {
+      const value = e.target.dataset.value;
+      ratingInput.value = value;
+      renderStars(value);
+    }
+  });
+
+  // hover effect
+  starsDiv.addEventListener("mouseover", e => {
+    if (e.target.classList.contains("interactive-star")) {
+      const value = e.target.dataset.value;
+      renderStars(value);
+    }
+  });
+
+  // عودة للقيمة الأصلية عند ترك الماوس
+  starsDiv.addEventListener("mouseleave", () => {
+    renderStars(ratingInput.value);
+  });
+});
+</script>
+<script>
+document.getElementById('welcomeVideo').addEventListener('click', function() {
+    if (this.paused) {
+        this.play();
+    } else {
+        this.pause();
+    }
+});
+</script>
+<script src="{% static 'js/overlay.js' %}" defer></script>
 </body>
 </html>
