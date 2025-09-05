@@ -67,3 +67,17 @@ class TourRequest(models.Model):
 
     def __str__(self):
         return f"{self.full_name} - {self.destination}"
+    
+
+from django.db import models
+from django.utils import timezone
+
+class Review(models.Model):
+    name = models.CharField(max_length=100)  # اسم العميل
+    email = models.EmailField()  # البريد (اختياري تعرضه أو تخزنه بس)
+    rating = models.PositiveIntegerField(default=5)  # التقييم من 1 لـ 5
+    comment = models.TextField()  # نص الريفيو
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.name} - {self.rating}/5"

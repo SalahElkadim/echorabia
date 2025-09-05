@@ -231,6 +231,48 @@
         </div>
     </section>
 
+    <!-- قسم الريفيوز -->
+    <section id="reviews" class="p-10 bg-gray-100 rounded-2xl my-12">
+    <h2 class="text-3xl font-bold text-center mb-8">آراء عملاؤنا</h2>
+
+    <!-- Carousel -->
+    <div id="carouselExample" class="relative overflow-hidden w-full max-w-3xl mx-auto">
+        <div class="flex transition-transform duration-500" id="carousel-inner">
+        {% for review in reviews %}
+        <div class="min-w-full p-6 bg-white rounded-xl shadow mx-2">
+            <p class="font-semibold text-lg mb-2">{{ review.name }}</p>
+            <p class="text-yellow-500 mb-2">⭐ {{ review.rating }}/5</p>
+            <p class="text-gray-700 italic">"{{ review.comment }}"</p>
+            <small class="text-gray-500">{{ review.created_at|date:"d M Y" }}</small>
+        </div>
+        {% empty %}
+        <div class="min-w-full p-6 bg-white rounded-xl shadow text-center">
+            <p class="text-gray-500">لا يوجد تقييمات بعد 👌</p>
+        </div>
+        {% endfor %}
+        </div>
+
+        <!-- أزرار التنقل -->
+        <button onclick="moveSlide(-1)" class="absolute top-1/2 left-0 -translate-y-1/2 bg-gray-700 text-white px-3 py-2 rounded-r">
+        ‹
+        </button>
+        <button onclick="moveSlide(1)" class="absolute top-1/2 right-0 -translate-y-1/2 bg-gray-700 text-white px-3 py-2 rounded-l">
+        ›
+        </button>
+    </div>
+
+    <!-- Form -->
+    <div class="mt-10 bg-white p-6 rounded-xl shadow max-w-xl mx-auto">
+        <h3 class="text-xl font-semibold mb-4">شاركنا رأيك</h3>
+        <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+            أرسل رأيك
+        </button>
+        </form>
+    </div>
+    </section>
     <!-- Footer -->
     <footer class="footer" id="contact">
         <div class="container">
@@ -362,7 +404,21 @@
   }
 }
 </script>
-
+<!-- Script للـ Carousel -->
+    <script>
+    let index = 0;
+    const slides = document.querySelectorAll("#carousel-inner > div");
+    function showSlide(i) {
+    index = (i + slides.length) % slides.length;
+    document.getElementById("carousel-inner").style.transform = 
+        `translateX(-${index * 100}%)`;
+    }
+    function moveSlide(step) {
+    showSlide(index + step);
+    }
+    // Auto slide
+    setInterval(() => moveSlide(1), 5000);
+    </script>
 
     <script src="{% static 'js/overlay.js' %}" defer></script>
 </body>

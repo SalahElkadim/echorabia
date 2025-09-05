@@ -34,7 +34,15 @@ def logout_view(request):
 
 def home(request):
     servicecards = ServiceCard.objects.all()
-    return render(request, 'tourapp/home.html', {'servicecards' : servicecards})
+    reviews = Review.objects.order_by('-created_at')  # كل الريفيوز
+    if request.method == "POST":
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')  # إعادة تحميل الصفحة
+    else:
+        form = ReviewForm() # آخر 5 ريفيوز
+    return render(request, 'tourapp/home.html', {'servicecards' : servicecards, "reviews": reviews})
 
 def privacy(request):
     return render(request, 'tourapp/privacy.html')
@@ -209,3 +217,18 @@ def create_tour_request(request):
 
     return render(request, 'tourapp/home.html')
 
+from django.shortcuts import render, redirect
+from .models import Review
+from .forms import ReviewForm
+
+def reviews_section(request):
+    reviews = Review.objects.order_by('-created_at')  # آخر الريفيوز
+    if request.method == "POST":
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('reviews')  # نفس الصفحة بعد الإرسال
+    else:
+        form = ReviewForm()
+
+    return render(request, "reviews_section.html", {"reviews": reviews, "form": form})
