@@ -13,7 +13,6 @@ SECRET_KEY = 'django-insecure-%e@cg%)coz(6q-fh)fvv*s5$pj+9g%sog%(8u4%)pjkn^p5#a0
 CLOUDINARY_CLOUD_NAME='dwbj2vy74'
 CLOUDINARY_API_KEY='284199794227834'
 CLOUDINARY_API_SECRET='yCEYIorrpcNScBUf-TjeffHQRjg'
-
 USE_L10N = False
 
 
