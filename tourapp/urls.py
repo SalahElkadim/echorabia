@@ -14,6 +14,9 @@ urlpatterns = [
     path('service/<int:service_id>/', views.service_detail, name='service_detail'),
     path('book-service/<int:service_id>/', views.book_service, name='book_service'),
     path('create-tour/', views.create_tour_request, name='create_tour'),
+    path('payments/callback/', views.payment_callback, name='payment_callback'),
+    
+
 
 
 

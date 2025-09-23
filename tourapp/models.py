@@ -12,6 +12,7 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="customer")
     def __str__(self):
         return f"{self.username} ({self.role})"
+    
 
 class ServiceBooking(models.Model):
     title = models.CharField(max_length=200)
@@ -20,14 +21,13 @@ class ServiceBooking(models.Model):
     exclusion = models.TextField(blank=True, null=True)
     note = models.TextField(blank=True, null=True)
     period = models.CharField(max_length=100, blank=True, null=True)
-
+    cost = models.IntegerField(default=100)
     image1 = CloudinaryField('image1', blank=True, null=True)
     image2 = CloudinaryField('image2', blank=True, null=True)
     image3 = CloudinaryField('image3', blank=True, null=True)
 
     def __str__(self):
         return self.title
-
 
 class ServiceCard(models.Model):
     servicebooking = models.ForeignKey(ServiceBooking, on_delete=models.SET_NULL, null=True, blank=True)
@@ -55,6 +55,15 @@ class Booking(models.Model):
     def __str__(self):
         return f"{self.name}"
 
+class Payment(models.Model):
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name="payment")
+    moyasar_id = models.CharField(max_length=200, blank=True, null=True)
+    status = models.CharField(max_length=50, default="pending")  # pending, paid, failed
+    amount = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payment {self.id} - {self.status}"
 
 class TourRequest(models.Model):
     full_name = models.CharField(max_length=100)

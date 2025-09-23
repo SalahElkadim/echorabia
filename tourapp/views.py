@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import ServiceBooking, ServiceCard, Booking, TourRequest
+from .models import ServiceBooking, ServiceCard, Booking, TourRequest,Payment
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
@@ -9,7 +9,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 from .models import Review
 from .forms import ReviewForm
-
+import requests
+from django.conf import settings
 
 def login_view(request):
     if request.method == 'POST':
@@ -143,66 +144,57 @@ def service_detail(request, service_id):
     return render(request, 'tourapp/service_detail.html', context)
 
 
+
 def book_service(request, service_id):
     if request.method == 'POST':
         service = get_object_or_404(ServiceBooking, id=service_id)
 
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        phone = request.POST.get('phone')
-        numofadult = int(request.POST.get('adults'))
-        date = request.POST.get('booking_date')
-        hotel = request.POST.get('hotel', '')
-        room = request.POST.get('room_number', '')
-        dropoff = request.POST.get('dropoff', 'I don’t need')
-        policy = request.POST.get('cancellation_policy') == 'on'
-        disease = request.POST.get('disease')
-
+        # 1️⃣ إنشاء الحجز مبدئيًا (pending)
         booking = Booking.objects.create(
             servicebooking=service,
-            name=name,
-            email=email,
-            phone=phone,
-            numofadult=numofadult,
-            date=date,
-            hotel=hotel,
-            room=room,
-            dropoff=dropoff,
-            policy=policy,
-            disease=disease
+            name=request.POST.get('name'),
+            email=request.POST.get('email'),
+            phone=request.POST.get('phone'),
+            numofadult=int(request.POST.get('adults')),
+            date=request.POST.get('booking_date'),
+            hotel=request.POST.get('hotel', ''),
+            room=request.POST.get('room_number', ''),
+            dropoff=request.POST.get('dropoff', "I don't need"),
+            policy=request.POST.get('cancellation_policy') == 'on',
+            disease=request.POST.get('disease'),
         )
 
-        # إرسال الإيميل لصاحب الموقع
-        subject = f'New Booking: {service.title}'
-        message = f'''
-        A new booking has been made:
+        # 2️⃣ إنشاء طلب دفع
+        url = "https://api.moyasar.com/v1/payments"
+        data = {
+            "amount": int(service.cost * 100),  # بالهللة
+            "currency": "SAR",
+            "description": f"Booking for {service.title}",
+            "callback_url": request.build_absolute_uri("/payments/callback/"),
+            "source": {
+                "type": "creditcard"
+            }
+        }
 
-        Service: {service.title}
-        Name: {name}
-        Email: {email}
-        Phone: {phone}
-        Number of Adults: {numofadult}
-        Booking Date: {date}
-        Hotel: {hotel}
-        Room Number: {room}
-        Drop-off: {dropoff}
-        Medical Conditions: {disease}
-        Agreed to Cancellation Policy: {'Yes' if policy else 'No'}
-        '''
+        response = requests.post(
+            url,
+            auth=(settings.MOYASAR_SECRET_KEY, ""),
+            json=data,
+        ).json()
 
-        admin_email = 'echorabia@gmail.com'  # استبدلها ببريد صاحب الموقع
-
-        send_mail(
-            subject,
-            message,
-            None,               # from email, يستخدم DEFAULT_FROM_EMAIL
-            [admin_email],
-            fail_silently=False,
+        # 3️⃣ حفظ الدفع
+        payment = Payment.objects.create(
+            booking=booking,
+            moyasar_id=response.get("id"),
+            amount=service.cost,
+            status=response.get("status", "failed")
         )
 
-        return JsonResponse({'message': 'Booking successful'})
+        # 4️⃣ رجّع العميل للـ URL
+        return redirect(response.get("source", {}).get("transaction_url", "/"))
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
 
 def create_tour_request(request):
     if request.method == 'POST':
@@ -227,4 +219,49 @@ def create_tour_request(request):
         return redirect('home')  # أو redirect('create_tour') لو عندك صفحة تأكيد
 
     return render(request, 'tourapp/home.html')
+
+
+@csrf_exempt
+def payment_callback(request):
+    data = request.POST or request.GET
+    moyasar_id = data.get("id")
+    status = data.get("status")
+
+    try:
+        payment = Payment.objects.get(moyasar_id=moyasar_id)
+        booking = payment.booking
+        service = booking.servicebooking
+
+        payment.status = status
+        payment.save()
+
+        # إرسال إيميل
+        subject = f'New Booking: {service.title}'
+        message = f'''
+        A new booking has been made:
+
+        Service: {service.title}
+        Name: {booking.name}
+        Email: {booking.email}
+        Phone: {booking.phone}
+        Number of Adults: {booking.numofadult}
+        Booking Date: {booking.date}
+        Hotel: {booking.hotel}
+        Room Number: {booking.room}
+        Drop-off: {booking.dropoff}
+        Medical Conditions: {booking.disease}
+        Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
+        '''
+
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            ['echorabia@gmail.com'],
+            fail_silently=False,
+        )
+    except Payment.DoesNotExist:
+        return JsonResponse({"error": "Payment not found"}, status=404)
+
+    return JsonResponse({"message": "تم التحديث"})
 
