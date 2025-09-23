@@ -216,17 +216,12 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
         },
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // ✅ إعادة توجيه المستخدم مباشرة إلى صفحة الدفع من ميسر
-            if (data.payment_url) {
-                window.location.href = data.payment_url;
-            } else {
-                alert("✅ Booking created, but no payment URL received.");
-            }
+    .then(response => {
+        if (response.ok) {
+            document.getElementById("successOverlay").style.display = "flex";
+            form.style.display = "none";
         } else {
-            alert("❌ Error: " + (data.error || "Booking failed"));
+            alert("❌ An error occurred while booking. Please try again.");
         }
     })
     .catch(error => {
@@ -311,7 +306,6 @@ document.querySelectorAll('.service-card').forEach(card => {
     observer.observe(card);
 });
 </script>
-
 
     <script src="{% static 'js/service_detail.js' %}"></script>
   </body>

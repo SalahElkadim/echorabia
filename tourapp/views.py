@@ -142,14 +142,12 @@ def service_detail(request, service_id):
     }
     
     return render(request, 'tourapp/service_detail.html', context)
-import requests
-from django.conf import settings
 
 def book_service(request, service_id):
     if request.method == 'POST':
         service = get_object_or_404(ServiceBooking, id=service_id)
 
-        # ✅ إنشاء الحجز
+        # ✅ إنشاء الحجز فقط
         try:
             booking = Booking.objects.create(
                 servicebooking=service,
@@ -165,45 +163,44 @@ def book_service(request, service_id):
                 disease=request.POST.get('disease'),
             )
         except Exception as e:
-            return JsonResponse({'error': 'Booking creation failed','details': str(e)}, status=400)
+            return JsonResponse({
+                'error': 'Booking creation failed',
+                'details': str(e)
+            }, status=400)
+        # ✅ إرسال إيميل
+        subject = f'New Booking: {service.title}'
+        message = f'''
+        A new booking has been made:
 
-        # ✅ إنشاء عملية دفع عبر Moyasar
-        moyasar_url = "https://api.moyasar.com/v1/payments"
-        headers = {"Content-Type": "application/json"}
-        auth = (settings.MOYASAR_SECRET_KEY, "")  # API Key بتاعك من لوحة Moyasar
+        Service: {service.title}
+        Name: {booking.name}
+        Email: {booking.email}
+        Phone: {booking.phone}
+        Number of Adults: {booking.numofadult}
+        Booking Date: {booking.date}
+        Hotel: {booking.hotel}
+        Room Number: {booking.room}
+        Drop-off: {booking.dropoff}
+        Medical Conditions: {booking.disease}
+        Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
+        '''
 
-        payment_data = {
-            "amount": service.cost * 100,  # السعر بالـ halalas (ريال × 100)
-            "currency": "SAR",
-            "description": f"Booking for {service.title}",
-            "callback_url": request.build_absolute_uri('/payment/callback/'),
-            "source": {
-                "type": "creditcard"
-            }
-        }
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            ['echorabia@gmail.com'],
+            fail_silently=False,
+        )
 
-        try:
-            response = requests.post(moyasar_url, json=payment_data, headers=headers, auth=auth)
-            resp_json = response.json()
-
-            if "id" in resp_json:
-                # URL بتاع صفحة الدفع (transaction url)
-                transaction_url = resp_json["source"].get("transaction_url")
-
-                return JsonResponse({
-                    "success": True,
-                    "message": "Booking created, redirecting to payment",
-                    "booking_id": booking.id,
-                    "payment_url": transaction_url
-                })
-            else:
-                return JsonResponse({"error": "Payment init failed", "details": resp_json}, status=400)
-
-        except Exception as e:
-            return JsonResponse({"error": "Payment request failed", "details": str(e)}, status=400)
+        # ✅ رد نجاح
+        return JsonResponse({
+            'success': True,
+            'message': 'Booking created successfully',
+            'booking_id': booking.id
+        })
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
-
 
 def create_tour_request(request):
     if request.method == 'POST':
@@ -229,25 +226,3 @@ def create_tour_request(request):
 
     return render(request, 'tourapp/home.html')
 
-
-
-def payment_callback(request):
-    status = request.GET.get("status", "unknown")  # ميسر بيرجع status في ال query params
-    message = ""
-    icon = ""
-
-    if status == "paid":
-        message = "✅ تم الدفع بنجاح"
-        icon = "✔️"
-    elif status == "failed":
-        message = "❌ فشل الدفع"
-        icon = "❌"
-    else:
-        message = "ℹ️ حالة الدفع غير معروفة"
-        icon = "ℹ️"
-
-    return render(request, "tourapp/callback.html", {
-        "status": status,
-        "message": message,
-        "icon": icon
-    })
