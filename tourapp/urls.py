@@ -14,8 +14,7 @@ urlpatterns = [
     path('book-service/<int:service_id>/', views.book_service, name='book_service'),
     path('create-tour/', views.create_tour_request, name='create_tour'),
     path('payments/callback/', views.payment_callback, name='payment_callback'),
-    path('payments/success/<int:payment_id>/', views.payment_success, name='payment_success'),
-    path('payments/failed/', views.payment_failed, name='payment_failed'),
+
     
 
 

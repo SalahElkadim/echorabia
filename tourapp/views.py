@@ -319,11 +319,3 @@ def payment_callback(request):
 
     return JsonResponse({"message": "تم التحديث"})
 
-
-
-def payment_success(request, payment_id):
-    payment = get_object_or_404(Payment, id=payment_id)
-    return render(request, 'tourapp/payment_success.html', {'payment': payment})
-
-def payment_failed(request):
-    return render(request, 'tourapp/payment_failed.html')

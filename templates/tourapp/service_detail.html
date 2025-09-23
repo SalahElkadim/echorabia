@@ -196,11 +196,7 @@
         </div>
     </footer>
 
-<!-- في بداية الـ script section، أضف المتغير ده -->
 <script>
-// تعريف service_id عشان الـ JavaScript يقدر يستخدمه
-const service_id = {{ service_booking.id }};
-
 // فتح نافذة الحجز عند الضغط على "Book Now"
 document.querySelector('.book-btn').addEventListener('click', function () {
     document.getElementById('bookingModal').style.display = 'flex';
@@ -213,47 +209,27 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
     const form = e.target;
     const formData = new FormData(form);
 
-    // إضافة loading state
-    const submitButton = form.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = 'Processing Payment...';
-    submitButton.disabled = true;
-
-    fetch(`{% url 'book_service' service_booking.id %}`, {
+    fetch("{% url 'book_service' service_booking.id %}", {
         method: "POST",
         headers: {
             'X-CSRFToken': document.querySelector("[name=csrfmiddlewaretoken]").value
         },
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.checkout_url) {
-            // 🔥 إخفاء الموديل أولاً
-            document.getElementById('bookingModal').style.display = 'none';
-            
-            // 🔥 فتح صفحة الدفع
-            window.location.href = data.checkout_url;
-            
-            // 🔥 البديل: فتح في تاب جديد (لو عايز)
-            // window.open(data.checkout_url, '_blank');
+    .then(response => {
+        if (response.ok) {
+            document.getElementById("successOverlay").style.display = "flex";
+            form.style.display = "none";
         } else {
-            alert("❌ An error occurred while processing payment: " + (data.error || 'Unknown error'));
-            console.error('Payment error:', data);
+            alert("❌ An error occurred while booking. Please try again.");
         }
     })
     .catch(error => {
         alert("❌ Network error. Please try again.");
-        console.error('Network error:', error);
-    })
-    .finally(() => {
-        // إعادة الزر لحالته الأصلية
-        submitButton.textContent = originalText;
-        submitButton.disabled = false;
+        console.error(error);
     });
 });
 
-// باقي الكود...
 // intlTelInput لإدخال رقم الهاتف الدولي
 const phoneInputField = document.querySelector("#phone");
 const iti = window.intlTelInput(phoneInputField, {
@@ -261,24 +237,15 @@ const iti = window.intlTelInput(phoneInputField, {
     preferredCountries: ["sa", "eg", "ae", "kw", "qa"],
     utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/js/utils.js"
 });
-
-// إضافة close button functionality
-document.querySelector('.close-btn').addEventListener('click', function() {
-    document.getElementById('bookingModal').style.display = 'none';
-});
-
-// إغلاق الموديل لو ضغط على الـ overlay
-document.getElementById('bookingModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        this.style.display = 'none';
-    }
+document.getElementById("bookingForm").addEventListener("submit", function(e) {
+    const fullPhoneNumber = iti.getNumber();
+    phoneInputField.value = fullPhoneNumber;
 });
 
 // تهيئة التاريخ باستخدام flatpickr
 flatpickr("#tour_date", {
     dateFormat: "Y-m-d",
-    locale: "en",
-    minDate: "today" // منع اختيار تواريخ ماضية
+    locale: "en"
 });
 
 // سياسة الإلغاء بناءً على التاريخ الحالي
@@ -286,7 +253,6 @@ function formatDate(date) {
     const options = { day: "2-digit", month: "long", year: "numeric" };
     return date.toLocaleDateString("en-US", options);
 }
-
 document.addEventListener("DOMContentLoaded", function () {
     const now = new Date();
     const cancelDeadline = new Date(now);
