@@ -169,37 +169,54 @@ def book_service(request, service_id):
             "currency": "SAR",
             "description": f"Booking for {service.title}",
             "callback_url": request.build_absolute_uri("/payments/callback/"),
-            "publishable_api_key": settings.MOYASAR_PUBLIC_KEY,  # 👈 مهم جداً
-            "source": {
-                    "type": "creditcard",
-                    "name": "Test Card",
-                    "number": "4111111111111111",  # رقم بطاقة فيزا تجريبية
-                    "month": "12",
-                    "year": "25",
-                    "cvc": "123"
-                                    }
+            "publishable_api_key": settings.MOYASAR_PUBLIC_KEY,
+            # 🔥 للبطاقة الحقيقية - احذف الـ source من هنا
+            # "source": {
+            #     "type": "creditcard",
+            #     "name": "Test Card",
+            #     "number": "4111111111111111",
+            #     "month": "12",
+            #     "year": "25",
+            #     "cvc": "123"
+            # }
         }
 
         response = requests.post(
             url,
-            auth=(settings.MOYASAR_SECRET_KEY, ""),  # 👈 السيكريت من السيرفر
+            auth=(settings.MOYASAR_SECRET_KEY, ""),
             json=data,
-        ).json()
+        )
+
+        if response.status_code != 200:
+            return JsonResponse({
+                'error': 'Payment creation failed', 
+                'details': response.json()
+            }, status=400)
+
+        payment_data = response.json()
 
         # 3️⃣ حفظ الدفع
         payment = Payment.objects.create(
             booking=booking,
-            moyasar_id=response.get("id"),
+            moyasar_id=payment_data.get("id"),
             amount=service.cost,
-            status=response.get("status", "failed")
+            status=payment_data.get("status", "failed")
         )
 
-        # 4️⃣ رجّع العميل للـ transaction_url
-        transaction_url = response.get("source", {}).get("transaction_url")
-        if transaction_url:
-            return redirect(transaction_url)
+        # 4️⃣ إرجاع الـ payment URL بدلاً من redirect
+        checkout_url = payment_data.get("source", {}).get("transaction_url")
+        
+        if checkout_url:
+            return JsonResponse({
+                'success': True,
+                'checkout_url': checkout_url,
+                'payment_id': payment_data.get("id")
+            })
         else:
-            return JsonResponse({'error': 'No transaction URL returned', 'details': response}, status=400)
+            return JsonResponse({
+                'error': 'No checkout URL returned', 
+                'details': payment_data
+            }, status=400)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
@@ -304,3 +321,10 @@ def payment_callback(request):
     return JsonResponse({"message": "تم التحديث"})
 
 
+
+def payment_success(request, payment_id):
+    payment = get_object_or_404(Payment, id=payment_id)
+    return render(request, 'tourapp/payment_success.html', {'payment': payment})
+
+def payment_failed(request):
+    return render(request, 'tourapp/payment_failed.html')

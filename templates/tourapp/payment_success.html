@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Echorabia</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+        
+        .success-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+        
+        .success-title {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        
+        .success-message {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .booking-details {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .booking-details h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .home-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        
+        .home-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .contact-info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">✅</div>
+        
+        <h1 class="success-title">Payment Successful!</h1>
+        
+        <p class="success-message">
+            Thank you for your booking! Your payment has been processed successfully. 
+            We will contact you soon with further details about your tour.
+        </p>
+        
+        <div class="booking-details">
+            <h3>Booking Summary</h3>
+            <div class="detail-row">
+                <span><strong>Booking ID:</strong></span>
+                <span>{{ payment.moyasar_id }}</span>
+            </div>
+            <div class="detail-row">
+                <span><strong>Service:</strong></span>
+                <span>{{ payment.booking.servicebooking.title }}</span>
+            </div>
+            <div class="detail-row">
+                <span><strong>Customer:</strong></span>
+                <span>{{ payment.booking.name }}</span>
+            </div>
+            <div class="detail-row">
+                <span><strong>Date:</strong></span>
+                <span>{{ payment.booking.date }}</span>
+            </div>
+            <div class="detail-row">
+                <span><strong>Adults:</strong></span>
+                <span>{{ payment.booking.numofadult }}</span>
+            </div>
+            <div class="detail-row">
+                <span><strong>Amount Paid:</strong></span>
+                <span>{{ payment.amount }} SAR</span>
+            </div>
+        </div>
+        
+        <a href="{% url 'home' %}" class="home-button">
+            Return to Home
+        </a>
+        
+        <div class="contact-info">
+            <p>
+                <strong>Questions?</strong><br>
+                Contact us at: +966 590 807 306<br>
+                Email: info@echorabi.com
+            </p>
+        </div>
+    </div>
+</body>
+</html>

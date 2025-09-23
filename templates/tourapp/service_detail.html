@@ -84,14 +84,13 @@
         </div>
         <br></br>
         <button class="book-btn">Book Now</button>
-        <!-- Overlay -->
+        <!-- Overlay & Modal -->
+        <form id="bookingForm">
         <div id="bookingModal" class="modal-overlay" style="display:none;">
         <div class="modal-content">
         <span class="close-btn">&times;</span>
-
-        <form id="bookingForm" action="{% url 'book_service' service_booking.id %}" method="POST">
-        {% csrf_token %}
-
+        <h2>Complete Booking</h2>
+          {% csrf_token %}
         <label>Number of Adults:</label>
         <input type="number" name="adults" required>
 
@@ -108,19 +107,22 @@
         <input type="date" id="tour_date" name="booking_date" lang="en" required>
 
         <label>Do you have any medical conditions?</label>
-        <input type="text" name="disease" placeholder="If you have a condition, please specify">
+        <input type="text" name="disease" placeholder="If you have a condition, please specify" required>
 
-        <br><br>
-        <button type="button" class="accordion"> Would you like us to pick you up from your hotel? </button>
+
+        <br></br>
+        <button class="accordion"> Would you like us to pick you up from your hotel? </button>
         <div class="panel">
         <label>Hotel Name (Optional):</label>
         <input type="text" name="hotel">
+
         <label>Room Number (Optional):</label>
         <input type="text" name="room_number">
         </div>
 
-        <br><br>
-        <button type="button" class="accordion"> Where should we drop you off? </button>
+
+        <br></br>
+        <button class="accordion"> Where should we drop you off? </button>
         <div class="panel">
         <select name="dropoff" id="dropoff" required>
         <option value="">-- Please choose an option --</option>
@@ -129,10 +131,13 @@
         </select>
         </div>
 
-        <br><br>
-        <button type="button" class="accordion"> Cancellation Policy </button>
+        <br></br>
+
+        <button class="accordion"> Cancellation Policy </button>
         <div class="panel">
-        <p id="cancellationPolicyText"></p>
+        <p id="cancellationPolicyText">
+            <!-- سيتم ملء النص تلقائياً بالـ JS -->
+        </p>
         </div>
 
         <label>
@@ -142,9 +147,6 @@
 
         <button type="submit">Confirm Booking</button>
         </form>
-        </div>
-        </div>
-
         </div>
         </div>
         <div id="successOverlay" style="display: none;">
@@ -194,7 +196,11 @@
         </div>
     </footer>
 
+<!-- في بداية الـ script section، أضف المتغير ده -->
 <script>
+// تعريف service_id عشان الـ JavaScript يقدر يستخدمه
+const service_id = {{ service_booking.id }};
+
 // فتح نافذة الحجز عند الضغط على "Book Now"
 document.querySelector('.book-btn').addEventListener('click', function () {
     document.getElementById('bookingModal').style.display = 'flex';
@@ -207,27 +213,47 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
     const form = e.target;
     const formData = new FormData(form);
 
-    fetch("{% url 'book_service' service_booking.id %}", {
+    // إضافة loading state
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Processing Payment...';
+    submitButton.disabled = true;
+
+    fetch(`{% url 'book_service' service_booking.id %}`, {
         method: "POST",
         headers: {
             'X-CSRFToken': document.querySelector("[name=csrfmiddlewaretoken]").value
         },
         body: formData
     })
-    .then(response => {
-        if (response.ok) {
-            document.getElementById("successOverlay").style.display = "flex";
-            form.style.display = "none";
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.checkout_url) {
+            // 🔥 إخفاء الموديل أولاً
+            document.getElementById('bookingModal').style.display = 'none';
+            
+            // 🔥 فتح صفحة الدفع
+            window.location.href = data.checkout_url;
+            
+            // 🔥 البديل: فتح في تاب جديد (لو عايز)
+            // window.open(data.checkout_url, '_blank');
         } else {
-            alert("❌ An error occurred while booking. Please try again.");
+            alert("❌ An error occurred while processing payment: " + (data.error || 'Unknown error'));
+            console.error('Payment error:', data);
         }
     })
     .catch(error => {
         alert("❌ Network error. Please try again.");
-        console.error(error);
+        console.error('Network error:', error);
+    })
+    .finally(() => {
+        // إعادة الزر لحالته الأصلية
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
     });
 });
 
+// باقي الكود...
 // intlTelInput لإدخال رقم الهاتف الدولي
 const phoneInputField = document.querySelector("#phone");
 const iti = window.intlTelInput(phoneInputField, {
@@ -235,15 +261,24 @@ const iti = window.intlTelInput(phoneInputField, {
     preferredCountries: ["sa", "eg", "ae", "kw", "qa"],
     utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/js/utils.js"
 });
-document.getElementById("bookingForm").addEventListener("submit", function(e) {
-    const fullPhoneNumber = iti.getNumber();
-    phoneInputField.value = fullPhoneNumber;
+
+// إضافة close button functionality
+document.querySelector('.close-btn').addEventListener('click', function() {
+    document.getElementById('bookingModal').style.display = 'none';
+});
+
+// إغلاق الموديل لو ضغط على الـ overlay
+document.getElementById('bookingModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.style.display = 'none';
+    }
 });
 
 // تهيئة التاريخ باستخدام flatpickr
 flatpickr("#tour_date", {
     dateFormat: "Y-m-d",
-    locale: "en"
+    locale: "en",
+    minDate: "today" // منع اختيار تواريخ ماضية
 });
 
 // سياسة الإلغاء بناءً على التاريخ الحالي
@@ -251,6 +286,7 @@ function formatDate(date) {
     const options = { day: "2-digit", month: "long", year: "numeric" };
     return date.toLocaleDateString("en-US", options);
 }
+
 document.addEventListener("DOMContentLoaded", function () {
     const now = new Date();
     const cancelDeadline = new Date(now);
