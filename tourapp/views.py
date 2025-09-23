@@ -142,80 +142,65 @@ def service_detail(request, service_id):
     }
     
     return render(request, 'tourapp/service_detail.html', context)
+import requests
+from django.conf import settings
 
 def book_service(request, service_id):
     if request.method == 'POST':
         service = get_object_or_404(ServiceBooking, id=service_id)
 
-        # 1️⃣ إنشاء الحجز مبدئيًا (pending)
-        booking = Booking.objects.create(
-            servicebooking=service,
-            name=request.POST.get('name'),
-            email=request.POST.get('email'),
-            phone=request.POST.get('phone'),
-            numofadult=int(request.POST.get('adults')),
-            date=request.POST.get('booking_date'),
-            hotel=request.POST.get('hotel', ''),
-            room=request.POST.get('room_number', ''),
-            dropoff=request.POST.get('dropoff', "I don't need"),
-            policy=request.POST.get('cancellation_policy') == 'on',
-            disease=request.POST.get('disease'),
-        )
+        # ✅ إنشاء الحجز
+        try:
+            booking = Booking.objects.create(
+                servicebooking=service,
+                name=request.POST.get('name'),
+                email=request.POST.get('email'),
+                phone=request.POST.get('phone'),
+                numofadult=int(request.POST.get('adults')),
+                date=request.POST.get('booking_date'),
+                hotel=request.POST.get('hotel', ''),
+                room=request.POST.get('room_number', ''),
+                dropoff=request.POST.get('dropoff', "I don't need"),
+                policy=request.POST.get('cancellation_policy') == 'on',
+                disease=request.POST.get('disease'),
+            )
+        except Exception as e:
+            return JsonResponse({'error': 'Booking creation failed','details': str(e)}, status=400)
 
-        # 2️⃣ إنشاء طلب دفع عبر ميسر (Checkout Page)
-        url = "https://api.moyasar.com/v1/payments"
-        data = {
-            "amount": int(service.cost * 100),  # بالهللة
+        # ✅ إنشاء عملية دفع عبر Moyasar
+        moyasar_url = "https://api.moyasar.com/v1/payments"
+        headers = {"Content-Type": "application/json"}
+        auth = (settings.MOYASAR_SECRET_KEY, "")  # API Key بتاعك من لوحة Moyasar
+
+        payment_data = {
+            "amount": service.cost * 100,  # السعر بالـ halalas (ريال × 100)
             "currency": "SAR",
             "description": f"Booking for {service.title}",
-            "callback_url": request.build_absolute_uri("/payments/callback/"),
-            # 🔥 للبطاقة الحقيقية - احذف الـ source من هنا
-             "source": {
-                 "type": "creditcard",
-                 "name": "Test Card",
-                 "number": "4111111111111111",
-                 "month": "12",
-                 "year": "25",
-                 "cvc": "123"
-             }
+            "callback_url": request.build_absolute_uri('/payment/callback/'),
+            "source": {
+                "type": "creditcard"
+            }
         }
 
-        response = requests.post(
-            url,
-            auth=(settings.MOYASAR_SECRET_KEY, ""),
-            json=data,
-        )
+        try:
+            response = requests.post(moyasar_url, json=payment_data, headers=headers, auth=auth)
+            resp_json = response.json()
 
-        if response.status_code != 200:
-            return JsonResponse({
-                'error': 'Payment creation failed', 
-                'details': response.json()
-            }, status=400)
+            if "id" in resp_json:
+                # URL بتاع صفحة الدفع (transaction url)
+                transaction_url = resp_json["source"].get("transaction_url")
 
-        payment_data = response.json()
+                return JsonResponse({
+                    "success": True,
+                    "message": "Booking created, redirecting to payment",
+                    "booking_id": booking.id,
+                    "payment_url": transaction_url
+                })
+            else:
+                return JsonResponse({"error": "Payment init failed", "details": resp_json}, status=400)
 
-        # 3️⃣ حفظ الدفع
-        payment = Payment.objects.create(
-            booking=booking,
-            moyasar_id=payment_data.get("id"),
-            amount=service.cost,
-            status=payment_data.get("status", "failed")
-        )
-
-        # 4️⃣ إرجاع الـ payment URL بدلاً من redirect
-        transaction_url = payment_data.get("source", {}).get("transaction_url")
-        
-        if transaction_url:
-            return JsonResponse({
-                'success': True,
-                'transaction_url': transaction_url,
-                'payment_id': payment_data.get("id")
-            })
-        else:
-            return JsonResponse({
-                'error': 'No checkout URL returned', 
-                'details': payment_data
-            }, status=400)
+        except Exception as e:
+            return JsonResponse({"error": "Payment request failed", "details": str(e)}, status=400)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
@@ -244,78 +229,25 @@ def create_tour_request(request):
 
     return render(request, 'tourapp/home.html')
 
-import hmac
-import hashlib
-from django.conf import settings
-def verify_signature(request):
-    signature = request.headers.get("Moyasar-Signature")
-    if not signature:
-        return False
-
-    # البودي اللي بعتته ميسر زي ما هو (RAW)
-    body = request.body.decode("utf-8")
-
-    # حساب HMAC باستخدام secret token بتاع الويبهوك
-    expected_signature = hmac.new(
-        key=settings.MOYASAR_WEBHOOK_SECRET.encode("utf-8"),
-        msg=body.encode("utf-8"),
-        digestmod=hashlib.sha256
-    ).hexdigest()
-
-    return hmac.compare_digest(signature, expected_signature)
 
 
-@csrf_exempt
 def payment_callback(request):
-    # ✅ تحقق من التوقيع
-    if not verify_signature(request):
-        return JsonResponse({"error": "Invalid signature"}, status=400)
+    status = request.GET.get("status", "unknown")  # ميسر بيرجع status في ال query params
+    message = ""
+    icon = ""
 
-    data = request.POST or request.GET or {}
-    moyasar_id = data.get("id")
-    status = data.get("status")
+    if status == "paid":
+        message = "✅ تم الدفع بنجاح"
+        icon = "✔️"
+    elif status == "failed":
+        message = "❌ فشل الدفع"
+        icon = "❌"
+    else:
+        message = "ℹ️ حالة الدفع غير معروفة"
+        icon = "ℹ️"
 
-    try:
-        payment = Payment.objects.get(moyasar_id=moyasar_id)
-        booking = payment.booking
-        service = booking.servicebooking
-
-        # ✅ تحديث حالة الدفع
-        payment.status = status
-        payment.save()
-
-        # ✅ لو عايز تحدث البوكينج كمان
-        if status == "paid":
-            booking.confirmed = True  # لو عندك في النموذج
-            booking.save()
-
-        # ✅ إرسال إيميل
-        subject = f'New Booking: {service.title}'
-        message = f'''
-        A new booking has been made:
-
-        Service: {service.title}
-        Name: {booking.name}
-        Email: {booking.email}
-        Phone: {booking.phone}
-        Number of Adults: {booking.numofadult}
-        Booking Date: {booking.date}
-        Hotel: {booking.hotel}
-        Room Number: {booking.room}
-        Drop-off: {booking.dropoff}
-        Medical Conditions: {booking.disease}
-        Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
-        '''
-
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            ['echorabia@gmail.com'],
-            fail_silently=False,
-        )
-    except Payment.DoesNotExist:
-        return JsonResponse({"error": "Payment not found"}, status=404)
-
-    return JsonResponse({"message": "تم التحديث"})
-
+    return render(request, "tourapp/callback.html", {
+        "status": status,
+        "message": message,
+        "icon": icon
+    })
