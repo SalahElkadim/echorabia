@@ -172,8 +172,14 @@ def book_service(request, service_id):
             "description": f"Booking for {service.title}",
             "callback_url": request.build_absolute_uri("/payments/callback/"),
             "source": {
-                "type": "creditcard"
-            }
+                    "type": "creditcard",
+                    "name": "Test Card",
+                    "number": "4111111111111111",  # رقم بطاقة فيزا تجريبية
+                    "month": "12",
+                    "year": "25",
+                    "cvc": "123"
+                                    }
+
         }
 
         response = requests.post(
