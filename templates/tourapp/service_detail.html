@@ -85,7 +85,7 @@
         <br></br>
         <button class="book-btn">Book Now</button>
         <!-- Overlay & Modal -->
-        <form id="bookingForm" action="{% url 'book_service' service.id %}" method="POST">
+        <form id="bookingForm" action="{% url 'book_service' service_booking.id %}" method="POST">
         {% csrf_token %}
 
             <label>Number of Adults:</label>
