@@ -203,12 +203,12 @@ def book_service(request, service_id):
         )
 
         # 4️⃣ إرجاع الـ payment URL بدلاً من redirect
-        checkout_url = payment_data.get("source", {}).get("transaction_url")
+        transaction_url = payment_data.get("source", {}).get("transaction_url")
         
-        if checkout_url:
+        if transaction_url:
             return JsonResponse({
                 'success': True,
-                'checkout_url': checkout_url,
+                'transaction_url': transaction_url,
                 'payment_id': payment_data.get("id")
             })
         else:
