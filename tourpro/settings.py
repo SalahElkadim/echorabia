@@ -18,6 +18,7 @@ USE_L10N = False
 MOYASAR_SECRET_KEY='sk_test_AK9ZB5Px9YYs175QFnaPMT5f6kJGbjYPqsb9ntZS'
 
 MOYASAR_PUBLIC_KEY='pk_test_RWmeMFXDJPuwDSLUUE3bANVMNPUbfjQMRKSdvxTc'
+MOYASAR_WEBHOOK_SECRET = 'ms_webhook_4x8dK2Q9LzT7P1nV'
 
 ALLOWED_HOSTS = [
     'echorabia-production.up.railway.app',

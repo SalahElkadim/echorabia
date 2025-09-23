@@ -143,8 +143,6 @@ def service_detail(request, service_id):
     
     return render(request, 'tourapp/service_detail.html', context)
 
-
-
 def book_service(request, service_id):
     if request.method == 'POST':
         service = get_object_or_404(ServiceBooking, id=service_id)
@@ -164,13 +162,14 @@ def book_service(request, service_id):
             disease=request.POST.get('disease'),
         )
 
-        # 2️⃣ إنشاء طلب دفع
+        # 2️⃣ إنشاء طلب دفع عبر ميسر (Checkout Page)
         url = "https://api.moyasar.com/v1/payments"
         data = {
             "amount": int(service.cost * 100),  # بالهللة
             "currency": "SAR",
             "description": f"Booking for {service.title}",
             "callback_url": request.build_absolute_uri("/payments/callback/"),
+            "publishable_api_key": settings.MOYASAR_PUBLIC_KEY,  # 👈 مهم جداً
             "source": {
                     "type": "creditcard",
                     "name": "Test Card",
@@ -179,12 +178,11 @@ def book_service(request, service_id):
                     "year": "25",
                     "cvc": "123"
                                     }
-
         }
 
         response = requests.post(
             url,
-            auth=(settings.MOYASAR_SECRET_KEY, ""),
+            auth=(settings.MOYASAR_SECRET_KEY, ""),  # 👈 السيكريت من السيرفر
             json=data,
         ).json()
 
@@ -196,8 +194,12 @@ def book_service(request, service_id):
             status=response.get("status", "failed")
         )
 
-        # 4️⃣ رجّع العميل للـ URL
-        return redirect(response.get("source", {}).get("transaction_url", "/"))
+        # 4️⃣ رجّع العميل للـ transaction_url
+        transaction_url = response.get("source", {}).get("transaction_url")
+        if transaction_url:
+            return redirect(transaction_url)
+        else:
+            return JsonResponse({'error': 'No transaction URL returned', 'details': response}, status=400)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
@@ -226,10 +228,34 @@ def create_tour_request(request):
 
     return render(request, 'tourapp/home.html')
 
+import hmac
+import hashlib
+from django.conf import settings
+def verify_signature(request):
+    signature = request.headers.get("Moyasar-Signature")
+    if not signature:
+        return False
+
+    # البودي اللي بعتته ميسر زي ما هو (RAW)
+    body = request.body.decode("utf-8")
+
+    # حساب HMAC باستخدام secret token بتاع الويبهوك
+    expected_signature = hmac.new(
+        key=settings.MOYASAR_WEBHOOK_SECRET.encode("utf-8"),
+        msg=body.encode("utf-8"),
+        digestmod=hashlib.sha256
+    ).hexdigest()
+
+    return hmac.compare_digest(signature, expected_signature)
+
 
 @csrf_exempt
 def payment_callback(request):
-    data = request.POST or request.GET
+    # ✅ تحقق من التوقيع
+    if not verify_signature(request):
+        return JsonResponse({"error": "Invalid signature"}, status=400)
+
+    data = request.POST or request.GET or {}
     moyasar_id = data.get("id")
     status = data.get("status")
 
@@ -238,10 +264,16 @@ def payment_callback(request):
         booking = payment.booking
         service = booking.servicebooking
 
+        # ✅ تحديث حالة الدفع
         payment.status = status
         payment.save()
 
-        # إرسال إيميل
+        # ✅ لو عايز تحدث البوكينج كمان
+        if status == "paid":
+            booking.confirmed = True  # لو عندك في النموذج
+            booking.save()
+
+        # ✅ إرسال إيميل
         subject = f'New Booking: {service.title}'
         message = f'''
         A new booking has been made:
@@ -270,4 +302,5 @@ def payment_callback(request):
         return JsonResponse({"error": "Payment not found"}, status=404)
 
     return JsonResponse({"message": "تم التحديث"})
+
 
