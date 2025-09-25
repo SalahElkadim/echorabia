@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
 <!-- سكريبت المكتبة -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
+    
   </head>
   <a href="https://wa.me/966590807306" class="whatsapp-float" target="_blank" title="Chat with us on WhatsApp">
     <img src="https://img.icons8.com/color/96/whatsapp--v1.png" alt="WhatsApp" />
@@ -48,7 +48,6 @@
         </div>
     </nav>
     <section class="services">
-      
       <div class="container">
         <div class="service-details" dir="ltr" style="text-align: left;">
         <div class="service-images">
@@ -117,7 +116,7 @@
         <input type="text" name="hotel">
 
         <label>Room Number (Optional):</label>
-        <input type="text" name="room_number">
+        <input type="text" name="room">
         </div>
 
 
@@ -306,6 +305,7 @@ document.querySelectorAll('.service-card').forEach(card => {
     observer.observe(card);
 });
 </script>
+
 
     <script src="{% static 'js/service_detail.js' %}"></script>
   </body>

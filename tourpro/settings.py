@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'tourapp',
     'cloudinary',
     'cloudinary_storage',
+    'rest_framework',
+    'payment',
 ]
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 

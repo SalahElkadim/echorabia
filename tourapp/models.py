@@ -57,16 +57,6 @@ class Booking(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-class Payment(models.Model):
-    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name="payment")
-    moyasar_id = models.CharField(max_length=200, blank=True, null=True)
-    status = models.CharField(max_length=50, default="pending")  # pending, paid, failed
-    amount = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Payment {self.id} - {self.status}"
-
 class TourRequest(models.Model):
     full_name = models.CharField(max_length=100)
     destination = models.CharField(max_length=100)
