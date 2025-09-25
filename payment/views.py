@@ -33,12 +33,12 @@ class CreatePaymentAPIView(APIView):
             "Authorization": f"Basic {auth_header}"
         }
         data = {
-            #"amount": 100000,
+            "amount": 100000,
             "currency": "SAR",
             "description": "test",
             "callback_url": request.build_absolute_uri('/api/payment/callback/'),
-            #"source": {
-            #"type": "creditcard"}
+            "source": {
+            "type": "creditcard"}
 }
 
 
