@@ -33,12 +33,15 @@ class CreatePaymentAPIView(APIView):
             "Authorization": f"Basic {auth_header}"
         }
         data = {
-                "source[type]": "creditcard",
-                "amount": amount,
-                "currency": "SAR",
-                "description": "test",
-                "callback_url": request.build_absolute_uri('/api/payment/callback/')
-            }
+            "amount": amount,
+            "currency": "SAR",
+            "description": "test",
+            "callback_url": request.build_absolute_uri('/api/payment/callback/'),
+            "source": {
+            "type": "creditcard"
+    }
+}
+
 
 
         response = requests.post(url, data=data, headers=headers)
