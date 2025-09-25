@@ -40,9 +40,14 @@ class CreatePaymentAPIView(APIView):
             "amount": amount,
             "currency": "SAR",
             "description": f"Booking #{booking.id}",
-            "callback_url": request.build_absolute_uri('/api/payment/callback/'),
-            "source": {
-                "type": "creditcard"
+            "callback_url": request.build_absolute_uri('/api/payment/callback/'),    
+                "source": {
+                    "type": "creditcard",
+                    "name": "salah",
+                    "number": "4111111111111111",
+                    "month": "12",
+                    "year": "25",
+                    "cvc": "123"
             }
         }
 
