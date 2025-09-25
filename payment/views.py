@@ -22,7 +22,8 @@ class CreatePaymentAPIView(APIView):
         if not booking.servicebooking:
             return Response({'error': 'Booking has no associated service'}, status=status.HTTP_400_BAD_REQUEST)
 
-        amount = booking.servicebooking.cost * 100  # Moyasar بالهللة
+        # المبلغ بالهللة
+        amount = int(booking.servicebooking.cost * 100)
 
         # إنشاء الدفع باستخدام API Moyasar
         url = "https://api.moyasar.com/v1/payments"
@@ -30,25 +31,27 @@ class CreatePaymentAPIView(APIView):
         auth_header = base64.b64encode(f"{api_key}:".encode()).decode()
 
         headers = {
-            "Authorization": f"Basic {auth_header}"
+            "Authorization": f"Basic {auth_header}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
         }
+
         data = {
-            "amount": 100000,
+            "amount": amount,
             "currency": "SAR",
-            "description": "test",
+            "description": f"Booking #{booking.id}",
             "callback_url": request.build_absolute_uri('/api/payment/callback/'),
             "source": {
-            "type": "creditcard"}
-}
+                "type": "creditcard"
+            }
+        }
 
-
-
-        response = requests.post(url, data=data, headers=headers)
-        if response.status_code != 201:
-            return Response({'error': 'Failed to create payment', 'details': response.json()},
-                            status=response.status_code)
-
+        response = requests.post(url, json=data, headers=headers)  # <<<<< لاحظ json هنا
         payment_data = response.json()
+
+        if response.status_code != 201:
+            return Response({'error': 'Failed to create payment', 'details': payment_data},
+                            status=response.status_code)
 
         # حفظ الـ payment ID في موديلنا
         payment_record = Payment.objects.create(
@@ -60,8 +63,10 @@ class CreatePaymentAPIView(APIView):
 
         return Response({
             'payment_id': payment_data['id'],
-        "status": payment_data["status"]
+            'status': payment_data['status'],
+            'checkout_url': payment_data.get('checkout_url')  # يديك لينك صفحة الدفع لو موجود
         }, status=status.HTTP_201_CREATED)
+
 
 
 
