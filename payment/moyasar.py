@@ -14,7 +14,7 @@ def create_payment( amount, currency="SAR", description=None, source=None, metad
         "amount": amount,
         "currency": currency,
         "description": description,
-        "callback_url": "https://echorabia.com/payments/callback/",
+        "callback_url": "https://echorabia.com/payment/callback/",
         "source": source,
         "metadata": metadata,
         "apply_coupon": True
