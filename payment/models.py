@@ -17,6 +17,11 @@ class Payment(models.Model):
     status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default="initiated")
     currency = models.CharField(max_length=10, default="SAR")
     description = models.TextField(blank=True, null=True)
+    booking = models.ForeignKey(
+        "tourapp.Booking",   # أو اسم الـ app اللي فيه موديل Booking
+        on_delete=models.CASCADE,
+        related_name="payments"
+    )
     
     # تواريخ مهمة
     created_at = models.DateTimeField(auto_now_add=True)

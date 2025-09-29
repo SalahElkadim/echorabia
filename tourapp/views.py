@@ -168,7 +168,6 @@ def book_service(request, service_id):
             dropoff=request.POST.get('dropoff', "I don't need"),
             policy=request.POST.get('cancellation_policy') == 'on',
             disease=request.POST.get('disease', ''),
-            status="pending"
         )
     except Exception as e:
         return JsonResponse({'error': 'Booking creation failed', 'details': str(e)}, status=400)
@@ -176,11 +175,11 @@ def book_service(request, service_id):
     # نجهز بيانات الدفع ونبعتها لـ CreatePaymentView
     payment_payload = {
         "amount": 10000,  # بالهللة
-        "description": f"Booking {booking.id} - {service.title}",
-        "metadata": {"booking_id": booking.id},
+        "description": "رحلة سياحية",
+        "currency": "SAR",
         "source": {
             "type": "creditcard",
-            "name": booking.name,
+            "name": "booking.name",
             "number": "4111111111111111",  # للـ test
             "month": "05",
             "year": "25",
