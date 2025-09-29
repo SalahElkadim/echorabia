@@ -19,7 +19,7 @@ import json
 import logging
 from decimal import Decimal
 from django.db import transaction
-from .models import Booking
+from tourapp.models import Booking
 from django.core.mail import send_mail
 
 
