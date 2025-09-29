@@ -19,6 +19,11 @@ import json
 import logging
 from decimal import Decimal
 from django.db import transaction
+from .models import Booking
+from django.core.mail import send_mail
+
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -152,13 +157,12 @@ def verify_webhook_signature(payload, signature):
         logger.error(f"Error verifying webhook signature: {str(e)}")
         return True  # نسمح بالمرور في حالة الخطأ
     
-
 def handle_payment_paid(payment_data):
     """
     معالجة حدث الدفع المكتمل
     """
     moyasar_id = payment_data.get('id')
-    
+
     try:
         with transaction.atomic():
             payment = Payment.objects.get(moyasar_id=moyasar_id)
@@ -169,14 +173,52 @@ def handle_payment_paid(payment_data):
 
             # تحديث الفاتورة
             update_invoice_on_payment_success(payment)
-            
+
+            # 🟢 هنا نربط الدفع بالحجز
+            booking_id = payment_data.get("metadata", {}).get("booking_id")
+            if booking_id:
+                try:
+                    booking = Booking.objects.get(id=booking_id)
+                    booking.status = "confirmed"
+                    booking.save()
+
+                    service = booking.servicebooking
+
+                    # إرسال الإيميل
+                    subject = f'New Booking: {service.title}'
+                    message = f'''
+A new booking has been made and payment confirmed ✅:
+
+Service: {service.title}
+Name: {booking.name}
+Email: {booking.email}
+Phone: {booking.phone}
+Number of Adults: {booking.numofadult}
+Booking Date: {booking.date}
+Hotel: {booking.hotel}
+Room Number: {booking.room}
+Drop-off: {booking.dropoff}
+Medical Conditions: {booking.disease}
+Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
+'''
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        ['echorabia@gmail.com'],
+                        fail_silently=False,
+                    )
+                    logger.info(f"Email sent successfully for booking {booking.id}")
+
+                except Booking.DoesNotExist:
+                    logger.error(f"Booking with ID {booking_id} not found")
+
             logger.info(f"Payment {moyasar_id} marked as paid via webhook")
-            
+
     except Payment.DoesNotExist:
         logger.warning(f"Payment {moyasar_id} not found in database")
     except Exception as e:
         logger.error(f"Error handling payment_paid webhook: {str(e)}")
-
 
 def handle_payment_failed(payment_data):
     """

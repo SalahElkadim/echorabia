@@ -147,14 +147,14 @@ def service_detail(request, service_id):
     return render(request, 'tourapp/service_detail.html', context)
 
 logger = logging.getLogger(__name__)
-
+@csrf_exempt
 def book_service(request, service_id):
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request'}, status=400)
 
     service = get_object_or_404(ServiceBooking, id=service_id)
 
-    # إنشاء الحجز
+    # إنشاء الحجز pending
     try:
         booking = Booking.objects.create(
             servicebooking=service,
@@ -168,53 +168,36 @@ def book_service(request, service_id):
             dropoff=request.POST.get('dropoff', "I don't need"),
             policy=request.POST.get('cancellation_policy') == 'on',
             disease=request.POST.get('disease', ''),
+            status="pending"
         )
     except Exception as e:
-        logger.error(f"Booking creation failed: {e}")
-        return JsonResponse({
-            'error': 'Booking creation failed',
-            'details': str(e)
-        }, status=400)
+        return JsonResponse({'error': 'Booking creation failed', 'details': str(e)}, status=400)
 
-    # إرسال الإيميل
-    subject = f'New Booking: {service.title}'
-    message = f'''
-A new booking has been made:
+    # نجهز بيانات الدفع ونبعتها لـ CreatePaymentView
+    payment_payload = {
+        "amount": 10000,  # بالهللة
+        "description": f"Booking {booking.id} - {service.title}",
+        "metadata": {"booking_id": booking.id},
+        "source": {
+            "type": "creditcard",
+            "name": booking.name,
+            "number": "4111111111111111",  # للـ test
+            "month": "05",
+            "year": "25",
+            "cvc": "123"
+        }
+    }
 
-Service: {service.title}
-Name: {booking.name}
-Email: {booking.email}
-Phone: {booking.phone}
-Number of Adults: {booking.numofadult}
-Booking Date: {booking.date}
-Hotel: {booking.hotel}
-Room Number: {booking.room}
-Drop-off: {booking.dropoff}
-Medical Conditions: {booking.disease}
-Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
-'''
-    try:
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            ['echorabia@gmail.com'],
-            fail_silently=False,
-        )
-    except Exception as e:
-        logger.error(f"Email sending failed for booking ID {booking.id}: {e}")
-        return JsonResponse({
-            'warning': 'Booking created but email failed',
-            'booking_id': booking.id,
-            'details': str(e)
-        }, status=200)
+    from rest_framework.test import APIRequestFactory
+    from payment.views import CreatePaymentView
 
-    # رد نجاح كامل
-    return JsonResponse({
-        'success': True,
-        'message': 'Booking created successfully',
-        'booking_id': booking.id
-    }, status=200)
+    factory = APIRequestFactory()
+    request_for_payment = factory.post('/payments/create/', payment_payload, format='json')
+    view = CreatePaymentView.as_view()
+    response = view(request_for_payment)
+
+    return response
+
 
 def create_tour_request(request):
     if request.method == 'POST':
