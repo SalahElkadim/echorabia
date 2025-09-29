@@ -1,10 +1,10 @@
-<!-- payments/payment_success.html -->
+<!-- payments/payment_failed.html -->
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نجح الدفع!</title>
+    <title>فشل الدفع</title>
     <!-- Google Fonts: Tajwal -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -19,7 +19,7 @@
             justify-content: center;
         }
         
-        .success-container {
+        .error-container {
             background: white;
             border-radius: 15px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
@@ -42,17 +42,17 @@
         }
         
         h1 {
-            color: #0277bd;
+            color: #0288d1;
             font-size: 2.5em;
             margin: 0 0 20px 0;
         }
         
         .payment-details {
-            background: #f8f9ff;
+            background: #e1f5fe;
             padding: 20px;
             border-radius: 10px;
             margin: 20px 0;
-            border-left: 4px solid #0277bd;
+            border-left: 4px solid #0288d1;
             text-align: right;
         }
         
@@ -82,24 +82,39 @@
         .btn-secondary:hover {
             box-shadow: 0 5px 15px rgba(79, 195, 247, 0.4);
         }
+
+        p.note {
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
-    <div class="success-container">
-        <h1>تم الدفع بنجاح!</h1>
-        <p>شكراً لك، تمت معالجة دفعتك بنجاح</p>
+    <div class="error-container">
+        <h1>فشل في الدفع</h1>
+        <p>عذراً، لم تتم معالجة دفعتك بنجاح</p>
         
         {% if payment %}
         <div class="payment-details">
             <p><strong>رقم العملية:</strong> {{ payment.moyasar_id }}</p>
-            <p><strong>المبلغ:</strong> {{ payment.amount_in_sar }} ريال سعودي</p>
+            <p><strong>الحالة:</strong> {{ payment.status }}</p>
             <p><strong>التاريخ:</strong> {{ payment.created_at|date:"d M Y H:i" }}</p>
-            {% if invoice %}
-            <p><strong>رقم الفاتورة:</strong> {{ invoice.invoice_number }}</p>
-            {% endif %}
         </div>
         {% endif %}
         
+        <div>
+            <a href="/payments/create/" class="btn">
+                إعادة المحاولة
+            </a>
+            <a href="/" class="btn btn-secondary">
+                العودة للرئيسية
+            </a>
+        </div>
+        
+        <p class="note">
+            إذا كنت تواجه مشاكل متكررة، يرجى التواصل مع الدعم الفني
+        </p>
     </div>
 </body>
 </html>

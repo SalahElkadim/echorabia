@@ -20,6 +20,17 @@ MOYASAR_SECRET_KEY='sk_test_AK9ZB5Px9YYs175QFnaPMT5f6kJGbjYPqsb9ntZS'
 MOYASAR_PUBLIC_KEY='pk_test_RWmeMFXDJPuwDSLUUE3bANVMNPUbfjQMRKSdvxTc'
 MOYASAR_WEBHOOK_SECRET = 'ms_webhook_4x8dK2Q9LzT7P1nV'
 
+
+# settings.py (مقتطف)
+import os
+
+MYFATOORAH = {
+  "API_KEY": os.getenv("MYFATOORAH_API_KEY"),            # من لوحة MyFatoorah (Test or Live)
+  "BASE_URL": os.getenv("MYFATOORAH_BASE_URL", "https://apitest.myfatoorah.com"),
+  "WEBHOOK_SECRET": os.getenv("MYFATOORAH_WEBHOOK_SECRET"),  # تولده من Integration -> Webhook settings
+}
+
+
 ALLOWED_HOSTS = [
     'echorabia-production.up.railway.app',
     '127.0.0.1',
