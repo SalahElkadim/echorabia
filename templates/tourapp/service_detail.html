@@ -225,7 +225,7 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
         const bookingId = data.booking_id;
 
         // الخطوة 2: إنشاء الدفع
-        return fetch("{% url 'create_payment' %}", {
+        return fetch("{% url 'create-payment' %}", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
