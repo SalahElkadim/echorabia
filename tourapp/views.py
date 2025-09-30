@@ -137,11 +137,9 @@ def delete_item(request):
 def service_detail(request, service_id):
     service_card = get_object_or_404(ServiceCard, id=service_id)  
     service_booking = service_card.servicebooking
-    booking = get_object_or_404(Booking, id=service_id) 
     context = {
         'service_card': service_card,
         'service_booking': service_booking, 
-        'booking' : booking
     }
     
     return render(request, 'tourapp/service_detail.html', context)
