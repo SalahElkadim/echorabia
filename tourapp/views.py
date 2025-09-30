@@ -154,7 +154,6 @@ def book_service(request, service_id):
 
     service = get_object_or_404(ServiceBooking, id=service_id)
 
-    # إنشاء الحجز pending
     try:
         booking = Booking.objects.create(
             servicebooking=service,
@@ -169,35 +168,15 @@ def book_service(request, service_id):
             policy=request.POST.get('cancellation_policy') == 'on',
             disease=request.POST.get('disease', ''),
         )
+        return JsonResponse({
+            "success": True,
+            "booking_id": booking.id
+        })
     except Exception as e:
+        logger.error(f"Booking creation failed: {e}")
         return JsonResponse({'error': 'Booking creation failed', 'details': str(e)}, status=400)
 
-    # نجهز بيانات الدفع ونبعتها لـ CreatePaymentView
-    payment_payload = {
-        "amount": 10000,  # بالهللة
-        "description": "رحلة سياحية",
-        "currency": "SAR",
-        "source": {
-            "type": "creditcard",
-            "name": "booking.name",
-            "number": "4111111111111111",  # للـ test
-            "month": "05",
-            "year": "25",
-            "cvc": "123"
-        }
-    }
-
-    from rest_framework.test import APIRequestFactory
-    from payment.views import CreatePaymentView
-
-    factory = APIRequestFactory()
-    request_for_payment = factory.post('/payments/create/', payment_payload, format='json')
-    view = CreatePaymentView.as_view()
-    response = view(request_for_payment)
-
-    return response
-
-
+#طلب انشاء رحلة مخصصة 
 def create_tour_request(request):
     if request.method == 'POST':
         full_name = request.POST.get('full_name')
@@ -218,7 +197,7 @@ def create_tour_request(request):
         )
 
         messages.success(request, "Thanks, we'll contact you soon!")
-        return redirect('home')  # أو redirect('create_tour') لو عندك صفحة تأكيد
+        return redirect('home')  
 
     return render(request, 'tourapp/home.html')
 

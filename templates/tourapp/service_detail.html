@@ -208,6 +208,7 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
     const form = e.target;
     const formData = new FormData(form);
 
+    // الخطوة 1: إنشاء الحجز
     fetch("{% url 'book_service' service_booking.id %}", {
         method: "POST",
         headers: {
@@ -215,19 +216,57 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
         },
         body: formData
     })
-    .then(response => {
-        if (response.ok) {
-            document.getElementById("successOverlay").style.display = "flex";
-            form.style.display = "none";
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            throw new Error(data.error || "Booking failed");
+        }
+
+        const bookingId = data.booking_id;
+
+        // الخطوة 2: إنشاء الدفع
+        return fetch("{% url 'create_payment' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'X-CSRFToken': document.querySelector("[name=csrfmiddlewaretoken]").value
+            },
+            body: JSON.stringify({
+                amount: 990000,  // بالهللة
+                description: `Booking ${bookingId} - {{ service_booking.title }}`,
+                source: {
+                    type: "creditcard",
+                    name: formData.get("name"),
+                    number: "4111111111111111", // test فقط
+                    month: "05",
+                    year: "25",
+                    cvc: "123"
+                },
+                metadata: {
+                    booking_id: bookingId
+                }
+            })
+        });
+    })
+    .then(res => res.json())
+    .then(paymentData => {
+        if (!paymentData.success) {
+            throw new Error(paymentData.error || "Payment failed");
+        }
+
+        const transactionUrl = paymentData.moyasar_data?.source?.transaction_url;
+        if (transactionUrl) {
+            window.location.href = transactionUrl; // فتح صفحة الدفع
         } else {
-            alert("❌ An error occurred while booking. Please try again.");
+            alert("⚠️ No transaction URL returned from payment API.");
         }
     })
-    .catch(error => {
-        alert("❌ Network error. Please try again.");
-        console.error(error);
+    .catch(err => {
+        console.error(err);
+        alert("❌ An error occurred. Please try again.");
     });
 });
+
 
 // intlTelInput لإدخال رقم الهاتف الدولي
 const phoneInputField = document.querySelector("#phone");
