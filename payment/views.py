@@ -26,12 +26,23 @@ from django.core.mail import send_mail
 
 
 logger = logging.getLogger(__name__)
-
 class CreatePaymentView(APIView):
     def post(self, request):
         try:
             data = request.data
 
+            # لازم يكون فيه booking_id في البيانات
+            booking_id = data.get("booking_id")
+            if not booking_id:
+                return Response({
+                    "success": False,
+                    "error": "booking_id is required"
+                }, status=400)
+
+            # نجيب الحجز
+            booking = get_object_or_404(Booking, id=booking_id)
+
+            # بيانات الكارت
             source_data = data.get("source", {})
             source = {
                 "type": source_data.get("type"),
@@ -45,6 +56,7 @@ class CreatePaymentView(APIView):
                 "save_card": False
             }
 
+            # إنشاء الدفع في Moyasar
             payment_response = create_payment(
                 amount=data.get("amount"),
                 description=data.get("description"),
@@ -57,6 +69,7 @@ class CreatePaymentView(APIView):
                 payment, created = Payment.objects.get_or_create(
                     moyasar_id=payment_response.get("id"),
                     defaults={
+                        "booking": booking,  # 🔑 هنا الربط الأساسي
                         "amount": payment_response.get("amount"),
                         "status": payment_response.get("status"),
                         "description": data.get("description", ""),
@@ -67,10 +80,14 @@ class CreatePaymentView(APIView):
                 if created:
                     try:
                         invoice = self.create_invoice_for_payment(payment, data.get("description"))
-                        logger.info(f"Created payment {payment.moyasar_id} with invoice {invoice.invoice_number}")
+                        logger.info(
+                            f"Created payment {payment.moyasar_id} with invoice {invoice.invoice_number}"
+                        )
                     except Exception as e:
-                        logger.error(f"Failed to create invoice for payment {payment.moyasar_id}: {str(e)}")
-                        # لا نفشل العملية كاملة إذا فشل إنشاء الفاتورة
+                        logger.error(
+                            f"Failed to create invoice for payment {payment.moyasar_id}: {str(e)}"
+                        )
+                        # ما نخليش العملية كلها تفشل بسبب الفاتورة
 
             return Response({
                 "success": True,
@@ -83,6 +100,7 @@ class CreatePaymentView(APIView):
                 "success": False,
                 "error": str(e)
             }, status=500)
+
 
     def create_invoice_for_payment(self, payment, description=None):
         """إنشاء فاتورة للدفعة"""

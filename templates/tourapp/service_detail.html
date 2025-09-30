@@ -232,6 +232,7 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
                 'X-CSRFToken': document.querySelector("[name=csrfmiddlewaretoken]").value
             },
             body: JSON.stringify({
+                booking_id: bookingId,  // ✅ إضافة booking_id هنا
                 amount: 990000,  // بالهللة
                 description: `Booking ${bookingId} - {{ service_booking.title }}`,
                 source: {
@@ -243,7 +244,7 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
                     cvc: "123"
                 },
                 metadata: {
-                    booking_id: bookingId
+                    booking_id: bookingId // ممكن تسيبه كمان لو محتاجه في Moyasar
                 }
             })
         });
@@ -266,6 +267,7 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
         alert("❌ An error occurred. Please try again.");
     });
 });
+
 
 
 // intlTelInput لإدخال رقم الهاتف الدولي
