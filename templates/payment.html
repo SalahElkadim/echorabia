@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الدفع الآن | EchoRabia</title>
+
+  <!-- Moyasar SDK -->
+  <script src="https://cdn.moyasar.com/mpf/1.7.3/moyasar.js"></script>
+
+  <style>
+    body {
+      font-family: "Tajawal", sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #f9fafb;
+      direction: rtl;
+    }
+    h2 {
+      color: #333;
+    }
+    #mysr-form {
+      margin: 30px auto;
+      width: 350px;
+    }
+    .loading {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>صفحة الدفع</h2>
+  <p>الرجاء إتمام عملية الدفع لإتمام الحجز.</p>
+
+  <!-- ✅ فورم ميسر -->
+  <div id="mysr-form"></div>
+
+  <script>
+    // ✅ تهيئة فورم ميسر
+    Moyasar.init({
+      element: '#mysr-form',
+      amount: 10000, // بالهللة = 100 ريال
+      currency: 'SAR',
+      description: 'حجز استشارة لغوية',
+      publishable_api_key: '{{ moyasar_key }}',  // المفتاح العام من السيرفر
+      methods: ['creditcard'],
+
+      // 🔹 هذه الدالة تُنفذ بعد إدخال بيانات البطاقة
+      on_completed: function (payment) {
+        console.log("🎟 Token received:", payment.source.token);
+        sendTokenToServer(payment.source.token);
+      },
+
+      on_failed: function (error) {
+        alert("حدث خطأ أثناء إنشاء التوكن: " + error.message);
+      }
+    });
+
+    // ✅ إرسال التوكن للسيرفر
+    function sendTokenToServer(token) {
+      const data = {
+        booking_id: "{{ booking_id }}",  // تمررها من Django context
+        amount: 10000,                   // نفس المبلغ المستخدم في الفورم
+        description: "حجز استشارة لغوية",
+        source: { token: token }
+      };
+
+      // إضافة حالة تحميل مؤقتة
+      document.body.classList.add('loading');
+
+      fetch("/payment/create/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(response => {
+        console.log("📦 Server response:", response);
+        document.body.classList.remove('loading');
+
+        const moyasar = response.moyasar_data || {};
+
+        if (moyasar.status === "initiated" && moyasar.source?.transaction_url) {
+        // 🟢 تحويل المستخدم لصفحة 3DS البنكية
+        window.location.href = moyasar.source.transaction_url;
+        } else if (moyasar.status === "paid") {
+        window.location.href = "/payment/callback/?status=paid";
+        } else {
+        alert("فشل الدفع: " + (moyasar.message || "حدث خطأ غير متوقع"));
+        }
+
+      })
+      .catch(err => {
+        document.body.classList.remove('loading');
+        console.error("❌ Error:", err);
+        alert("حدث خطأ أثناء إرسال الدفع للسيرفر.");
+      });
+    }
+
+    // 🧩 دالة بسيطة لجلب CSRF من الكوكيز (لو استخدمت Django CSRF)
+    function getCSRFToken() {
+      const name = 'csrftoken';
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(name + '=')) {
+          return cookie.substring(name.length + 1);
+        }
+      }
+      return '';
+    }
+  </script>
+</body>
+</html>

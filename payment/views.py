@@ -22,16 +22,26 @@ from django.db import transaction
 from tourapp.models import Booking
 from django.core.mail import send_mail
 
+def payment_page(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    context = {
+        "booking_id": booking.id,
+        "moyasar_key": settings.MOYASAR_PUBLISHABLE_KEY,
+    }
+    return render(request, "payment_page.html", context)
 
 
 
 logger = logging.getLogger(__name__)
 class CreatePaymentView(APIView):
+    """
+    إنشاء دفعة جديدة باستخدام token من Moyasar Form (آمن للـ Production)
+    """
     def post(self, request):
         try:
             data = request.data
 
-            # لازم يكون فيه booking_id في البيانات
+            # 🟢 التحقق من وجود booking_id
             booking_id = data.get("booking_id")
             if not booking_id:
                 return Response({
@@ -39,60 +49,81 @@ class CreatePaymentView(APIView):
                     "error": "booking_id is required"
                 }, status=400)
 
-            # نجيب الحجز
             booking = get_object_or_404(Booking, id=booking_id)
 
-            # بيانات الكارت
+            # 🟢 استقبال التوكن من الـ frontend
             source_data = data.get("source", {})
+            token = source_data.get("token")
+
+            if not token:
+                return Response({
+                    "success": False,
+                    "error": "Payment token is required"
+                }, status=400)
+
+            # 🟢 إعداد بيانات المصدر
             source = {
-                "type": source_data.get("type"),
-                "name": source_data.get("name"),
-                "number": source_data.get("number"),
-                "month": source_data.get("month"),
-                "year": source_data.get("year"),
-                "cvc": source_data.get("cvc"),
-                "3ds": True,
-                "manual": False,
-                "save_card": False
+                "type": "token",
+                "token": token
             }
 
-            # إنشاء الدفع في Moyasar
+            # 🟡 إنشاء الدفع عبر ميسر
             payment_response = create_payment(
                 amount=data.get("amount"),
                 description=data.get("description"),
                 source=source,
-                metadata=data.get("metadata")
+                metadata=data.get("metadata", {"booking_id": booking_id})
             )
 
-            # نخزن الدفع في الداتابيز
+            # 🟢 حفظ الدفعة في قاعدة البيانات
             if "id" in payment_response:
                 payment, created = Payment.objects.get_or_create(
                     moyasar_id=payment_response.get("id"),
                     defaults={
-                        "booking": booking,  # 🔑 هنا الربط الأساسي
+                        "booking": booking,
                         "amount": payment_response.get("amount"),
                         "status": payment_response.get("status"),
                         "description": data.get("description", ""),
                     }
                 )
 
-                # إنشاء فاتورة إذا تم إنشاء دفعة جديدة
+                # 🧾 إنشاء فاتورة جديدة لو أول مرة
                 if created:
                     try:
-                        invoice = self.create_invoice_for_payment(payment, data.get("description"))
-                        logger.info(
-                            f"Created payment {payment.moyasar_id} with invoice {invoice.invoice_number}"
-                        )
+                        self.create_invoice_for_payment(payment, data.get("description"))
                     except Exception as e:
-                        logger.error(
-                            f"Failed to create invoice for payment {payment.moyasar_id}: {str(e)}"
-                        )
-                        # ما نخليش العملية كلها تفشل بسبب الفاتورة
+                        logger.error(f"Failed to create invoice: {str(e)}")
 
-            return Response({
-                "success": True,
-                "moyasar_data": payment_response,
-            })
+            # 🟣 التعامل مع حالات الدفع المختلفة
+            status = payment_response.get("status")
+
+            # ✅ حالة initiated (3DS)
+            if status == "initiated":
+                tx_url = payment_response.get("source", {}).get("transaction_url")
+                return Response({
+                    "success": True,
+                    "status": "initiated",
+                    "transaction_url": tx_url,
+                    "message": "Redirect the user to this URL to complete 3DS verification."
+                })
+
+            # ✅ حالة الدفع الناجح مباشرة
+            elif status == "paid":
+                return Response({
+                    "success": True,
+                    "status": "paid",
+                    "message": "Payment completed successfully.",
+                    "moyasar_data": payment_response,
+                })
+
+            # ❌ أي حالة أخرى (failed أو pending)
+            else:
+                return Response({
+                    "success": False,
+                    "status": status,
+                    "message": "Payment not completed.",
+                    "moyasar_data": payment_response,
+                })
 
         except Exception as e:
             logger.error(f"Error in CreatePaymentView: {str(e)}")
@@ -101,23 +132,18 @@ class CreatePaymentView(APIView):
                 "error": str(e)
             }, status=500)
 
-
     def create_invoice_for_payment(self, payment, description=None):
-        """إنشاء فاتورة للدفعة"""
-        try:
-            invoice_number = f"INV-{timezone.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
-            
-            invoice = Invoice.objects.create(
-                payment=payment,
-                invoice_number=invoice_number,
-                amount=Decimal(payment.amount) / 100,  # تحويل من هللة لريال
-                currency='SAR',
-                description=description or f"Payment for {payment.moyasar_id}",
-            )
-            return invoice
-        except Exception as e:
-            logger.error(f"Error creating invoice: {str(e)}")
-            raise
+        """إنشاء فاتورة جديدة عند الدفع"""
+        invoice_number = f"INV-{timezone.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+        invoice = Invoice.objects.create(
+            payment=payment,
+            invoice_number=invoice_number,
+            amount=Decimal(payment.amount) / 100,
+            currency='SAR',
+            description=description or f"Payment for {payment.moyasar_id}",
+        )
+        return invoice
+
 
 
 @csrf_exempt

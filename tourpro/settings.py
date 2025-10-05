@@ -13,9 +13,10 @@ CLOUDINARY_API_KEY='284199794227834'
 CLOUDINARY_API_SECRET='yCEYIorrpcNScBUf-TjeffHQRjg'
 USE_L10N = False
 
-MOYASAR_SECRET_KEY='sk_test_Hmhnpb1RN5hqWR94nCu8Vz2RfnQ4YNjPzLXRGhWA'
-MOYASAR_PUBLIC_KEY='pk_test_YGbg6owaiz2miNNa4dnwEhw5DXhzrRcpzfinMvfK'
-MOYASAR_WEBHOOK_SECRET = 'ms_webhook_4x8dK2Q9LzT7P1nV'
+MOYASAR_SECRET_KEY = os.getenv("MOYASAR_SECRET_KEY")
+MOYASAR_PUBLISHABLE_KEY = os.getenv("MOYASAR_PUBLISHABLE_KEY")
+MOYASAR_WEBHOOK_SECRET = os.getenv("MOYASAR_WEBHOOK_SECRET")
+
 
 
 ALLOWED_HOSTS = [
@@ -25,7 +26,7 @@ ALLOWED_HOSTS = [
     'echorabia.com', 'www.echorabia.com'
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://echorabia-production.up.railway.app','https://echorabia.com', 'https://www.echorabia.com',]
+CSRF_TRUSTED_ORIGINS = ['https://echorabia-production.up.railway.app','https://echorabia.com', 'https://www.echorabia.com']
 
 # Application definition
 INSTALLED_APPS = [
@@ -146,11 +147,11 @@ EMAIL_HOST_USER = 'echorabia@gmail.com'
 EMAIL_HOST_PASSWORD = 'tjfj smhr ejil khyv'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 #DEBUG = True
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = False
 # إعدادات الأمان عند تفعيل HTTPS
-SECURE_SSL_REDIRECT = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # مهم جداً مع Railway ونطاق مخصص
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
