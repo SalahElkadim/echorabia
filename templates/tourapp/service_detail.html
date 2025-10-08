@@ -231,59 +231,6 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
     });
 
 
-    // إنشاء توكن عبر Moyasar
-    Moyasar.createToken({
-        publishable_api_key: "{{ moyasar_key }}", // من context
-        amount: 100, // هللات
-        currency: 'SAR',
-        description: `Booking ${bookingId} - {{ service_booking.title }}`,
-        card: {
-            name: formData.get("name"),
-            number: document.getElementById("card_number").value,
-            cvc: document.getElementById("cvc").value,
-            month: document.getElementById("month").value,
-            year: document.getElementById("year").value,
-        }
-    }).then(token => {
-        // إرسال التوكن للسيرفر
-        return fetch("{% url 'create-payment' %}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                'X-CSRFToken': document.querySelector("[name=csrfmiddlewaretoken]").value
-            },
-            body: JSON.stringify({
-                booking_id: bookingId,
-                amount: 100,
-                description: `Booking ${bookingId} - {{ service_booking.title }}`,
-                source: { type: "token", token: token.id }, // ← هنا التوكن
-                metadata: { booking_id: bookingId }
-            })
-        });
-    });
-})
-
-    .then(res => res.json())
-    .then(paymentData => {
-        if (!paymentData.success) {
-            throw new Error(paymentData.error || "Payment failed");
-        }
-
-        const transactionUrl = paymentData.moyasar_data?.source?.transaction_url;
-        if (transactionUrl) {
-            window.location.href = transactionUrl; // فتح صفحة الدفع
-        } else {
-            alert("⚠️ No transaction URL returned from payment API.");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("❌ An error occurred. Please try again.");
-    });
-});
-
-
-
 // intlTelInput لإدخال رقم الهاتف الدولي
 const phoneInputField = document.querySelector("#phone");
 const iti = window.intlTelInput(phoneInputField, {
