@@ -19,7 +19,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
 <!-- سكريبت المكتبة -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    
+    <script src="https://cdn.moyasar.com/mpf/1.7.3/moyasar.js"></script>
+
   </head>
   <a href="https://wa.me/966590807306" class="whatsapp-float" target="_blank" title="Chat with us on WhatsApp">
     <img src="https://img.icons8.com/color/96/whatsapp--v1.png" alt="WhatsApp" />
@@ -224,7 +225,26 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
 
         const bookingId = data.booking_id;
 
-        // الخطوة 2: إنشاء الدفع
+        .then(data => {
+    if (!data.success) throw new Error(data.error || "Booking failed");
+
+    const bookingId = data.booking_id;
+
+    // إنشاء توكن عبر Moyasar
+    Moyasar.createToken({
+        publishable_api_key: "{{ moyasar_key }}", // من context
+        amount: 100, // هللات
+        currency: 'SAR',
+        description: `Booking ${bookingId} - {{ service_booking.title }}`,
+        card: {
+            name: formData.get("name"),
+            number: document.getElementById("card_number").value,
+            cvc: document.getElementById("cvc").value,
+            month: document.getElementById("month").value,
+            year: document.getElementById("year").value,
+        }
+    }).then(token => {
+        // إرسال التوكن للسيرفر
         return fetch("{% url 'create-payment' %}", {
             method: "POST",
             headers: {
@@ -232,23 +252,16 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
                 'X-CSRFToken': document.querySelector("[name=csrfmiddlewaretoken]").value
             },
             body: JSON.stringify({
-                booking_id: bookingId,  // ✅ إضافة booking_id هنا
-                amount: 990000,  // بالهللة
+                booking_id: bookingId,
+                amount: 100,
                 description: `Booking ${bookingId} - {{ service_booking.title }}`,
-                source: {
-                    type: "creditcard",
-                    name: formData.get("name"),
-                    number: "4111111111111111", // test فقط
-                    month: "05",
-                    year: "25",
-                    cvc: "123"
-                },
-                metadata: {
-                    booking_id: bookingId // ممكن تسيبه كمان لو محتاجه في Moyasar
-                }
+                source: { type: "token", token: token.id }, // ← هنا التوكن
+                metadata: { booking_id: bookingId }
             })
         });
-    })
+    });
+})
+
     .then(res => res.json())
     .then(paymentData => {
         if (!paymentData.success) {

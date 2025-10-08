@@ -42,9 +42,9 @@
     // ✅ تهيئة فورم ميسر
     Moyasar.init({
       element: '#mysr-form',
-      amount: 10000, // بالهللة = 100 ريال
+      amount: 100, // بالهللة = 100 ريال
       currency: 'SAR',
-      description: 'حجز استشارة لغوية',
+      description: "حجز رحلة سياحية",
       publishable_api_key: '{{ moyasar_key }}',  // المفتاح العام من السيرفر
       methods: ['creditcard'],
 
@@ -63,7 +63,7 @@
     function sendTokenToServer(token) {
       const data = {
         booking_id: "{{ booking_id }}",  // تمررها من Django context
-        amount: 10000,                   // نفس المبلغ المستخدم في الفورم
+        amount: 100,                   // نفس المبلغ المستخدم في الفورم
         description: "حجز استشارة لغوية",
         source: { token: token }
       };

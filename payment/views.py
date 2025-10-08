@@ -24,10 +24,12 @@ from django.core.mail import send_mail
 
 def payment_page(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
+    service = booking.servicebooking
     context = {
-        "booking_id": booking.id,
-        "moyasar_key": settings.MOYASAR_PUBLISHABLE_KEY,
-    }
+    "moyasar_key": settings.MOYASAR_PUBLISHABLE_KEY,
+    "booking_id": booking.id,
+}
+
     return render(request, "payment_page.html", context)
 
 
