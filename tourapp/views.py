@@ -140,6 +140,8 @@ def service_detail(request, service_id):
     context = {
         'service_card': service_card,
         'service_booking': service_booking, 
+        'moyasar_key': settings.MOYASAR_PUBLISHABLE_KEY
+
     }
     
     return render(request, 'tourapp/service_detail.html', context)

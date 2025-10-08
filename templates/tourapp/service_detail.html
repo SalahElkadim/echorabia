@@ -217,24 +217,19 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
     },
     body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Server response:", data);
-    })
-    .catch(error => console.error("Error:", error));
-
     .then(res => res.json())
     .then(data => {
-        if (!data.success) {
-            throw new Error(data.error || "Booking failed");
-        }
+        if (!data.success) throw new Error(data.error || "Booking failed");
 
         const bookingId = data.booking_id;
+        // ✅ بعد نجاح إنشاء الحجز نوجّه لصفحة الدفع
+        window.location.href = `/payment/pay/?booking_id=${bookingId}`;
+    })
+    .catch(error => {
+        console.error(error);
+        alert("❌ فشل إنشاء الحجز. حاول مرة أخرى.");
+    });
 
-        .then(data => {
-    if (!data.success) throw new Error(data.error || "Booking failed");
-
-    const bookingId = data.booking_id;
 
     // إنشاء توكن عبر Moyasar
     Moyasar.createToken({
