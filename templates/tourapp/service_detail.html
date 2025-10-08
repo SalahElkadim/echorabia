@@ -209,13 +209,12 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
     const form = e.target;
     const formData = new FormData(form);
 
-    // الخطوة 1: إنشاء الحجز
     fetch("{% url 'book_service' service_booking.id %}", {
-    method: "POST",
-    headers: {
-        'X-CSRFToken': document.querySelector("[name=csrfmiddlewaretoken]").value
-    },
-    body: formData
+        method: "POST",
+        headers: {
+            'X-CSRFToken': document.querySelector("[name=csrfmiddlewaretoken]").value
+        },
+        body: formData
     })
     .then(res => res.json())
     .then(data => {
@@ -229,31 +228,33 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
         console.error(error);
         alert("❌ فشل إنشاء الحجز. حاول مرة أخرى.");
     });
+}); // ←← ← هنا القوس المفقود
 
-
-// intlTelInput لإدخال رقم الهاتف الدولي
+// ✅ إعداد رقم الهاتف الدولي
 const phoneInputField = document.querySelector("#phone");
 const iti = window.intlTelInput(phoneInputField, {
     initialCountry: "sa",
     preferredCountries: ["sa", "eg", "ae", "kw", "qa"],
     utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/js/utils.js"
 });
+
 document.getElementById("bookingForm").addEventListener("submit", function(e) {
     const fullPhoneNumber = iti.getNumber();
     phoneInputField.value = fullPhoneNumber;
 });
 
-// تهيئة التاريخ باستخدام flatpickr
+// ✅ تهيئة التاريخ
 flatpickr("#tour_date", {
     dateFormat: "Y-m-d",
     locale: "en"
 });
 
-// سياسة الإلغاء بناءً على التاريخ الحالي
+// ✅ سياسة الإلغاء
 function formatDate(date) {
     const options = { day: "2-digit", month: "long", year: "numeric" };
     return date.toLocaleDateString("en-US", options);
 }
+
 document.addEventListener("DOMContentLoaded", function () {
     const now = new Date();
     const cancelDeadline = new Date(now);
@@ -270,31 +271,25 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("cancellationPolicyText").innerHTML = policyText;
 });
 
-// القائمة الجانبية للموبايل
+// ✅ القائمة الجانبية
 function toggleMenu() {
     const navLinks = document.querySelector('.nav-links');
     navLinks.classList.toggle('active');
 }
 
-// السحب الناعم عند الضغط على روابط التنقل
+// ✅ السحب الناعم للروابط الداخلية
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
         if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     });
 });
 
-// تفعيل أنيميشن على كروت الخدمات عند ظهورها في الشاشة
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
+// ✅ تفعيل الأنيميشن عند الظهور
+const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
 const observer = new IntersectionObserver(function(entries) {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -307,7 +302,6 @@ document.querySelectorAll('.service-card').forEach(card => {
     observer.observe(card);
 });
 </script>
-
 
     <script src="{% static 'js/service_detail.js' %}"></script>
   </body>
