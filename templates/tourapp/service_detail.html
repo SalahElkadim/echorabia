@@ -222,7 +222,7 @@ document.getElementById("bookingForm").addEventListener("submit", function(e) {
 
         const bookingId = data.booking_id;
         // ✅ بعد نجاح إنشاء الحجز نوجّه لصفحة الدفع
-        window.location.href = `/payment/pay/?booking_id=${bookingId}`;
+        window.location.href = `/payment/pay/${bookingId}`;
 
     })
     .catch(error => {
