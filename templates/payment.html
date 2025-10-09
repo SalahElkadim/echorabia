@@ -9,26 +9,100 @@
   <!-- Moyasar SDK -->
   <script src="https://cdn.moyasar.com/mpf/1.7.3/moyasar.js"></script>
 
-  <style>
+ <style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+
+  body {
+    font-family: "Tajawal", sans-serif;
+    background: linear-gradient(135deg, #f8f3ef, #f1e3d3);
+    color: #4b3b2b;
+    text-align: center;
+    padding: 60px 20px;
+    direction: rtl;
+  }
+
+  h2 {
+    font-size: 28px;
+    color: #3e2f23;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: #6d5b4c;
+    font-size: 16px;
+    margin-bottom: 40px;
+  }
+
+  /* ✅ حاوية فورم ميسر */
+  .mysr-form {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 25px;
+    width: 360px;
+    margin: 0 auto;
+    box-shadow: 0 8px 20px rgba(78, 57, 39, 0.15);
+    border: 1px solid #e5d6c4;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .mysr-form:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(78, 57, 39, 0.25);
+  }
+
+  /* زرار الدفع */
+  .mysr-form button,
+  .mysr-form input[type="submit"],
+  button {
+    background: linear-gradient(135deg, #8b5e34, #6f4e2c);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+
+  .mysr-form button:hover {
+    background: linear-gradient(135deg, #9c6d3b, #7a5330);
+    transform: scale(1.03);
+  }
+
+  /* تحميل */
+  .loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* أنيميشن تحميل بسيط */
+  .loading::after {
+    content: "جارٍ معالجة الدفع...";
+    display: block;
+    font-size: 16px;
+    color: #6f4e2c;
+    margin-top: 15px;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+  }
+
+  /* تنسيق عام للموبايل */
+  @media (max-width: 480px) {
     body {
-      font-family: "Tajawal", sans-serif;
-      text-align: center;
-      padding: 50px;
-      background: #f9fafb;
-      direction: rtl;
+      padding: 30px 10px;
     }
-    h2 {
-      color: #333;
+    .mysr-form {
+      width: 100%;
+      padding: 20px;
     }
-    #mysr-form {
-      margin: 30px auto;
-      width: 350px;
-    }
-    .loading {
-      opacity: 0.5;
-      pointer-events: none;
-    }
-  </style>
+  }
+</style>
+
 </head>
 
 <body>
@@ -37,7 +111,6 @@
 
   <!-- ✅ فورم ميسر -->
   <div class="mysr-form"></div>
-
   <script>
     // ✅ تهيئة فورم ميسر
     
