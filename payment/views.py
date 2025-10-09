@@ -73,6 +73,7 @@ class CreatePaymentView(APIView):
             payment_response = create_payment(
                 amount=data.get("amount"),
                 description=data.get("description"),
+                callback_url="https://echorabia.com/payment/callback/",
                 source=source,
                 metadata=data.get("metadata", {"booking_id": booking_id})
             )
