@@ -30,7 +30,7 @@ def payment_page(request, booking_id):
     "booking_id": booking.id,
 }
 
-    return render(request, "payment_page.html", context)
+    return render(request, "payment.html", context)
 
 
 
