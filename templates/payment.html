@@ -40,24 +40,27 @@
 
   <script>
     // ✅ تهيئة فورم ميسر
-    Moyasar.init({
-      element: '#mysr-form',
-      amount: 100, // بالهللة = 100 ريال
-      currency: 'SAR',
-      description: "حجز رحلة سياحية",
-      publishable_api_key: 'pk_live_AUPkqG63z5VEJ6XRKMS2fuUtpB3k5LVgyXTER5TE',  // المفتاح العام من السيرفر
-      callback_url: 'https://echorabia.com/payment/callback/',
-      methods: ['creditcard'],
-      // 🔹 هذه الدالة تُنفذ بعد إدخال بيانات البطاقة
-      on_completed: function (payment) {
-        console.log("🎟 Token received:", payment.source.token);
-        sendTokenToServer(payment.source.token);
-      },
+    window.addEventListener("DOMContentLoaded", function () {
+  Moyasar.init({
+    element: '#mysr-form',
+    amount: 100, // بالهللة = 100 ريال
+    currency: 'SAR',
+    description: "حجز رحلة سياحية",
+    publishable_api_key: 'pk_live_AUPkqG63z5VEJ6XRKMS2fuUtpB3k5LVgyXTER5TE',
+    callback_url: 'https://echorabia.com/payment/callback/',
+    methods: ['creditcard'],
 
-      on_failed: function (error) {
-        alert("حدث خطأ أثناء إنشاء التوكن: " + error.message);
-      }
-    });
+    on_completed: function (payment) {
+      console.log("🎟 Token received:", payment.source.token);
+      sendTokenToServer(payment.source.token);
+    },
+
+    on_failed: function (error) {
+      alert("حدث خطأ أثناء إنشاء التوكن: " + error.message);
+    }
+  });
+});
+
 
     // ✅ إرسال التوكن للسيرفر
     function sendTokenToServer(token) {
