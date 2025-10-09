@@ -23,10 +23,6 @@ from tourapp.models import Booking
 from django.core.mail import send_mail
 
 def payment_page(request, booking_id):
-    booking_id = request.GET.get("booking_id")
-
-    if not booking_id:
-        return HttpResponse("Booking ID is required.", status=400)
     booking = get_object_or_404(Booking, id=booking_id)
     service = booking.servicebooking
     context = {
