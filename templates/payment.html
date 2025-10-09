@@ -10,98 +10,239 @@
   <script src="https://cdn.moyasar.com/mpf/1.7.3/moyasar.js"></script>
 
  <style>
-  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
 
-  body {
-    font-family: "Tajawal", sans-serif;
-    background: linear-gradient(135deg, #f8f3ef, #f1e3d3);
-    color: #4b3b2b;
-    text-align: center;
-    padding: 60px 20px;
-    direction: rtl;
-  }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  h2 {
-    font-size: 28px;
-    color: #3e2f23;
-    margin-bottom: 10px;
-  }
-
-  p {
-    color: #6d5b4c;
-    font-size: 16px;
-    margin-bottom: 40px;
-  }
-
-  /* ✅ حاوية فورم ميسر */
-  .mysr-form {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 25px;
-    width: 360px;
-    margin: 0 auto;
-    box-shadow: 0 8px 20px rgba(78, 57, 39, 0.15);
-    border: 1px solid #e5d6c4;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .mysr-form:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(78, 57, 39, 0.25);
-  }
-
-  /* زرار الدفع */
-  .mysr-form button,
-  .mysr-form input[type="submit"],
-  button {
-    background: linear-gradient(135deg, #8b5e34, #6f4e2c);
-    color: #fff;
-    font-weight: 600;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 18px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
-  }
-
-  .mysr-form button:hover {
-    background: linear-gradient(135deg, #9c6d3b, #7a5330);
-    transform: scale(1.03);
-  }
-
-  /* تحميل */
-  .loading {
-    opacity: 0.5;
-    pointer-events: none;
-  }
-
-  /* أنيميشن تحميل بسيط */
-  .loading::after {
-    content: "جارٍ معالجة الدفع...";
-    display: block;
-    font-size: 16px;
-    color: #6f4e2c;
-    margin-top: 15px;
-    animation: pulse 1.5s infinite;
-  }
-
-  @keyframes pulse {
-    0% { opacity: 0.4; }
-    50% { opacity: 1; }
-    100% { opacity: 0.4; }
-  }
-
-  /* تنسيق عام للموبايل */
-  @media (max-width: 480px) {
     body {
-      padding: 30px 10px;
+      font-family: "Tajawal", sans-serif;
+      background: linear-gradient(135deg, #f8f3ef 0%, #f1e3d3 100%);
+      color: #4b3b2b;
+      text-align: center;
+      padding: 60px 20px;
+      direction: rtl;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
+
+    h2 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #3e2f23;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    p {
+      color: #6d5b4c;
+      font-size: 17px;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    /* ✅ حاوية فورم ميسر */
     .mysr-form {
-      width: 100%;
-      padding: 20px;
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 35px 30px;
+      width: 420px;
+      max-width: 100%;
+      margin: 0 auto;
+      box-shadow: 0 10px 40px rgba(78, 57, 39, 0.12);
+      border: 1px solid rgba(229, 214, 196, 0.5);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-  }
-</style>
+
+    .mysr-form:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 50px rgba(78, 57, 39, 0.2);
+      border-color: #d4c4b0;
+    }
+
+    /* تنسيق حقول ميسر */
+    .mysr-form input[type="text"],
+    .mysr-form input[type="tel"],
+    .mysr-form input[type="email"],
+    .mysr-form input[type="number"],
+    .mysr-form select {
+      width: 100%;
+      padding: 14px 18px !important;
+      font-size: 16px !important;
+      font-family: "Tajawal", sans-serif !important;
+      color: #3e2f23 !important;
+      background: #fafaf8 !important;
+      border: 2px solid #e8ddd0 !important;
+      border-radius: 14px !important;
+      transition: all 0.3s ease !important;
+      outline: none !important;
+      margin-bottom: 16px !important;
+    }
+
+    .mysr-form input:focus,
+    .mysr-form select:focus {
+      background: #ffffff !important;
+      border-color: #8b5e34 !important;
+      box-shadow: 0 0 0 4px rgba(139, 94, 52, 0.1) !important;
+      transform: translateY(-2px);
+    }
+
+    .mysr-form label {
+      display: block;
+      font-size: 15px;
+      font-weight: 600;
+      color: #4b3b2b;
+      margin-bottom: 8px;
+      text-align: right;
+      padding-right: 4px;
+    }
+
+    /* زرار الدفع */
+    .mysr-form button,
+    .mysr-form input[type="submit"] {
+      width: 100%;
+      background: linear-gradient(135deg, #8b5e34 0%, #6f4e2c 100%) !important;
+      color: #fff !important;
+      font-size: 18px !important;
+      font-weight: 700 !important;
+      border: none !important;
+      border-radius: 14px !important;
+      padding: 16px 24px !important;
+      cursor: pointer !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      box-shadow: 0 6px 20px rgba(139, 94, 52, 0.3) !important;
+      margin-top: 10px !important;
+    }
+
+    .mysr-form button:hover,
+    .mysr-form input[type="submit"]:hover {
+      background: linear-gradient(135deg, #9c6d3b 0%, #7a5330 100%) !important;
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 30px rgba(139, 94, 52, 0.4) !important;
+    }
+
+    .mysr-form button:active,
+    .mysr-form input[type="submit"]:active {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 15px rgba(139, 94, 52, 0.3) !important;
+    }
+
+    /* تحميل */
+    body.loading {
+      pointer-events: none;
+      position: relative;
+    }
+
+    body.loading::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(248, 243, 239, 0.95);
+      z-index: 9998;
+      backdrop-filter: blur(4px);
+    }
+
+    body.loading::after {
+      content: "";
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(139, 94, 52, 0.2);
+      border-top-color: #8b5e34;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      z-index: 9999;
+    }
+
+    .loading-text {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, calc(-50% + 60px));
+      font-size: 18px;
+      font-weight: 600;
+      color: #6f4e2c;
+      z-index: 9999;
+      animation: pulse 1.5s ease-in-out infinite;
+      display: none;
+    }
+
+    body.loading .loading-text {
+      display: block;
+    }
+
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    /* شعارات الدفع */
+    .payment-logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e8ddd0;
+      opacity: 0.7;
+    }
+
+    .payment-logos span {
+      font-size: 13px;
+      color: #6d5b4c;
+      font-weight: 500;
+    }
+
+    /* تنسيق عام للموبايل */
+    @media (max-width: 480px) {
+      body {
+        padding: 30px 15px;
+      }
+      
+      h2 {
+        font-size: 26px;
+      }
+
+      p {
+        font-size: 15px;
+      }
+
+      .mysr-form {
+        width: 100%;
+        padding: 28px 22px;
+        border-radius: 20px;
+      }
+
+      .mysr-form input,
+      .mysr-form select {
+        padding: 12px 16px !important;
+        font-size: 15px !important;
+      }
+
+      .mysr-form button,
+      .mysr-form input[type="submit"] {
+        padding: 14px 20px !important;
+        font-size: 17px !important;
+      }
+    }
+  </style>
 
 </head>
 
