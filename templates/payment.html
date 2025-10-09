@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>الدفع الآن | EchoRabia</title>
+  <title> Pay Now | EchoRabia</title>
 
   <!-- Moyasar SDK -->
   <script src="https://cdn.moyasar.com/mpf/1.7.3/moyasar.js"></script>
@@ -42,10 +42,10 @@
     // ✅ تهيئة فورم ميسر
     window.addEventListener("DOMContentLoaded", function () {
   Moyasar.init({
-    element: '#mysr-form',
+    element: '.mysr-form',
     amount: 100, // بالهللة = 100 ريال
     currency: 'SAR',
-    description: "حجز رحلة سياحية",
+    description: 'Booking tour',
     publishable_api_key: 'pk_live_AUPkqG63z5VEJ6XRKMS2fuUtpB3k5LVgyXTER5TE',
     callback_url: 'https://echorabia.com/payment/callback/',
     methods: ['creditcard'],
