@@ -40,7 +40,7 @@
 
   <script>
     // ✅ تهيئة فورم ميسر
-    window.addEventListener("DOMContentLoaded", function () {
+    
   Moyasar.init({
     element: '.mysr-form',
     amount: 100, // بالهللة = 100 ريال
@@ -48,6 +48,7 @@
     description: 'Booking tour',
     publishable_api_key: 'pk_live_AUPkqG63z5VEJ6XRKMS2fuUtpB3k5LVgyXTER5TE',
     callback_url: 'https://echorabia.com/payment/callback/',
+    supported_networks: ['visa', 'mastercard', 'mada'],
     methods: ['creditcard'],
 
     on_completed: function (payment) {
@@ -59,7 +60,7 @@
       alert("حدث خطأ أثناء إنشاء التوكن: " + error.message);
     }
   });
-});
+
 
 
     // ✅ إرسال التوكن للسيرفر
