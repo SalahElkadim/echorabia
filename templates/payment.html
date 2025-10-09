@@ -45,7 +45,7 @@
       amount: 100, // بالهللة = 100 ريال
       currency: 'SAR',
       description: "حجز رحلة سياحية",
-      publishable_api_key: "{{ moyasar_key }}",  // المفتاح العام من السيرفر
+      publishable_api_key: '{{ moyasar_key }}',  // المفتاح العام من السيرفر
       methods: ['creditcard'],
       // 🔹 هذه الدالة تُنفذ بعد إدخال بيانات البطاقة
       on_completed: function (payment) {
