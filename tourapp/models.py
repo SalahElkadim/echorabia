@@ -12,9 +12,26 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="customer")
     def __str__(self):
         return f"{self.username} ({self.role})"
-    
+
+class Main_price_model(models.Model):
+    title = models.CharField(max_length=200)
+    def __str__(self):
+                return self.title
+
+class Price_model(models.Model):
+    main_price_model=models.ForeignKey(Main_price_model,on_delete=models.CASCADE)
+    numper_o_p=models.IntegerField()
+    total_g = models.IntegerField(blank=True, null=True)
+    total_g_d = models.IntegerField(blank=True, null=True)
+    total_g_b = models.IntegerField(blank=True, null=True)
+    total_g_v= models.IntegerField(blank=True, null=True)
+    total_g_d_b = models.IntegerField(blank=True, null=True)
+    total_g_d_v= models.IntegerField(blank=True, null=True)
+    def __str__(self):
+        return f"{self.main_price_model.title} - {self.numper_o_p} person"
 
 class ServiceBooking(models.Model):
+    price_model=models.ForeignKey(Price_model, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=200)
     description = models.TextField()
     included = models.TextField(blank=True, null=True)
@@ -82,3 +99,4 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.rating}/5"
+

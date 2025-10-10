@@ -248,6 +248,145 @@
         </div>
     </div>
 
+    <!-- ==================== قسم نماذج الأسعار ==================== -->
+<div class="prices-section">
+    <h2><i class="fas fa-money-bill-wave"></i> إدارة الأسعار</h2>
+
+    <!-- أزرار الإجراءات -->
+    <div class="action-buttons">
+        <button class="action-btn" onclick="openModal('main-price-modal')">
+            <i class="fas fa-plus"></i> إضافة نموذج أسعار رئيسي
+        </button>
+        <button class="action-btn secondary" onclick="openModal('price-modal')">
+            <i class="fas fa-tags"></i> إضافة سعر فرعي
+        </button>
+    </div>
+
+    <!-- عرض النماذج الرئيسية -->
+    <div class="main-prices">
+        <h3>📦 النماذج الرئيسية</h3>
+        <ul>
+            {% for main in main_prices %}
+                <li>
+                    <strong>{{ main.title }}</strong>
+                    <ul>
+                        {% for p in prices %}
+                            {% if p.main_price_model.id == main.id %}
+                                <li>
+                                    <i class="fas fa-user"></i> {{ p.numper_o_p }} شخص — 
+                                    <i class="fas fa-coins"></i> {{ p.total_g }} ريال
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% empty %}
+                <li>لا توجد نماذج أسعار بعد</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- ============ مودال إضافة نموذج رئيسي للأسعار ============ -->
+<div id="main-price-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-plus-circle"></i> إضافة نموذج أسعار رئيسي</h2>
+            <span class="close" onclick="closeModal('main-price-modal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form method="POST" onsubmit="showLoading()">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_main_price">
+
+                <div class="form-group">
+                    <label for="title"><i class="fas fa-heading"></i> اسم النموذج</label>
+                    <input type="text" id="title" name="title" required placeholder="أدخل اسم النموذج الرئيسي">
+                </div>
+
+                <div class="loading" id="main-price-loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>جاري الإضافة...</p>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-save"></i> حفظ النموذج
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ============ مودال إضافة الأسعار الفرعية ============ -->
+<div id="price-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-tags"></i> إضافة سعر فرعي</h2>
+            <span class="close" onclick="closeModal('price-modal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form method="POST" onsubmit="showLoading()">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_price">
+
+                <div class="form-group">
+                    <label><i class="fas fa-link"></i> اختر النموذج الرئيسي</label>
+                    <select name="main_price_id" required>
+                        <option value="">-- اختر النموذج --</option>
+                        {% for main in main_prices %}
+                            <option value="{{ main.id }}">{{ main.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> عدد الأشخاص</label>
+                    <input type="number" name="numper_o_p" placeholder="مثلاً: 10">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-coins"></i> السعر العام</label>
+                    <input type="number" name="total_g" placeholder="مثلاً: 500">
+                </div>
+
+                <div class="form-group">
+                    <label>سعر خاص (D)</label>
+                    <input type="number" name="total_g_d">
+                </div>
+
+                <div class="form-group">
+                    <label>سعر خاص (B)</label>
+                    <input type="number" name="total_g_b">
+                </div>
+
+                <div class="form-group">
+                    <label>سعر خاص (V)</label>
+                    <input type="number" name="total_g_v">
+                </div>
+
+                <div class="form-group">
+                    <label>سعر خاص (D + B)</label>
+                    <input type="number" name="total_g_d_b">
+                </div>
+
+                <div class="form-group">
+                    <label>سعر خاص (D + V)</label>
+                    <input type="number" name="total_g_d_v">
+                </div>
+
+                <div class="loading" id="price-loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>جاري الإضافة...</p>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-save"></i> حفظ السعر
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
    <script src="{% static 'js/dashboard.js' %}"></script>
    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>$(document).on("click", ".delete-btn", function () {

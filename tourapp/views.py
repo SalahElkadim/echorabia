@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import ServiceBooking, ServiceCard, Booking, TourRequest
+from .models import ServiceBooking, ServiceCard, Booking, TourRequest,Main_price_model,Price_model
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
@@ -60,11 +60,12 @@ def home(request):
 def privacy(request):
     return render(request, 'tourapp/privacy.html')
 
-
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
     servicecards = ServiceCard.objects.all()
     servicebooking = ServiceBooking.objects.all()
+    main_prices = Main_price_model.objects.all()
+    prices = Price_model.objects.select_related('main_price_model').all()
     
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -72,7 +73,6 @@ def dashboard(request):
         try:
             # إنشاء حجز خدمة
             if action == 'add_booking':
-                # مع CloudinaryField، Django بيتعامل مع رفع الصور تلقائياً
                 booking = ServiceBooking.objects.create(
                     title=request.POST.get('title'),
                     description=request.POST.get('description'),
@@ -80,7 +80,7 @@ def dashboard(request):
                     exclusion=request.POST.get('exclusion'),
                     note=request.POST.get('note'),
                     period=request.POST.get('period'),
-                    image1=request.FILES.get('image1'),  # CloudinaryField بيرفع الصورة تلقائياً
+                    image1=request.FILES.get('image1'),
                     image2=request.FILES.get('image2'),
                     image3=request.FILES.get('image3'),
                 )
@@ -93,14 +93,12 @@ def dashboard(request):
                 card_image = request.FILES.get('card_image')
                 booking_id = request.POST.get('card_id')
                 
-                # إنشاء الكرت - CloudinaryField بيتعامل مع الصورة تلقائياً
                 card = ServiceCard(
                     title=card_title,
                     description=card_description,
-                    image=card_image  # مباشرة من الـ request.FILES
+                    image=card_image
                 )
                 
-                # ربط الكرت بالحجز إذا كان موجود
                 if booking_id:
                     try:
                         booking = ServiceBooking.objects.get(id=booking_id)
@@ -110,7 +108,30 @@ def dashboard(request):
                 
                 card.save()
                 messages.success(request, 'تم إضافة كرت الخدمة بنجاح!')
-        
+
+            # إضافة نموذج رئيسي للأسعار
+            elif action == 'add_main_price':
+                title = request.POST.get('title')
+                Main_price_model.objects.create(title=title)
+                messages.success(request, 'تم إضافة نموذج الأسعار الرئيسي بنجاح!')
+
+            # إضافة سعر فرعي مرتبط بنموذج رئيسي
+            elif action == 'add_price':
+                main_id = request.POST.get('main_price_id')
+                main_model = Main_price_model.objects.get(id=main_id)
+
+                Price_model.objects.create(
+                    main_price_model=main_model,
+                    numper_o_p=request.POST.get('numper_o_p') or None,
+                    total_g=request.POST.get('total_g') or None,
+                    total_g_d=request.POST.get('total_g_d') or None,
+                    total_g_b=request.POST.get('total_g_b') or None,
+                    total_g_v=request.POST.get('total_g_v') or None,
+                    total_g_d_b=request.POST.get('total_g_d_b') or None,
+                    total_g_d_v=request.POST.get('total_g_d_v') or None,
+                )
+                messages.success(request, 'تم إضافة الأسعار الفرعية بنجاح!')
+
         except Exception as e:
             messages.error(request, f'حدث خطأ: {str(e)}')
         
@@ -118,7 +139,9 @@ def dashboard(request):
     
     return render(request, 'tourapp/dashboard.html', {
         'servicecards': servicecards,
-        'servicebooking': servicebooking
+        'servicebooking': servicebooking,
+        'main_prices': main_prices,
+        'prices': prices,
     })
 
 
