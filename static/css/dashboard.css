@@ -405,4 +405,117 @@
             transition: .5s ease;
             
         }
+
         
+.dashboard-container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+h1 {
+  text-align: center;
+  color: #2b7a78;
+  margin-bottom: 40px;
+}
+
+.section {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  padding: 25px;
+  margin-bottom: 30px;
+}
+
+.section h2 {
+  color: #17252a;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #3aafa9;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  text-align: left;
+  padding: 12px 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #3aafa9;
+  color: white;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+form {
+  margin-top: 20px;
+}
+
+form input, form textarea, form select {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+form button {
+  background: linear-gradient(90deg, #3aafa9, #2b7a78);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+form button:hover {
+  background: linear-gradient(90deg, #2b7a78, #17252a);
+}
+
+/* بطاقات الخدمة */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.service-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+}
+
+.service-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.service-card-content {
+  padding: 15px;
+}
+
+.service-card-content h3 {
+  color: #2b7a78;
+  margin-bottom: 10px;
+}
+
+.service-card-content p {
+  color: #555;
+  font-size: 14px;
+}
