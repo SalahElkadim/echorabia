@@ -32,7 +32,13 @@
 
 
   const adultsInput = document.querySelector('input[name="adults"]');
-  const totalPriceEl = document.getElementById("totalPrice");
+const totalPriceEl = document.getElementById("total-price");
+if (totalPriceEl) {
+  const basePrice = parseFloat(totalPriceEl.dataset.basePrice);
+  console.log("Base price:", basePrice);
+} else {
+  console.warn("⚠️ Element with id='total-price' not found!");
+}
   const basePrice = parseFloat(totalPriceEl.dataset.basePrice);
 
   adultsInput.addEventListener("input", () => {
