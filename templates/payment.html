@@ -286,7 +286,7 @@
     function sendTokenToServer(token) {
       const data = {
         booking_id: "{{ booking_id }}",  // تمررها من Django context
-        amount: amount: {{ amount }},                 // نفس المبلغ المستخدم في الفورم
+        amount: {{ amount }},                 // نفس المبلغ المستخدم في الفورم
         description: "حجز استشارة لغوية",
         source: { token: token }
       };
@@ -307,13 +307,11 @@
         console.log("📦 Server response:", response);
         document.body.classList.remove('loading');
 
-        const moyasar = response.moyasar_data || {};
-
-        if (moyasar.status === "initiated" && moyasar.source?.transaction_url) {
-        // 🟢 تحويل المستخدم لصفحة 3DS البنكية
-        window.location.href = moyasar.source.transaction_url;
-        } else if (moyasar.status === "paid") {
-        window.location.href = "/payment/callback/?status=paid";
+        // ✅ السطر 307-315 - منطق صح
+        if (response.status === "initiated" && response.transaction_url) {
+            window.location.href = response.transaction_url;
+        } else if (response.status === "paid") {
+            window.location.href = "/payment/callback/?status=paid&id=" + response.moyasar_data.id;
         } else {
         alert("فشل الدفع: " + (moyasar.message || "حدث خطأ غير متوقع"));
         }
