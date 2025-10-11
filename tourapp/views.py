@@ -36,13 +36,17 @@ def logout_view(request):
 
 def home(request):
     servicecards = ServiceCard.objects.all()
-    reviews = Review.objects.order_by('-created_at')  # كل الريفيوز
+    # ✅ عرض الريفيوهات المعتمدة فقط
+    reviews = Review.objects.filter(is_approved=True).order_by('-created_at')
 
     if request.method == "POST":
         form = ReviewForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('home')  # إعادة تحميل الصفحة
+            review = form.save(commit=False)
+            review.is_approved = False  # ✅ الريفيو غير معتمد افتراضياً
+            review.save()
+            messages.success(request, 'تم إرسال التقييم بنجاح! سيتم مراجعته قريباً.')
+            return redirect('home')
     else:
         form = ReviewForm()
 
@@ -52,7 +56,7 @@ def home(request):
         {
             'servicecards': servicecards,
             'reviews': reviews,
-            'form': form,   # ✅ لازم تبعتها هنا
+            'form': form,
         }
     )
 
@@ -67,13 +71,16 @@ def dashboard(request):
     main_prices = Main_price_model.objects.all()
     prices = Price_model.objects.select_related('main_price_model').all()
     
+    # ✅ إضافة الريفيوهات المعلقة والمعتمدة
+    pending_reviews = Review.objects.filter(is_approved=False).order_by('-created_at')
+    approved_reviews = Review.objects.filter(is_approved=True).order_by('-created_at')
+    
     if request.method == 'POST':
         action = request.POST.get('action')
         
         try:
             # إنشاء حجز خدمة
             if action == 'add_booking':
-                # ✅ نجيب الـ main_price_model من الفورم
                 main_price_id = request.POST.get('main_price_id')
                 main_price = None
                 
@@ -90,7 +97,7 @@ def dashboard(request):
                     exclusion=request.POST.get('exclusion'),
                     note=request.POST.get('note'),
                     period=request.POST.get('period'),
-                    main_price_model=main_price,  # ✅ هنا نربطه
+                    main_price_model=main_price,
                     image1=request.FILES.get('image1'),
                     image2=request.FILES.get('image2'),
                     image3=request.FILES.get('image3'),
@@ -163,7 +170,6 @@ def dashboard(request):
                 Price_model.objects.get(id=price_id).delete()
                 messages.success(request, 'تم حذف السعر بنجاح!')
 
-
         except Exception as e:
             messages.error(request, f'حدث خطأ: {str(e)}')
         
@@ -174,7 +180,30 @@ def dashboard(request):
         'servicebooking': servicebooking,
         'main_prices': main_prices,
         'prices': prices,
+        'pending_reviews': pending_reviews,  # ✅ إضافة الريفيوهات المعلقة
+        'approved_reviews': approved_reviews,  # ✅ إضافة الريفيوهات المعتمدة
     })
+
+
+# ثالثاً: إضافة دوال الموافقة والرفض
+@user_passes_test(lambda u: u.is_superuser)
+def approve_review(request, review_id):
+    """الموافقة على الريفيو"""
+    review = get_object_or_404(Review, id=review_id)
+    review.is_approved = True
+    review.save()
+    messages.success(request, f'تم الموافقة على تقييم {review.name}')
+    return redirect('dashboard')
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def reject_review(request, review_id):
+    """رفض وحذف الريفيو"""
+    review = get_object_or_404(Review, id=review_id)
+    review_name = review.name
+    review.delete()
+    messages.success(request, f'تم رفض وحذف تقييم {review_name}')
+    return redirect('dashboard')
 
 
 

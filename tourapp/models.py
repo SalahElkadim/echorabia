@@ -102,12 +102,18 @@ from django.db import models
 from django.utils import timezone
 
 class Review(models.Model):
-    name = models.CharField(max_length=100)  # اسم العميل
-    email = models.EmailField()  # البريد (اختياري تعرضه أو تخزنه بس)
-    rating = models.PositiveIntegerField()  # التقييم من 1 لـ 5
-    comment = models.TextField()  # نص الريفيو
-    created_at = models.DateTimeField(default=timezone.now)
-
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    rating = models.IntegerField()
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)  # ✅ أضف هذا الحقل
+    
     def __str__(self):
-        return f"{self.name} - {self.rating}/5"
+        return f"{self.name} - {self.rating} stars"
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Review'
+        verbose_name_plural = 'Reviews'
 

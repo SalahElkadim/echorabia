@@ -262,7 +262,43 @@ const iti = window.intlTelInput(phoneInputField, {
     preferredCountries: ["sa", "eg", "ae", "kw", "qa"],
     utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/js/utils.js"
 });
-
+// ✅ التحكم في خيارات الباص حسب عدد الأفراد
+document.addEventListener("DOMContentLoaded", function() {
+    const numOfAdultsInput = document.querySelector('input[name="numofadult"]');
+    const busTypeSelect = document.getElementById('bus_type');
+    const busAccordion = document.querySelector('.accordion:nth-of-type(2)'); // الأكورديون الخاص بالباص
+    
+    function updateBusOptions() {
+        const numOfAdults = parseInt(numOfAdultsInput.value) || 0;
+        
+        if (numOfAdults >= 1 && numOfAdults <= 6) {
+            // إظهار السيارة الخاصة فقط (من 1 إلى 6 أفراد)
+            busTypeSelect.innerHTML = `
+                <option value="none">Private Car (for up to 6 people)</option>
+            `;
+        } else if (numOfAdults >= 7) {
+            // إظهار خيارات الباص فقط (7 أفراد فأكثر)
+            busTypeSelect.innerHTML = `
+                <option value="normal">Normal Bus</option>
+                <option value="vip">VIP Bus</option>
+            `;
+        } else {
+            // في حالة عدم إدخال رقم صحيح، إظهار كل الخيارات
+            busTypeSelect.innerHTML = `
+                <option value="none">Private Car (for up to 6 people)</option>
+                <option value="normal">Normal Bus</option>
+                <option value="vip">VIP Bus</option>
+            `;
+        }
+    }
+    
+    // تشغيل الدالة عند تغيير عدد الأفراد
+    numOfAdultsInput.addEventListener('input', updateBusOptions);
+    numOfAdultsInput.addEventListener('change', updateBusOptions);
+    
+    // تشغيل الدالة عند فتح النافذة
+    updateBusOptions();
+});
 document.getElementById("bookingForm").addEventListener("submit", function(e) {
     const fullPhoneNumber = iti.getNumber();
     phoneInputField.value = fullPhoneNumber;
