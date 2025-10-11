@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import ServiceBooking, ServiceCard, Booking, TourRequest,Main_price_model,Price_model
+from .models import ServiceBooking, ServiceCard, Booking, TourRequest,Main_price_model,Price_model,BookingPrice
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
@@ -73,6 +73,16 @@ def dashboard(request):
         try:
             # إنشاء حجز خدمة
             if action == 'add_booking':
+                # ✅ نجيب الـ main_price_model من الفورم
+                main_price_id = request.POST.get('main_price_id')
+                main_price = None
+                
+                if main_price_id:
+                    try:
+                        main_price = Main_price_model.objects.get(id=main_price_id)
+                    except Main_price_model.DoesNotExist:
+                        pass
+                
                 booking = ServiceBooking.objects.create(
                     title=request.POST.get('title'),
                     description=request.POST.get('description'),
@@ -80,6 +90,7 @@ def dashboard(request):
                     exclusion=request.POST.get('exclusion'),
                     note=request.POST.get('note'),
                     period=request.POST.get('period'),
+                    main_price_model=main_price,  # ✅ هنا نربطه
                     image1=request.FILES.get('image1'),
                     image2=request.FILES.get('image2'),
                     image3=request.FILES.get('image3'),
@@ -131,6 +142,27 @@ def dashboard(request):
                     total_g_d_v=request.POST.get('total_g_d_v') or None,
                 )
                 messages.success(request, 'تم إضافة الأسعار الفرعية بنجاح!')
+            
+            # تعديل السعر
+            elif action == 'edit_price':
+                price_id = request.POST.get('price_id')
+                price = Price_model.objects.get(id=price_id)
+                price.numper_o_p = request.POST.get('numper_o_p')
+                price.total_g = request.POST.get('total_g')
+                price.total_g_d = request.POST.get('total_g_d')
+                price.total_g_b = request.POST.get('total_g_b')
+                price.total_g_v = request.POST.get('total_g_v')
+                price.total_g_d_b = request.POST.get('total_g_d_b')
+                price.total_g_d_v = request.POST.get('total_g_d_v')
+                price.save()
+                messages.success(request, 'تم تعديل السعر بنجاح!')
+
+            # حذف السعر
+            elif action == 'delete_price':
+                price_id = request.POST.get('price_id')
+                Price_model.objects.get(id=price_id).delete()
+                messages.success(request, 'تم حذف السعر بنجاح!')
+
 
         except Exception as e:
             messages.error(request, f'حدث خطأ: {str(e)}')
@@ -178,26 +210,70 @@ def book_service(request, service_id):
     service = get_object_or_404(ServiceBooking, id=service_id)
 
     try:
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        numofadult = int(request.POST.get('numofadult', 1))
+        booking_date = request.POST.get('date')  # ✅ غيّر من 'booking_date' لـ 'date'
+        hotel = request.POST.get('hotel', '')
+        room = request.POST.get('room', '')
+        include_dinner = request.POST.get('include_dinner') in ['on', 'true', '1']
+        bus_type = request.POST.get('bus_type', 'none')
+        dropoff = request.POST.get('dropoff', "I don't need")
+        disease = request.POST.get('disease', '')
+        policy_checked = request.POST.get('policy') == 'on'
+
+        # نجيب سعر الرحلة بناءً على العدد ونوع العشاء والباص
+        price_instance = Price_model.objects.get(
+            main_price_model=service.main_price_model,
+            numper_o_p=numofadult
+        )
+
+        # تحديد السعر حسب الحالة
+        if numofadult <= 6:
+            total_price = price_instance.total_g_d if include_dinner else price_instance.total_g
+        else:
+            if bus_type == 'vip':
+                total_price = price_instance.total_g_d_v if include_dinner else price_instance.total_g_v
+            elif bus_type == 'normal':
+                total_price = price_instance.total_g_d_b if include_dinner else price_instance.total_g_b
+            else:
+                return JsonResponse({'error': 'Bus type required for more than 6 people'}, status=400)
+
+        # إنشاء الحجز
         booking = Booking.objects.create(
             servicebooking=service,
-            name=request.POST.get('name'),
-            email=request.POST.get('email'),
-            phone=request.POST.get('phone'),
-            numofadult=int(request.POST.get('adults', 1)),
-            date=request.POST.get('booking_date'),
-            hotel=request.POST.get('hotel', ''),
-            room=request.POST.get('room', ''),
-            dropoff=request.POST.get('dropoff', "I don't need"),
-            policy=request.POST.get('cancellation_policy') == 'on',
-            disease=request.POST.get('disease', ''),
+            name=name,
+            email=email,
+            phone=phone,
+            numofadult=numofadult,
+            date=booking_date,
+            hotel=hotel,
+            room=room,
+            dropoff=dropoff,
+            policy=policy_checked,
+            disease=disease,
+            include_dinner=include_dinner,
+            bus_type=bus_type,
         )
+
+        # إنشاء كائن السعر المنفصل
+        BookingPrice.objects.create(
+            booking=booking,
+            total_price=total_price
+        )
+
         return JsonResponse({
             "success": True,
-            "booking_id": booking.id
+            "booking_id": booking.id,
+            "total_price": float(total_price)
         })
+
+    except Price_model.DoesNotExist:
+        return JsonResponse({'error': 'No price found for this group size'}, status=400)
     except Exception as e:
-        logger.error(f"Booking creation failed: {e}")
-        return JsonResponse({'error': 'Booking creation failed', 'details': str(e)}, status=400)
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 #طلب انشاء رحلة مخصصة 
 def create_tour_request(request):

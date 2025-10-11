@@ -25,12 +25,18 @@ from django.core.mail import send_mail
 def payment_page(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
     service = booking.servicebooking
+    
+    # نجيب السعر النهائي من الموديل الجديد
+    amount_sar = booking.price.total_price  # من BookingPrice
+    amount_halalah = int(amount_sar * 100)  # ميسر يستقبل بالهللة (1 SAR = 100 halalah)
+    
     context = {
-    "moyasar_key": settings.MOYASAR_PUBLISHABLE_KEY,
-    "booking_id": booking.id,
-}
-
+        "moyasar_key": settings.MOYASAR_PUBLISHABLE_KEY,
+        "booking_id": booking.id,
+        "amount": amount_halalah,  # نمرره للفورم
+    }
     return render(request, "payment.html", context)
+
 
 
 
@@ -52,7 +58,7 @@ class CreatePaymentView(APIView):
                 }, status=400)
 
             booking = get_object_or_404(Booking, id=booking_id)
-
+            
             # 🟢 استقبال التوكن من الـ frontend
             source_data = data.get("source", {})
             token = source_data.get("token")
@@ -68,10 +74,10 @@ class CreatePaymentView(APIView):
                 "type": "token",
                 "token": token
             }
-
+            
             # 🟡 إنشاء الدفع عبر ميسر
             payment_response = create_payment(
-                amount=data.get("amount"),
+                amount=booking.price.total_price,
                 description=data.get("description"),
                 callback_url="https://echorabia.com/payment/callback/",
                 source=source,

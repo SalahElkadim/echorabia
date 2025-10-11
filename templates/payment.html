@@ -262,7 +262,7 @@
     
   Moyasar.init({
     element: '.mysr-form',
-    amount: 100, // بالهللة = 100 ريال
+    amount: {{ amount }}, // بالهللة = 100 ريال
     currency: 'SAR',
     description: 'Booking tour',
     publishable_api_key: 'pk_live_AUPkqG63z5VEJ6XRKMS2fuUtpB3k5LVgyXTER5TE',
@@ -286,7 +286,7 @@
     function sendTokenToServer(token) {
       const data = {
         booking_id: "{{ booking_id }}",  // تمررها من Django context
-        amount: 100,                   // نفس المبلغ المستخدم في الفورم
+        amount: amount: {{ amount }},                 // نفس المبلغ المستخدم في الفورم
         description: "حجز استشارة لغوية",
         source: { token: token }
       };

@@ -83,70 +83,94 @@
         <p>{{ service_booking.note }}</p>
         </div>
         <br></br>
-        <button class="book-btn">Book Now</button>
+        <button class="book-btn" data-service-id="{{ service_booking.id }}">Book Now</button>
         <!-- Overlay & Modal -->
         <form id="bookingForm">
-        <div id="bookingModal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h2>Complete Booking</h2>
-          {% csrf_token %}
-        <label>Number of Adults:</label>
-        <input type="number" name="adults" required>
+            <div id="bookingModal" class="modal-overlay" style="display:none;">
+            <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Complete Booking</h2>
+            {% csrf_token %}
 
-        <label>Full Name:</label>
-        <input type="text" name="name" required>
+            <label>Number of Adults:</label>
+            <input type="number" name="numofadult" min="1" required>
 
-        <label>Email Address:</label>
-        <input type="email" name="email" required>
+            <label>Full Name:</label>
+            <input type="text" name="name" required>
 
-        <label for="phone">Phone Number:</label>
-        <input type="tel" id="phone" name="phone" required>
+            <label>Email Address:</label>
+            <input type="email" name="email" required>
 
-        <label>Booking Date:</label>
-        <input type="date" id="tour_date" name="booking_date" lang="en" required>
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" name="phone" required>
 
-        <label>Do you have any medical conditions?</label>
-        <input type="text" name="disease" placeholder="If you have a condition, please specify" required>
+            <label>Booking Date:</label>
+            <input type="date" id="tour_date" name="date" lang="en" required>
 
+            <label>Do you have any medical conditions?</label>
+            <input type="text" name="disease" placeholder="If you have a condition, please specify">
 
-        <br></br>
-        <button class="accordion"> Would you like us to pick you up from your hotel? </button>
-        <div class="panel">
-        <label>Hotel Name (Optional):</label>
-        <input type="text" name="hotel">
+            <br><br>
+            <!-- ✅ اختيار العشاء -->
+            <button class="accordion">Add Dinner?</button>
+            <div class="panel">
+            <p>If you would like to include dinner in your trip, please select below.</p>
+            </div>
+            <label>
+            <input type="checkbox" name="include_dinner">
+            Yes, I want to include dinner.
+            </label>
 
-        <label>Room Number (Optional):</label>
-        <input type="text" name="room">
-        </div>
+            <br><br>
+            <!-- ✅ اختيار نوع الباص -->
+            <button class="accordion">Choose the type of bus</button>
+            <div class="panel">
+            <select name="bus_type" id="bus_type">
+            <option value="none">Private Car (for up to 6 people)</option>
+            <option value="normal">Normal Bus</option>
+            <option value="vip">VIP Bus</option>
+            </select>
+            </div>
 
+            <br><br>
+            <!-- ✅ الفندق -->
+            <button class="accordion">Would you like us to pick you up from your hotel?</button>
+            <div class="panel">
+            <label>Hotel Name (Optional):</label>
+            <input type="text" name="hotel">
 
-        <br></br>
-        <button class="accordion"> Where should we drop you off? </button>
-        <div class="panel">
-        <select name="dropoff" id="dropoff" required>
-        <option value="">-- Please choose an option --</option>
-        <option value="none">I don’t need</option>
-        <option value="riyadh">Riyadh</option>
-        </select>
-        </div>
+            <label>Room Number (Optional):</label>
+            <input type="text" name="room">
+            </div>
 
-        <br></br>
+            <br><br>
+            <!-- ✅ مكان النزول -->
+            <button class="accordion">Where should we drop you off?</button>
+            <div class="panel">
+            <select name="dropoff" id="dropoff">
+            <option value="I don't need">I don’t need</option>
+            <option value="riyadh">Riyadh</option>
+            <option value="jeddah">Jeddah</option>
+            </select>
+            </div>
 
-        <button class="accordion"> Cancellation Policy </button>
-        <div class="panel">
-        <p id="cancellationPolicyText">
-            <!-- سيتم ملء النص تلقائياً بالـ JS -->
-        </p>
-        </div>
+            <br><br>
+            <!-- ✅ سياسة الإلغاء -->
+            <button class="accordion">Cancellation Policy</button>
+            <div class="panel">
+            <p id="cancellationPolicyText"></p>
+            </div>
+            <label>
+            <input type="checkbox" name="policy" required>
+            I agree to the cancellation policy
+            </label>
 
-        <label>
-        <input type="checkbox" name="cancellation_policy" required>
-        I agree to the cancellation policy
-        </label>
-
-        <button type="submit">Confirm Booking</button>
+            <br><br>
+            <button type="submit">Confirm Booking</button>
+            </div>
+            </div>
         </form>
+
         </div>
         </div>
         <div id="successOverlay" style="display: none;">

@@ -155,6 +155,19 @@
                         </label>
                         <input type="text" id="title" name="title" required placeholder="أدخل عنوان الحجز">
                     </div>
+
+                     <div class="form-group">
+                        <label for="main_price_id">
+                            <i class="fas fa-tags"></i> اختر نموذج الأسعار
+                        </label>
+                        <select id="main_price_id" name="main_price_id">
+                            <option value="">-- اختر نموذج الأسعار --</option>
+                            {% for main in main_prices %}
+                                <option value="{{ main.id }}">{{ main.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
                     
                     <div class="form-group">
                         <label for="description">
@@ -174,13 +187,7 @@
                         </label>
                         <textarea id="exclusion" name="exclusion" rows="4" required placeholder="الاستثناءات "></textarea>
                     </div>
-                    <div class="form-group">
-                        <label for="exclusion">
-                            <i class="fas fa-align-left"></i> التكلفة  
-                        </label>
-                        <input type="text" id="cost" name="cost" required>
-                    </div>
-
+                    
                     <div class="form-group">
                         <label for="note">
                             <i class="fas fa-align-left"></i> ملاحظات
@@ -263,27 +270,54 @@
 
     <!-- عرض النماذج الرئيسية -->
     <div class="main-prices">
-        <h3>📦 النماذج الرئيسية</h3>
-        <ul>
-            {% for main in main_prices %}
-                <li>
-                    <strong>{{ main.title }}</strong>
-                    <ul>
-                        {% for p in prices %}
-                            {% if p.main_price_model.id == main.id %}
-                                <li>
-                                    <i class="fas fa-user"></i> {{ p.numper_o_p }} شخص — 
-                                    <i class="fas fa-coins"></i> {{ p.total_g }} ريال
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                </li>
-            {% empty %}
-                <li>لا توجد نماذج أسعار بعد</li>
-            {% endfor %}
-        </ul>
-    </div>
+    <h3> النماذج الرئيسية</h3>
+    <ul class="main-price-list">
+        {% for main in main_prices %}
+            <li class="main-item">
+                <strong class="main-title">{{ main.title }}</strong>
+                <ul class="price-list">
+                    {% for p in prices %}
+                        {% if p.main_price_model.id == main.id %}
+                            <li class="price-item">
+                                <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">
+                                    <i class="fas fa-user"></i> {{ p.numper_o_p }} شخص
+                                </div>
+                                <div class="price-details">
+                                    <p>السعر بدون عشاء <span>{{ p.total_g }} ريال</span></p>
+                                    <p>السعر مع العشاء <span>{{ p.total_g_d }} ريال</span></p>
+                                    <p>السعر بالباص <span>{{ p.total_g_b }} ريال</span></p>
+                                    <p>السعر بـ VIP <span>{{ p.total_g_v }} ريال</span></p>
+                                    <p>السعر بالباص مع العشاء <span>{{ p.total_g_d_b }} ريال</span></p>
+                                    <p>السعر بالباص VIP مع العشاء <span>{{ p.total_g_d_v }} ريال</span></p>
+                                </div>
+
+                                <!-- أزرار تعديل وحذف -->
+                                <div class="price-actions">
+                                    <button class="btn edit-btn" onclick="openEditModal('{{ p.id }}', '{{ p.numper_o_p }}', '{{ p.total_g }}', '{{ p.total_g_d }}', '{{ p.total_g_b }}', '{{ p.total_g_v }}', '{{ p.total_g_d_b }}', '{{ p.total_g_d_v }}')">
+                                        <i class="fas fa-edit"></i> تعديل
+                                    </button>
+                                    <form method="POST" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_price">
+                                        <input type="hidden" name="price_id" value="{{ p.id }}">
+                                        <button type="submit" class="btn delete-btn">
+                                            <i class="fas fa-trash"></i> حذف
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </li>
+        {% empty %}
+            <li style="text-align: center; padding: 40px; color: var(--text-gray);">
+                <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
+                لا توجد نماذج أسعار بعد
+            </li>
+        {% endfor %}
+    </ul>
+</div>
 </div>
 
 <!-- ============ مودال إضافة نموذج رئيسي للأسعار ============ -->
@@ -386,6 +420,45 @@
     </div>
 </div>
 
+<div id="edit-price-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>تعديل السعر</h2>
+      <span class="close" onclick="closeModal('edit-price-modal')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit_price">
+        <input type="hidden" id="price_id" name="price_id">
+
+        <label>عدد الأشخاص:</label>
+        <input type="number" id="numper_o_p" name="numper_o_p" required>
+
+        <label>السعر بدون عشاء:</label>
+        <input type="number" id="total_g" name="total_g">
+
+        <label>السعر مع العشاء:</label>
+        <input type="number" id="total_g_d" name="total_g_d">
+
+        <label>السعر بالباص:</label>
+        <input type="number" id="total_g_b" name="total_g_b">
+
+        <label>السعر بالvip:</label>
+        <input type="number" id="total_g_v" name="total_g_v">
+
+        <label>السعر بالعشاء والباص</label>
+        <input type="number" id="total_g_d_b" name="total_g_d_b">
+
+        <label> السعر بالعشاء والباص الvip</label>
+        <input type="number" id="total_g_d_v" name="total_g_d_v">
+
+        <button type="submit" class="submit-btn">حفظ التعديلات</button>
+      </form>
+    </div>
+  </div>
+</div>
+
    <script src="{% static 'js/dashboard.js' %}"></script>
    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>$(document).on("click", ".delete-btn", function () {
@@ -408,5 +481,19 @@
   });
 });
 </script>
+<script>
+function openEditModal(id, numper, g, gd, gb, gv, gdb, gdv) {
+  document.getElementById('price_id').value = id;
+  document.getElementById('numper_o_p').value = numper;
+  document.getElementById('total_g').value = g;
+  document.getElementById('total_g_d').value = gd;
+  document.getElementById('total_g_b').value = gb;
+  document.getElementById('total_g_v').value = gv;
+  document.getElementById('total_g_d_b').value = gdb;
+  document.getElementById('total_g_d_v').value = gdv;
+  openModal('edit-price-modal');
+}
+</script>
+
 </body>
 </html>

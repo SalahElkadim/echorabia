@@ -146,8 +146,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'echorabia@gmail.com'
 EMAIL_HOST_PASSWORD = 'tjfj smhr ejil khyv'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-#DEBUG = True
-DEBUG = True
+DEBUG = False
 # إعدادات الأمان عند تفعيل HTTPS
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True

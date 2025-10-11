@@ -15,6 +15,7 @@ class CustomUser(AbstractUser):
 
 class Main_price_model(models.Model):
     title = models.CharField(max_length=200)
+
     def __str__(self):
                 return self.title
 
@@ -31,14 +32,13 @@ class Price_model(models.Model):
         return f"{self.main_price_model.title} - {self.numper_o_p} person"
 
 class ServiceBooking(models.Model):
-    price_model=models.ForeignKey(Price_model, on_delete=models.CASCADE, null=True, blank=True)
+    main_price_model=models.ForeignKey(Main_price_model,on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=200)
     description = models.TextField()
     included = models.TextField(blank=True, null=True)
     exclusion = models.TextField(blank=True, null=True)
     note = models.TextField(blank=True, null=True)
     period = models.CharField(max_length=100, blank=True, null=True)
-    cost = models.IntegerField(default=100)
     image1 = CloudinaryField('image1', blank=True, null=True)
     image2 = CloudinaryField('image2', blank=True, null=True)
     image3 = CloudinaryField('image3', blank=True, null=True)
@@ -64,6 +64,8 @@ class Booking(models.Model):
     phone = models.CharField(max_length=15)
     numofadult = models.IntegerField()
     date = models.CharField(max_length = 50)
+    include_dinner = models.BooleanField(default=False)
+    bus_type = models.CharField(choices=[('none','private car '),('normal','normal bus'),('vip',' VIP')], max_length=10, default='none')
     hotel = models.CharField(max_length=10, blank=True, null=True)
     room = models.CharField(max_length=10, blank=True, null=True)
     dropoff = models.CharField(max_length = 50,default="I don't need")
@@ -73,6 +75,15 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+
+class BookingPrice(models.Model):
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name='price')  # ✅ أضف related_name
+    total_price = models.IntegerField()
+    
+    def __str__(self):
+        return f"{self.booking.name} - {self.total_price} SAR"
+
 
 class TourRequest(models.Model):
     full_name = models.CharField(max_length=100)
