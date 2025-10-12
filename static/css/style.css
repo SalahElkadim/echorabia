@@ -119,11 +119,10 @@ body::-webkit-scrollbar-thumb:hover {
             background-color: #2167a8;
             color: aliceblue;
         }
-
         /* Hero Section */
         .hero {
             height: 100vh;
-            background: linear-gradient(360deg,rgba(129, 108, 83, 0.0) ,rgba(231, 204, 176, 0.0) ),url('../images/background.png');
+            background: linear-gradient(360deg,rgba(129, 108, 83, 0.0) ,rgba(231, 204, 176, 0.0) ),url('../images/background.webp');
             background-size: cover;
             background-position: center;
             display: flex;
