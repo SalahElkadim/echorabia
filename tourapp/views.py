@@ -12,6 +12,8 @@ from .forms import ReviewForm
 import requests
 from django.conf import settings
 import logging
+from .integration_services import get_tour_guide_license_details, get_tour_operator_license_details
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -329,3 +331,28 @@ def create_tour_request(request):
 
     return render(request, 'tourapp/home.html')
 
+
+def verify_tour_guide(request, id_no, license_no):
+    data = get_tour_guide_license_details(id_no, license_no)
+    if data.get("errorCode") == 0:
+        return JsonResponse({"status": "verified", "details": data})
+    else:
+        return JsonResponse({"status": "error", "message": data.get("errorMessage")})
+
+def verify_operator(request):
+    company_id = "1000120087"
+    license_no = "73101348"
+    commercial_no = "1010478246"
+    data = get_tour_operator_license_details(company_id, license_no, commercial_no)
+    return JsonResponse(data)
+
+from django.http import HttpResponse
+
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Disallow: /admin/",
+        "Allow: /",
+        "Sitemap: https://echorabia.com/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")

@@ -1,15 +1,15 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> Pay Now | EchoRabia</title>
+  <title>Pay Now | EchoRabia</title>
 
   <!-- Moyasar SDK -->
   <script src="https://cdn.moyasar.com/mpf/1.7.3/moyasar.js"></script>
 
- <style>
+  <style>
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
 
     * {
@@ -24,7 +24,7 @@
       color: #4b3b2b;
       text-align: center;
       padding: 60px 20px;
-      direction: rtl;
+      direction: ltr;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -47,7 +47,7 @@
       line-height: 1.6;
     }
 
-    /* ✅ حاوية فورم ميسر */
+    /* ✅ Moyasar form container */
     .mysr-form {
       background: #ffffff;
       border-radius: 24px;
@@ -66,7 +66,7 @@
       border-color: #d4c4b0;
     }
 
-     .mysr-form input[type="text"],
+    .mysr-form input[type="text"],
     .mysr-form input[type="tel"],
     .mysr-form input[type="email"],
     .mysr-form input[type="number"],
@@ -90,6 +90,7 @@
       margin-bottom: 16px !important;
       box-sizing: border-box !important;
     }
+
     .mysr-form input:focus,
     .mysr-form select:focus {
       background: #ffffff !important;
@@ -104,11 +105,11 @@
       font-weight: 600;
       color: #4b3b2b;
       margin-bottom: 8px;
-      text-align: right;
-      padding-right: 4px;
+      text-align: left;
+      padding-left: 4px;
     }
 
-    /* زرار الدفع */
+    /* Pay button */
     .mysr-form button,
     .mysr-form input[type="submit"] {
       width: 100%;
@@ -138,7 +139,7 @@
       box-shadow: 0 4px 15px rgba(139, 94, 52, 0.3) !important;
     }
 
-    /* تحميل */
+    /* Loading overlay */
     body.loading {
       pointer-events: none;
       position: relative;
@@ -197,7 +198,7 @@
       50% { opacity: 1; }
     }
 
-    /* شعارات الدفع */
+    /* Payment logos */
     .payment-logos {
       display: flex;
       justify-content: center;
@@ -215,7 +216,6 @@
       font-weight: 500;
     }
 
-    /* تنسيق عام للموبايل */
     @media (max-width: 480px) {
       body {
         padding: 30px 15px;
@@ -248,50 +248,46 @@
       }
     }
   </style>
-
 </head>
 
 <body>
-  <h2>Payment page</h2>
-  <p>Please, Pay here for booking your tour..</p>
+  <h2>Complete Your Payment</h2>
+  <p>Please pay here to confirm your booking.</p>
 
-  <!-- ✅ فورم ميسر -->
+  <!-- ✅ Moyasar Form -->
   <div class="mysr-form"></div>
+
   <script>
-    // ✅ تهيئة فورم ميسر
-    
-  Moyasar.init({
-    element: '.mysr-form',
-    amount: {{ amount }}, // بالهللة = 100 ريال
-    currency: 'SAR',
-    description: 'Booking tour',
-    publishable_api_key: 'pk_live_AUPkqG63z5VEJ6XRKMS2fuUtpB3k5LVgyXTER5TE',
-    callback_url: 'https://echorabia.com/payment/callback/',
-    supported_networks: ['visa', 'mastercard', 'mada'],
-    methods: ['creditcard'],
+    // ✅ Initialize Moyasar form
+    Moyasar.init({
+      element: '.mysr-form',
+      amount: {{ amount }}, // Amount in cents
+      currency: 'USD',
+      description: 'Tour booking payment',
+      publishable_api_key: 'pk_live_AUPkqG63z5VEJ6XRKMS2fuUtpB3k5LVgyXTER5TE',
+      callback_url: 'https://echorabia.com/payment/callback/',
+      supported_networks: ['visa', 'mastercard', 'mada'],
+      methods: ['creditcard'],
 
-    on_completed: function (payment) {
-      console.log("🎟 Token received:", payment.source.token);
-      sendTokenToServer(payment.source.token);
-    },
+      on_completed: function (payment) {
+        console.log("🎟 Token received:", payment.source.token);
+        sendTokenToServer(payment.source.token);
+      },
 
-    on_failed: function (error) {
-      alert("حدث خطأ أثناء إنشاء التوكن: " + error.message);
-    }
-  });
+      on_failed: function (error) {
+        alert("An error occurred while creating the payment token: " + error.message);
+      }
+    });
 
-
-
-    // ✅ إرسال التوكن للسيرفر
+    // ✅ Send token to the server
     function sendTokenToServer(token) {
       const data = {
-        booking_id: "{{ booking_id }}",  // تمررها من Django context
-        amount: {{ amount }},                 // نفس المبلغ المستخدم في الفورم
-        description: "حجز استشارة لغوية",
+        booking_id: "{{ booking_id }}",
+        amount: {{ amount }},
+        description: "Language consultation booking",
         source: { token: token }
       };
 
-      // إضافة حالة تحميل مؤقتة
       document.body.classList.add('loading');
 
       fetch("/payment/create/", {
@@ -304,27 +300,25 @@
       })
       .then(res => res.json())
       .then(response => {
-        console.log("📦 Server response:", response);
         document.body.classList.remove('loading');
+        console.log("📦 Server response:", response);
 
-        // ✅ السطر 307-315 - منطق صح
         if (response.status === "initiated" && response.transaction_url) {
-            window.location.href = response.transaction_url;
+          window.location.href = response.transaction_url;
         } else if (response.status === "paid") {
-            window.location.href = "/payment/callback/?status=paid&id=" + response.moyasar_data.id;
+          window.location.href = "/payment/callback/?status=paid&id=" + response.moyasar_data.id;
         } else {
-        alert("فشل الدفع: " + (moyasar.message || "حدث خطأ غير متوقع"));
+          alert("Payment failed: " + (response.message || "Unexpected error occurred"));
         }
-
       })
       .catch(err => {
         document.body.classList.remove('loading');
         console.error("❌ Error:", err);
-        alert("حدث خطأ أثناء إرسال الدفع للسيرفر.");
+        alert("An error occurred while sending the payment to the server.");
       });
     }
 
-    // 🧩 دالة بسيطة لجلب CSRF من الكوكيز (لو استخدمت Django CSRF)
+    // 🧩 Get CSRF token for Django
     function getCSRFToken() {
       const name = 'csrftoken';
       const cookies = document.cookie.split(';');

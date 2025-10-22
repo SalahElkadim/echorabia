@@ -283,12 +283,12 @@
                                     <i class="fas fa-user"></i> {{ p.numper_o_p }} شخص
                                 </div>
                                 <div class="price-details">
-                                    <p>السعر بدون عشاء <span>{{ p.total_g }} ريال</span></p>
-                                    <p>السعر مع العشاء <span>{{ p.total_g_d }} ريال</span></p>
-                                    <p>السعر بالباص <span>{{ p.total_g_b }} ريال</span></p>
-                                    <p>السعر بـ VIP <span>{{ p.total_g_v }} ريال</span></p>
-                                    <p>السعر بالباص مع العشاء <span>{{ p.total_g_d_b }} ريال</span></p>
-                                    <p>السعر بالباص VIP مع العشاء <span>{{ p.total_g_d_v }} ريال</span></p>
+                                    <p>السعر بدون عشاء <span>{{ p.total_g }} دولار</span></p>
+                                    <p>السعر مع العشاء <span>{{ p.total_g_d }} دولار</span></p>
+                                    <p>السعر بالباص <span>{{ p.total_g_b }}دولار</span></p>
+                                    <p>السعر بـ VIP <span>{{ p.total_g_v }} دولار</span></p>
+                                    <p>السعر بالباص مع العشاء <span>{{ p.total_g_d_b }} دولار</span></p>
+                                    <p>السعر بالباص VIP مع العشاء <span>{{ p.total_g_d_v }} دولار</span></p>
                                 </div>
 
                                 <!-- أزرار تعديل وحذف -->
@@ -378,32 +378,32 @@
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fas fa-coins"></i> السعر العام</label>
+                    <label><i class="fas fa-coins"></i>  سعر بدون عشاء أقل من 6</label>
                     <input type="number" name="total_g" placeholder="مثلاً: 500">
                 </div>
 
                 <div class="form-group">
-                    <label>سعر خاص (D)</label>
+                    <label>سعر مع عشاء أقل من 6</label>
                     <input type="number" name="total_g_d">
                 </div>
 
                 <div class="form-group">
-                    <label>سعر خاص (B)</label>
+                    <label>سعر بدون عشاء أكبر من 6 باص عادي </label>
                     <input type="number" name="total_g_b">
                 </div>
 
                 <div class="form-group">
-                    <label>سعر خاص (V)</label>
+                    <label>سعر بدون عشاء أكبر من 6 باص فاخر </label>
                     <input type="number" name="total_g_v">
                 </div>
 
                 <div class="form-group">
-                    <label>سعر خاص (D + B)</label>
+                    <label>سعر عدد اكبر من 6 عشاء وباص عادي</label>
                     <input type="number" name="total_g_d_b">
                 </div>
 
                 <div class="form-group">
-                    <label>سعر خاص (D + V)</label>
+                    <label>سعر عدد اكبر من 6 عشاء وباص فاخر</label>
                     <input type="number" name="total_g_d_v">
                 </div>
 

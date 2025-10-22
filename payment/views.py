@@ -148,7 +148,7 @@ class CreatePaymentView(APIView):
             payment=payment,
             invoice_number=invoice_number,
             amount=Decimal(payment.amount) / 100,
-            currency='SAR',
+            currency='USD',
             description=description or f"Payment for {payment.moyasar_id}",
         )
         return invoice
