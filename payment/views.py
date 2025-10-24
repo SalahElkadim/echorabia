@@ -27,8 +27,17 @@ def payment_page(request, booking_id):
     service = booking.servicebooking
     
     # نجيب السعر النهائي من الموديل الجديد
-    amount_sar = booking.price.total_price  # من BookingPrice
-    amount_halalah = int(amount_sar * 100)  # ميسر يستقبل بالهللة (1 SAR = 100 halalah)
+    amount_sar = booking.price.total_price  # السعر الأساسي من BookingPrice
+
+# حساب ضريبة القيمة المضافة 15%
+    vat = amount_sar * 0.15
+
+    # المجموع الكلي شامل الضريبة
+    total_with_vat = amount_sar + vat
+
+    # التحويل إلى halalah (لأن Moyasar تتعامل بالقروش)
+    amount_halalah = int(total_with_vat * 100)
+  # ميسر يستقبل بالهللة (1 SAR = 100 halalah)
     
     context = {
         "moyasar_key": settings.MOYASAR_PUBLISHABLE_KEY,
