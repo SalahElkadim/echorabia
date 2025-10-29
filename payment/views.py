@@ -367,9 +367,13 @@ def payment_callback_view(request):
                 logger.warning(f"Payment {moyasar_id} not found in callback")
 
         if status == "paid" and payment:
+            # جيب الـ booking عشان تعرض تفاصيله
+            booking = payment.booking if payment else None
+
             return render(request, "tourapp/payment_success.html", {
                 "payment": payment,
                 "invoice": invoice,
+                "booking": booking,
             })
         else:
             return render(request, "tourapp/payment_failed.html", {
