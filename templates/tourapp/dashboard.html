@@ -268,15 +268,20 @@
         </button>
     </div>
 
-   <!-- عرض النماذج الرئيسية -->
+<!-- عرض النماذج الرئيسية -->
 <div class="main-prices">
     <h3>النماذج الرئيسية</h3>
     <ul class="main-price-list">
         {% for main in main_prices %}
             <li class="main-item">
-                <div class="main-item-header">
-                    <strong class="main-title">{{ main.title }}</strong>
-                    <div class="main-actions">
+                <!-- عنوان النموذج الرئيسي (قابل للنقر) -->
+                <div class="main-item-header" onclick="togglePriceList('main-{{ main.id }}')">
+                    <div class="main-title-wrapper">
+                        <i class="fas fa-chevron-down toggle-icon" id="icon-main-{{ main.id }}"></i>
+                        <strong class="main-title">{{ main.title }}</strong>
+                        <span class="price-count">({{ main.price_model_set.count }} سعر)</span>
+                    </div>
+                    <div class="main-actions" onclick="event.stopPropagation()">
                         <button class="btn edit-btn-main" onclick="openEditMainModal('{{ main.id }}', '{{ main.title }}')">
                             <i class="fas fa-edit"></i> تعديل
                         </button>
@@ -291,20 +296,35 @@
                     </div>
                 </div>
                 
-                <ul class="price-list">
+                <!-- الأسعار الفرعية (مخفية بشكل افتراضي) -->
+                <ul class="price-list" id="main-{{ main.id }}" style="display: none;">
                     {% for p in prices %}
                         {% if p.main_price_model.id == main.id %}
                             <li class="price-item">
-                                <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">
-                                    <i class="fas fa-user"></i> {{ p.numper_o_p }} شخص
+                                <div class="price-header">
+                                    <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">
+                                        <i class="fas fa-users"></i> {{ p.numper_o_p }} شخص
+                                    </div>
                                 </div>
                                 <div class="price-details">
-                                    <p>السعر بدون عشاء <span>{{ p.total_g }} ريال</span></p>
-                                    <p>السعر مع العشاء <span>{{ p.total_g_d }} ريال</span></p>
-                                    <p>السعر بالباص <span>{{ p.total_g_b }}ريال</span></p>
-                                    <p>السعر بـ VIP <span>{{ p.total_g_v }} ريال</span></p>
-                                    <p>السعر بالباص مع العشاء <span>{{ p.total_g_d_b }} ريال</span></p>
-                                    <p>السعر بالباص VIP مع العشاء <span>{{ p.total_g_d_v }} ريال</span></p>
+                                    {% if p.total_g %}
+                                    <p><i class="fas fa-tag"></i> السعر بدون عشاء <span>{{ p.total_g }} ريال</span></p>
+                                    {% endif %}
+                                    {% if p.total_g_d %}
+                                    <p><i class="fas fa-utensils"></i> السعر مع العشاء <span>{{ p.total_g_d }} ريال</span></p>
+                                    {% endif %}
+                                    {% if p.total_g_b %}
+                                    <p><i class="fas fa-bus"></i> السعر بالباص <span>{{ p.total_g_b }} ريال</span></p>
+                                    {% endif %}
+                                    {% if p.total_g_v %}
+                                    <p><i class="fas fa-star"></i> السعر بـ VIP <span>{{ p.total_g_v }} ريال</span></p>
+                                    {% endif %}
+                                    {% if p.total_g_d_b %}
+                                    <p><i class="fas fa-bus"></i> السعر بالباص مع العشاء <span>{{ p.total_g_d_b }} ريال</span></p>
+                                    {% endif %}
+                                    {% if p.total_g_d_v %}
+                                    <p><i class="fas fa-crown"></i> السعر بالباص VIP مع العشاء <span>{{ p.total_g_d_v }} ريال</span></p>
+                                    {% endif %}
                                 </div>
 
                                 <!-- أزرار تعديل وحذف السعر الفرعي -->
@@ -324,6 +344,14 @@
                             </li>
                         {% endif %}
                     {% endfor %}
+                    
+                    <!-- رسالة في حالة عدم وجود أسعار فرعية -->
+                    {% if not main.price_model_set.exists %}
+                    <li class="no-prices-message">
+                        <i class="fas fa-info-circle"></i>
+                        <p>لا توجد أسعار فرعية لهذا النموذج بعد</p>
+                    </li>
+                    {% endif %}
                 </ul>
             </li>
         {% empty %}
@@ -882,20 +910,389 @@
   });
 });
 </script>
-<script>
-function openEditModal(id, numper, g, gd, gb, gv, gdb, gdv) {
-  document.getElementById('price_id').value = id;
-  document.getElementById('numper_o_p').value = numper;
-  document.getElementById('total_g').value = g;
-  document.getElementById('total_g_d').value = gd;
-  document.getElementById('total_g_b').value = gb;
-  document.getElementById('total_g_v').value = gv;
-  document.getElementById('total_g_d_b').value = gdb;
-  document.getElementById('total_g_d_v').value = gdv;
-  openModal('edit-price-modal');
+<!-- عرض النماذج الرئيسية -->
+<div class="main-prices">
+    <h3>النماذج الرئيسية</h3>
+    <ul class="main-price-list">
+        {% for main in main_prices %}
+            <li class="main-item">
+                <!-- عنوان النموذج الرئيسي (قابل للنقر) -->
+                <div class="main-item-header" onclick="togglePriceList('main-{{ main.id }}')">
+                    <div class="main-title-wrapper">
+                        <i class="fas fa-chevron-down toggle-icon" id="icon-main-{{ main.id }}"></i>
+                        <strong class="main-title">{{ main.title }}</strong>
+                        <span class="price-count">({{ main.price_model_set.count }} سعر)</span>
+                    </div>
+                    <div class="main-actions" onclick="event.stopPropagation()">
+                        <button class="btn edit-btn-main" onclick="openEditMainModal('{{ main.id }}', '{{ main.title }}')">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا النموذج؟ سيتم حذف جميع الأسعار الفرعية المرتبطة به!');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_main_price">
+                            <input type="hidden" name="main_price_id" value="{{ main.id }}">
+                            <button type="submit" class="btn delete-btn-main">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- الأسعار الفرعية (مخفية بشكل افتراضي) -->
+                <ul class="price-list" id="main-{{ main.id }}" style="display: none;">
+                    {% for p in prices %}
+                        {% if p.main_price_model.id == main.id %}
+                            <li class="price-item">
+                                <div class="price-header">
+                                    <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">
+                                        <i class="fas fa-users"></i> {{ p.numper_o_p }} شخص
+                                    </div>
+                                </div>
+                                <div class="price-details">
+                                    {% if p.total_g %}
+                                    <p><i class="fas fa-tag"></i> السعر بدون عشاء <span>{{ p.total_g }} ريال</span></p>
+                                    {% endif %}
+                                    {% if p.total_g_d %}
+                                    <p><i class="fas fa-utensils"></i> السعر مع العشاء <span>{{ p.total_g_d }} ريال</span></p>
+                                    {% endif %}
+                                    {% if p.total_g_b %}
+                                    <p><i class="fas fa-bus"></i> السعر بالباص <span>{{ p.total_g_b }} ريال</span></p>
+                                    {% endif %}
+                                    {% if p.total_g_v %}
+                                    <p><i class="fas fa-star"></i> السعر بـ VIP <span>{{ p.total_g_v }} ريال</span></p>
+                                    {% endif %}
+                                    {% if p.total_g_d_b %}
+                                    <p><i class="fas fa-bus"></i> السعر بالباص مع العشاء <span>{{ p.total_g_d_b }} ريال</span></p>
+                                    {% endif %}
+                                    {% if p.total_g_d_v %}
+                                    <p><i class="fas fa-crown"></i> السعر بالباص VIP مع العشاء <span>{{ p.total_g_d_v }} ريال</span></p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- أزرار تعديل وحذف السعر الفرعي -->
+                                <div class="price-actions">
+                                    <button class="btn edit-btn" onclick="openEditModal('{{ p.id }}', '{{ p.numper_o_p }}', '{{ p.total_g }}', '{{ p.total_g_d }}', '{{ p.total_g_b }}', '{{ p.total_g_v }}', '{{ p.total_g_d_b }}', '{{ p.total_g_d_v }}')">
+                                        <i class="fas fa-edit"></i> تعديل
+                                    </button>
+                                    <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا السعر؟');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_price">
+                                        <input type="hidden" name="price_id" value="{{ p.id }}">
+                                        <button type="submit" class="btn delete-btn">
+                                            <i class="fas fa-trash"></i> حذف
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <!-- رسالة في حالة عدم وجود أسعار فرعية -->
+                    {% if not main.price_model_set.exists %}
+                    <li class="no-prices-message">
+                        <i class="fas fa-info-circle"></i>
+                        <p>لا توجد أسعار فرعية لهذا النموذج بعد</p>
+                    </li>
+                    {% endif %}
+                </ul>
+            </li>
+        {% empty %}
+            <li style="text-align: center; padding: 40px; color: var(--text-gray);">
+                <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
+                لا توجد نماذج أسعار بعد
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<style>
+/* تنسيق عنوان النموذج الرئيسي */
+.main-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    margin-bottom: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
 }
-</script>
+
+.main-item-header:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.main-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+}
+
+.toggle-icon {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+    color: white;
+}
+
+.toggle-icon.rotated {
+    transform: rotate(-180deg);
+}
+
+.main-title {
+    color: white;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.price-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.main-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-btn-main,
+.delete-btn-main {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.edit-btn-main {
+    background: #f39c12;
+    color: white;
+}
+
+.edit-btn-main:hover {
+    background: #e67e22;
+    transform: translateY(-2px);
+}
+
+.delete-btn-main {
+    background: #e74c3c;
+    color: white;
+}
+
+.delete-btn-main:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
+/* تنسيق قائمة الأسعار الفرعية */
+.price-list {
+    background: #f8f9fa;
+    border-radius: 0 0 10px 10px;
+    padding: 15px;
+    margin-top: 0;
+    animation: slideDown 0.3s ease;
+    border: 2px solid #e0e0e0;
+    border-top: none;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.price-item {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.price-item:last-child {
+    margin-bottom: 0;
+}
+
+.price-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateX(-5px);
+    border-color: #667eea;
+}
+
+.price-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.price-details {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.price-details p {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin: 0;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.price-details p:hover {
+    background: #e9ecef;
+    transform: translateX(-3px);
+}
+
+.price-details p i {
+    margin-left: 8px;
+    color: #667eea;
+}
+
+.price-details span {
+    font-weight: 700;
+    color: #27ae60;
+    font-size: 1.1rem;
+}
+
+.price-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #f0f0f0;
+}
+
+.no-prices-message {
+    text-align: center;
+    padding: 30px;
+    color: #7f8c8d;
+}
+
+.no-prices-message i {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 10px;
+    color: #bdc3c7;
+}
+
+.no-prices-message p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.main-item {
+    margin-bottom: 20px;
+}
+
+/* تحسين مظهر الأزرار */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.edit-btn {
+    background: #3498db;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+
+.delete-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
+/* تحسين مظهر الشاشات الصغيرة */
+@media (max-width: 768px) {
+    .main-item-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .main-title-wrapper {
+        width: 100%;
+    }
+    
+    .main-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .edit-btn-main,
+    .delete-btn-main {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .price-details p {
+        flex-direction: column;
+        gap: 5px;
+        text-align: center;
+    }
+    
+    .price-actions {
+        flex-direction: column;
+    }
+    
+    .price-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+
 <script>
+// دالة إظهار/إخفاء الأسعار الفرعية
+function togglePriceList(id) {
+    const priceList = document.getElementById(id);
+    const icon = document.getElementById('icon-' + id);
+    
+    if (priceList.style.display === 'none' || priceList.style.display === '') {
+        priceList.style.display = 'block';
+        icon.classList.add('rotated');
+    } else {
+        priceList.style.display = 'none';
+        icon.classList.remove('rotated');
+    }
+}
+
 // دالة فتح مودال تعديل النموذج الرئيسي
 function openEditMainModal(id, title) {
     document.getElementById('edit_main_price_id').value = id;
@@ -903,6 +1300,18 @@ function openEditMainModal(id, title) {
     openModal('edit-main-price-modal');
 }
 
+// دالة فتح مودال تعديل السعر الفرعي
+function openEditModal(id, numper, g, gd, gb, gv, gdb, gdv) {
+    document.getElementById('price_id').value = id;
+    document.getElementById('numper_o_p').value = numper;
+    document.getElementById('total_g').value = g;
+    document.getElementById('total_g_d').value = gd;
+    document.getElementById('total_g_b').value = gb;
+    document.getElementById('total_g_v').value = gv;
+    document.getElementById('total_g_d_b').value = gdb;
+    document.getElementById('total_g_d_v').value = gdv;
+    openModal('edit-price-modal');
+}
 </script>
 </body>
 </html>
