@@ -299,6 +299,7 @@
                     <!-- الأسعار الفرعية (مخفية بشكل افتراضي) -->
                     <ul class="price-list" id="main-{{ main.id }}">                        
                         {% for p in prices %}
+                            {% if p.main_price_model.id == main.id %}
                                 <li class="price-item">
                                     <div class="price-header">
                                         <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">
@@ -341,6 +342,7 @@
                                         </form>
                                     </div>
                                 </li>
+                            {% endif %}
                         {% endfor %}
                         
                         <!-- رسالة في حالة عدم وجود أسعار فرعية -->
