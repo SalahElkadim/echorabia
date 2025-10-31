@@ -73,7 +73,7 @@ def dashboard(request):
     main_prices = Main_price_model.objects.all()
     prices = Price_model.objects.select_related('main_price_model').all()
     
-    # ✅ إضافة الريفيوهات المعلقة والمعتمدة
+    # إضافة الريفيوهات المعلقة والمعتمدة
     pending_reviews = Review.objects.filter(is_approved=False).order_by('-created_at')
     approved_reviews = Review.objects.filter(is_approved=True).order_by('-created_at')
     
@@ -135,6 +135,22 @@ def dashboard(request):
                 Main_price_model.objects.create(title=title)
                 messages.success(request, 'تم إضافة نموذج الأسعار الرئيسي بنجاح!')
 
+            # ✅ تعديل نموذج رئيسي للأسعار
+            elif action == 'edit_main_price':
+                main_price_id = request.POST.get('main_price_id')
+                title = request.POST.get('title')
+                main_price = Main_price_model.objects.get(id=main_price_id)
+                main_price.title = title
+                main_price.save()
+                messages.success(request, 'تم تعديل نموذج الأسعار الرئيسي بنجاح!')
+
+            # ✅ حذف نموذج رئيسي للأسعار
+            elif action == 'delete_main_price':
+                main_price_id = request.POST.get('main_price_id')
+                main_price = Main_price_model.objects.get(id=main_price_id)
+                main_price.delete()
+                messages.success(request, 'تم حذف نموذج الأسعار الرئيسي بنجاح!')
+
             # إضافة سعر فرعي مرتبط بنموذج رئيسي
             elif action == 'add_price':
                 main_id = request.POST.get('main_price_id')
@@ -182,8 +198,8 @@ def dashboard(request):
         'servicebooking': servicebooking,
         'main_prices': main_prices,
         'prices': prices,
-        'pending_reviews': pending_reviews,  # ✅ إضافة الريفيوهات المعلقة
-        'approved_reviews': approved_reviews,  # ✅ إضافة الريفيوهات المعتمدة
+        'pending_reviews': pending_reviews,
+        'approved_reviews': approved_reviews,
     })
 
 

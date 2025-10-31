@@ -268,13 +268,29 @@
         </button>
     </div>
 
-    <!-- عرض النماذج الرئيسية -->
-    <div class="main-prices">
-    <h3> النماذج الرئيسية</h3>
+   <!-- عرض النماذج الرئيسية -->
+<div class="main-prices">
+    <h3>النماذج الرئيسية</h3>
     <ul class="main-price-list">
         {% for main in main_prices %}
             <li class="main-item">
-                <strong class="main-title">{{ main.title }}</strong>
+                <div class="main-item-header">
+                    <strong class="main-title">{{ main.title }}</strong>
+                    <div class="main-actions">
+                        <button class="btn edit-btn-main" onclick="openEditMainModal('{{ main.id }}', '{{ main.title }}')">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا النموذج؟ سيتم حذف جميع الأسعار الفرعية المرتبطة به!');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_main_price">
+                            <input type="hidden" name="main_price_id" value="{{ main.id }}">
+                            <button type="submit" class="btn delete-btn-main">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
                 <ul class="price-list">
                     {% for p in prices %}
                         {% if p.main_price_model.id == main.id %}
@@ -291,12 +307,12 @@
                                     <p>السعر بالباص VIP مع العشاء <span>{{ p.total_g_d_v }} ريال</span></p>
                                 </div>
 
-                                <!-- أزرار تعديل وحذف -->
+                                <!-- أزرار تعديل وحذف السعر الفرعي -->
                                 <div class="price-actions">
                                     <button class="btn edit-btn" onclick="openEditModal('{{ p.id }}', '{{ p.numper_o_p }}', '{{ p.total_g }}', '{{ p.total_g_d }}', '{{ p.total_g_b }}', '{{ p.total_g_v }}', '{{ p.total_g_d_b }}', '{{ p.total_g_d_v }}')">
                                         <i class="fas fa-edit"></i> تعديل
                                     </button>
-                                    <form method="POST" style="display:inline;">
+                                    <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا السعر؟');">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete_price">
                                         <input type="hidden" name="price_id" value="{{ p.id }}">
@@ -318,6 +334,36 @@
         {% endfor %}
     </ul>
 </div>
+
+<!-- ============ مودال تعديل نموذج رئيسي للأسعار ============ -->
+<div id="edit-main-price-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> تعديل نموذج الأسعار الرئيسي</h2>
+            <span class="close" onclick="closeModal('edit-main-price-modal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form method="POST" onsubmit="showLoading()">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit_main_price">
+                <input type="hidden" id="edit_main_price_id" name="main_price_id">
+
+                <div class="form-group">
+                    <label for="edit_main_title"><i class="fas fa-heading"></i> اسم النموذج</label>
+                    <input type="text" id="edit_main_title" name="title" required placeholder="أدخل اسم النموذج الرئيسي">
+                </div>
+
+                <div class="loading" id="edit-main-price-loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>جاري التعديل...</p>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-save"></i> حفظ التعديلات
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <!-- ============ مودال إضافة نموذج رئيسي للأسعار ============ -->
@@ -849,6 +895,14 @@ function openEditModal(id, numper, g, gd, gb, gv, gdb, gdv) {
   openModal('edit-price-modal');
 }
 </script>
+<script>
+// دالة فتح مودال تعديل النموذج الرئيسي
+function openEditMainModal(id, title) {
+    document.getElementById('edit_main_price_id').value = id;
+    document.getElementById('edit_main_title').value = title;
+    openModal('edit-main-price-modal');
+}
 
+</script>
 </body>
 </html>
