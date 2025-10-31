@@ -295,69 +295,60 @@
                             </form>
                         </div>
                     </div>
-                    
-                    <!-- الأسعار الفرعية (مخفية بشكل افتراضي) -->
-                    <ul class="price-list" id="main-{{ main.id }}">                        
-                        {% for p in prices %}
-                            {% if p.main_price_model.id == main.id %}
-                                <li class="price-item">
-                                    <div class="price-header">
-                                        <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">
-                                            <i class="fas fa-users"></i> {{ p.numper_o_p }} شخص
-                                        </div>
-                                    </div>
-                                    <div class="price-details">
-                                        {% if p.total_g %}
-                                        <p><i class="fas fa-tag"></i> السعر بدون عشاء <span>{{ p.total_g }} ريال</span></p>
-                                        {% endif %}
-                                        {% if p.total_g_d %}
-                                        <p><i class="fas fa-utensils"></i> السعر مع العشاء <span>{{ p.total_g_d }} ريال</span></p>
-                                        {% endif %}
-                                        {% if p.total_g_b %}
-                                        <p><i class="fas fa-bus"></i> السعر بالباص <span>{{ p.total_g_b }} ريال</span></p>
-                                        {% endif %}
-                                        {% if p.total_g_v %}
-                                        <p><i class="fas fa-star"></i> السعر بـ VIP <span>{{ p.total_g_v }} ريال</span></p>
-                                        {% endif %}
-                                        {% if p.total_g_d_b %}
-                                        <p><i class="fas fa-bus"></i> السعر بالباص مع العشاء <span>{{ p.total_g_d_b }} ريال</span></p>
-                                        {% endif %}
-                                        {% if p.total_g_d_v %}
-                                        <p><i class="fas fa-crown"></i> السعر بالباص VIP مع العشاء <span>{{ p.total_g_d_v }} ريال</span></p>
-                                        {% endif %}
-                                    </div>
-
-                                    <!-- أزرار تعديل وحذف السعر الفرعي -->
-                                    <div class="price-actions">
-                                        <button class="btn edit-btn" onclick="openEditModal('{{ p.id }}', '{{ p.numper_o_p }}', '{{ p.total_g }}', '{{ p.total_g_d }}', '{{ p.total_g_b }}', '{{ p.total_g_v }}', '{{ p.total_g_d_b }}', '{{ p.total_g_d_v }}')">
-                                            <i class="fas fa-edit"></i> تعديل
-                                        </button>
-                                        <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا السعر؟');">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="action" value="delete_price">
-                                            <input type="hidden" name="price_id" value="{{ p.id }}">
-                                            <button type="submit" class="btn delete-btn">
-                                                <i class="fas fa-trash"></i> حذف
-                                            </button>
-                                        </form>
-                                    </div>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                        
-                        <!-- رسالة في حالة عدم وجود أسعار فرعية -->
-                        {% if not main.price_model_set.exists %}
-                        <li class="no-prices-message">
-                            <i class="fas fa-info-circle"></i>
-                            <p>لا توجد أسعار فرعية لهذا النموذج بعد</p>
-                        </li>
-                        {% endif %}
-                    </ul>
                 </li>
-            {% empty %}
-                <li style="text-align: center; padding: 40px; color: var(--text-gray);">
-                    <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
-                    لا توجد نماذج أسعار بعد
+                <li id = "main-" style="display: none;">
+                    <!-- ============================= -->
+                    <!-- ✅ قسم عرض جميع الأسعار الفرعية -->
+                    <!-- ============================= -->
+                    <div class="all-prices-section" style="margin-top: 50px;">
+                        <h3 style="margin-bottom: 20px;">جميع الأسعار الفرعية</h3>
+                        {% if prices %}
+                            <table class="price-table">
+                                <thead>
+                                    <tr>
+                                        <th>النموذج الرئيسي</th>
+                                        <th>عدد الأشخاص</th>
+                                        <th>السعر بدون عشاء</th>
+                                        <th>السعر مع العشاء</th>
+                                        <th>السعر بالباص</th>
+                                        <th>السعر بـ VIP</th>
+                                        <th>السعر بالباص مع العشاء</th>
+                                        <th>السعر بالباص VIP مع العشاء</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in prices %}
+                                        <tr>
+                                            <td>{{ p.main_price_model.title }}</td>
+                                            <td>{{ p.numper_o_p }} شخص</td>
+                                            <td>{% if p.total_g %}{{ p.total_g }} ريال{% else %}-{% endif %}</td>
+                                            <td>{% if p.total_g_d %}{{ p.total_g_d }} ريال{% else %}-{% endif %}</td>
+                                            <td>{% if p.total_g_b %}{{ p.total_g_b }} ريال{% else %}-{% endif %}</td>
+                                            <td>{% if p.total_g_v %}{{ p.total_g_v }} ريال{% else %}-{% endif %}</td>
+                                            <td>{% if p.total_g_d_b %}{{ p.total_g_d_b }} ريال{% else %}-{% endif %}</td>
+                                            <td>{% if p.total_g_d_v %}{{ p.total_g_d_v }} ريال{% else %}-{% endif %}</td>
+                                            <td>
+                                                <button class="btn edit-btn" onclick="openEditModal('{{ p.id }}', '{{ p.numper_o_p }}', '{{ p.total_g }}', '{{ p.total_g_d }}', '{{ p.total_g_b }}', '{{ p.total_g_v }}', '{{ p.total_g_d_b }}', '{{ p.total_g_d_v }}')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا السعر؟');">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="delete_price">
+                                                    <input type="hidden" name="price_id" value="{{ p.id }}">
+                                                    <button type="submit" class="btn delete-btn">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p style="text-align:center; color:gray;">لا توجد أسعار فرعية بعد</p>
+                        {% endif %}
+                    </div>
                 </li>
             {% endfor %}
         </ul>
