@@ -663,6 +663,63 @@
     </div>
 </div>
 
+<!-- ============================= -->
+<!-- ✅ قسم عرض جميع الأسعار الفرعية -->
+<!-- ============================= -->
+<div class="all-prices-section" style="margin-top: 50px;">
+    <h3 style="margin-bottom: 20px;">جميع الأسعار الفرعية</h3>
+    {% if prices %}
+        <table class="price-table">
+            <thead>
+                <tr>
+                    <th>النموذج الرئيسي</th>
+                    <th>عدد الأشخاص</th>
+                    <th>السعر بدون عشاء</th>
+                    <th>السعر مع العشاء</th>
+                    <th>السعر بالباص</th>
+                    <th>السعر بـ VIP</th>
+                    <th>السعر بالباص مع العشاء</th>
+                    <th>السعر بالباص VIP مع العشاء</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in prices %}
+                    <tr>
+                        <td>{{ p.main_price_model.title }}</td>
+                        <td>{{ p.numper_o_p }} شخص</td>
+                        <td>{% if p.total_g %}{{ p.total_g }} ريال{% else %}-{% endif %}</td>
+                        <td>{% if p.total_g_d %}{{ p.total_g_d }} ريال{% else %}-{% endif %}</td>
+                        <td>{% if p.total_g_b %}{{ p.total_g_b }} ريال{% else %}-{% endif %}</td>
+                        <td>{% if p.total_g_v %}{{ p.total_g_v }} ريال{% else %}-{% endif %}</td>
+                        <td>{% if p.total_g_d_b %}{{ p.total_g_d_b }} ريال{% else %}-{% endif %}</td>
+                        <td>{% if p.total_g_d_v %}{{ p.total_g_d_v }} ريال{% else %}-{% endif %}</td>
+                        <td>
+                            <button class="btn edit-btn" onclick="openEditModal('{{ p.id }}', '{{ p.numper_o_p }}', '{{ p.total_g }}', '{{ p.total_g_d }}', '{{ p.total_g_b }}', '{{ p.total_g_v }}', '{{ p.total_g_d_b }}', '{{ p.total_g_d_v }}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا السعر؟');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_price">
+                                <input type="hidden" name="price_id" value="{{ p.id }}">
+                                <button type="submit" class="btn delete-btn">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="text-align:center; color:gray;">لا توجد أسعار فرعية بعد</p>
+    {% endif %}
+</div>
+
+
+
+
+
 <!-- ✅ CSS للتقييمات -->
 <style>
 .reviews-management-section {
@@ -689,6 +746,50 @@
     background: #f8f9fa;
     border-right: 4px solid #3498db;
 }
+
+
+.price-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.price-table th, .price-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.price-table th {
+    background-color: #f7f7f7;
+    font-weight: bold;
+}
+
+.price-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.price-table td .btn {
+    padding: 5px 8px;
+    margin: 0 2px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.price-table td .edit-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.price-table td .delete-btn {
+    background-color: #f44336;
+    color: white;
+}
+
 
 .reviews-grid {
     display: grid;
