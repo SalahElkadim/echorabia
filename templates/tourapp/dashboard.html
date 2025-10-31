@@ -256,103 +256,127 @@
     </div>
 
     <!-- ==================== قسم نماذج الأسعار ==================== -->
-<div class="prices-section">
-
-    <!-- أزرار الإجراءات -->
-    <div class="action-buttons">
-        <button class="action-btn" onclick="openModal('main-price-modal')">
-            <i class="fas fa-plus"></i> إضافة نموذج أسعار رئيسي
-        </button>
-        <button class="action-btn secondary" onclick="openModal('price-modal')">
-            <i class="fas fa-tags"></i> إضافة سعر فرعي
-        </button>
+<!-- ==================== قسم عرض نماذج الأسعار ==================== -->
+<div class="price-models-section">
+    <div class="section-header">
+        <h2><i class="fas fa-money-bill-wave"></i> إدارة نماذج الأسعار</h2>
+        <div class="header-actions">
+            <button class="action-btn" onclick="openModal('main-price-modal')">
+                <i class="fas fa-plus"></i> إضافة نموذج رئيسي
+            </button>
+            <button class="action-btn secondary" onclick="openModal('price-modal')">
+                <i class="fas fa-tags"></i> إضافة سعر فرعي
+            </button>
+        </div>
     </div>
 
-    <!-- عرض النماذج الرئيسية -->
-    <div class="main-prices">
-        <h3>النماذج الرئيسية</h3>
-        <ul class="main-price-list">
+    {% if main_prices %}
+        <div class="price-models-container">
             {% for main in main_prices %}
-                <li class="main-item">
-                    <!-- عنوان النموذج الرئيسي (قابل للنقر) -->
-                    <div class="main-item-header" onclick="togglePriceList('{{ main.id }}')">
-                        <div class="main-title-wrapper">
-                            <i class="fas fa-chevron-down toggle-icon" id="icon-main-{{ main.id }}"></i>
-                            <strong class="main-title">{{ main.title }}</strong>
-                            <span class="price-count">({{ main.price_model_set.count }} سعر)</span>
-                        </div>
-                        <div class="main-actions" onclick="event.stopPropagation()">
-                            <button class="btn edit-btn-main" onclick="openEditMainModal('{{ main.id }}', '{{ main.title }}')">
-                                <i class="fas fa-edit"></i> تعديل
+            <div class="main-price-card">
+                <!-- رأس النموذج الرئيسي -->
+                <div class="main-price-header">
+                    <div class="main-price-info">
+                        <h3><i class="fas fa-folder"></i> {{ main.title }}</h3>
+                        <span class="sub-count">
+                            <i class="fas fa-list"></i> 
+                            {{ main.price_model_set.count }} سعر فرعي
+                        </span>
+                    </div>
+                    <div class="main-price-actions">
+                        <button class="btn-edit-main" 
+                                onclick="openEditMainModal({{ main.id }}, '{{ main.title|escapejs }}')">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button class="btn-toggle" 
+                                onclick="togglePriceList({{ main.id }})">
+                            <i class="fas fa-chevron-down" id="icon-main-{{ main.id }}"></i>
+                            عرض الأسعار
+                        </button>
+                        <form method="POST" style="display: inline;" 
+                              onsubmit="return confirm('هل أنت متأكد من حذف هذا النموذج وجميع الأسعار المرتبطة به؟')">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_main_price">
+                            <input type="hidden" name="main_price_id" value="{{ main.id }}">
+                            <button type="submit" class="btn-delete-main">
+                                <i class="fas fa-trash"></i> حذف
                             </button>
-                            <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا النموذج؟ سيتم حذف جميع الأسعار الفرعية المرتبطة به!');">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="delete_main_price">
-                                <input type="hidden" name="main_price_id" value="{{ main.id }}">
-                                <button type="submit" class="btn delete-btn-main">
-                                    <i class="fas fa-trash"></i> حذف
-                                </button>
-                            </form>
-                        </div>
+                        </form>
                     </div>
-                </li>
-                <li id = "main-" style="display: none;">
-                    <!-- ============================= -->
-                    <!-- ✅ قسم عرض جميع الأسعار الفرعية -->
-                    <!-- ============================= -->
-                    <div class="all-prices-section" style="margin-top: 50px;">
-                        <h3 style="margin-bottom: 20px;">جميع الأسعار الفرعية</h3>
-                        {% if prices %}
-                            <table class="price-table">
-                                <thead>
-                                    <tr>
-                                        <th>النموذج الرئيسي</th>
-                                        <th>عدد الأشخاص</th>
-                                        <th>السعر بدون عشاء</th>
-                                        <th>السعر مع العشاء</th>
-                                        <th>السعر بالباص</th>
-                                        <th>السعر بـ VIP</th>
-                                        <th>السعر بالباص مع العشاء</th>
-                                        <th>السعر بالباص VIP مع العشاء</th>
-                                        <th>إجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for p in prices %}
-                                        <tr>
-                                            <td>{{ p.main_price_model.title }}</td>
-                                            <td>{{ p.numper_o_p }} شخص</td>
-                                            <td>{% if p.total_g %}{{ p.total_g }} ريال{% else %}-{% endif %}</td>
-                                            <td>{% if p.total_g_d %}{{ p.total_g_d }} ريال{% else %}-{% endif %}</td>
-                                            <td>{% if p.total_g_b %}{{ p.total_g_b }} ريال{% else %}-{% endif %}</td>
-                                            <td>{% if p.total_g_v %}{{ p.total_g_v }} ريال{% else %}-{% endif %}</td>
-                                            <td>{% if p.total_g_d_b %}{{ p.total_g_d_b }} ريال{% else %}-{% endif %}</td>
-                                            <td>{% if p.total_g_d_v %}{{ p.total_g_d_v }} ريال{% else %}-{% endif %}</td>
-                                            <td>
-                                                <button class="btn edit-btn" onclick="openEditModal('{{ p.id }}', '{{ p.numper_o_p }}', '{{ p.total_g }}', '{{ p.total_g_d }}', '{{ p.total_g_b }}', '{{ p.total_g_v }}', '{{ p.total_g_d_b }}', '{{ p.total_g_d_v }}')">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا السعر؟');">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="action" value="delete_price">
-                                                    <input type="hidden" name="price_id" value="{{ p.id }}">
-                                                    <button type="submit" class="btn delete-btn">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        {% else %}
-                            <p style="text-align:center; color:gray;">لا توجد أسعار فرعية بعد</p>
-                        {% endif %}
+                </div>
+
+                <!-- جدول الأسعار الفرعية -->
+                <div class="sub-prices-wrapper" id="main-{{ main.id }}" style="display: none;">
+                    {% if main.price_model_set.all %}
+                    <table class="price-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-users"></i> عدد الأشخاص</th>
+                                <th><i class="fas fa-coins"></i> بدون عشاء &lt;6</th>
+                                <th><i class="fas fa-utensils"></i> مع عشاء &lt;6</th>
+                                <th><i class="fas fa-bus"></i> باص عادي &gt;6</th>
+                                <th><i class="fas fa-bus-alt"></i> باص VIP &gt;6</th>
+                                <th><i class="fas fa-utensils"></i> عشاء + باص عادي</th>
+                                <th><i class="fas fa-utensils"></i> عشاء + VIP</th>
+                                <th><i class="fas fa-cogs"></i> إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for price in main.price_model_set.all %}
+                            <tr>
+                                <td><strong>{{ price.numper_o_p }}</strong></td>
+                                <td>{{ price.total_g|default:"—" }} ر.س</td>
+                                <td>{{ price.total_g_d|default:"—" }} ر.س</td>
+                                <td>{{ price.total_g_b|default:"—" }} ر.س</td>
+                                <td>{{ price.total_g_v|default:"—" }} ر.س</td>
+                                <td>{{ price.total_g_d_b|default:"—" }} ر.س</td>
+                                <td>{{ price.total_g_d_v|default:"—" }} ر.س</td>
+                                <td class="action-cell">
+                                    <button class="btn-edit-price" 
+                                            onclick="openEditModal(
+                                                {{ price.id }}, 
+                                                {{ price.numper_o_p }}, 
+                                                {{ price.total_g|default:0 }}, 
+                                                {{ price.total_g_d|default:0 }}, 
+                                                {{ price.total_g_b|default:0 }}, 
+                                                {{ price.total_g_v|default:0 }}, 
+                                                {{ price.total_g_d_b|default:0 }}, 
+                                                {{ price.total_g_d_v|default:0 }}
+                                            )">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form method="POST" style="display: inline;" 
+                                          onsubmit="return confirm('هل أنت متأكد من حذف هذا السعر؟')">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_price">
+                                        <input type="hidden" name="price_id" value="{{ price.id }}">
+                                        <button type="submit" class="btn-delete-price">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="no-sub-prices">
+                        <i class="fas fa-inbox"></i>
+                        <p>لا توجد أسعار فرعية لهذا النموذج</p>
                     </div>
-                </li>
+                    {% endif %}
+                </div>
+            </div>
             {% endfor %}
-        </ul>
-    </div>
+        </div>
+    {% else %}
+        <div class="no-data">
+            <i class="fas fa-folder-open"></i>
+            <h3>لا توجد نماذج أسعار</h3>
+            <p>ابدأ بإضافة نموذج رئيسي جديد</p>
+        </div>
+    {% endif %}
+</div>
 
     <!-- ============ مودال تعديل نموذج رئيسي للأسعار ============ -->
     <div id="edit-main-price-modal" class="modal">
@@ -654,59 +678,6 @@
     </div>
 </div>
 
-<!-- ============================= -->
-<!-- ✅ قسم عرض جميع الأسعار الفرعية -->
-<!-- ============================= -->
-<div class="all-prices-section" style="margin-top: 50px;">
-    <h3 style="margin-bottom: 20px;">جميع الأسعار الفرعية</h3>
-    {% if prices %}
-        <table class="price-table">
-            <thead>
-                <tr>
-                    <th>النموذج الرئيسي</th>
-                    <th>عدد الأشخاص</th>
-                    <th>السعر بدون عشاء</th>
-                    <th>السعر مع العشاء</th>
-                    <th>السعر بالباص</th>
-                    <th>السعر بـ VIP</th>
-                    <th>السعر بالباص مع العشاء</th>
-                    <th>السعر بالباص VIP مع العشاء</th>
-                    <th>إجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in prices %}
-                    <tr>
-                        <td>{{ p.main_price_model.title }}</td>
-                        <td>{{ p.numper_o_p }} شخص</td>
-                        <td>{% if p.total_g %}{{ p.total_g }} ريال{% else %}-{% endif %}</td>
-                        <td>{% if p.total_g_d %}{{ p.total_g_d }} ريال{% else %}-{% endif %}</td>
-                        <td>{% if p.total_g_b %}{{ p.total_g_b }} ريال{% else %}-{% endif %}</td>
-                        <td>{% if p.total_g_v %}{{ p.total_g_v }} ريال{% else %}-{% endif %}</td>
-                        <td>{% if p.total_g_d_b %}{{ p.total_g_d_b }} ريال{% else %}-{% endif %}</td>
-                        <td>{% if p.total_g_d_v %}{{ p.total_g_d_v }} ريال{% else %}-{% endif %}</td>
-                        <td>
-                            <button class="btn edit-btn" onclick="openEditModal('{{ p.id }}', '{{ p.numper_o_p }}', '{{ p.total_g }}', '{{ p.total_g_d }}', '{{ p.total_g_b }}', '{{ p.total_g_v }}', '{{ p.total_g_d_b }}', '{{ p.total_g_d_v }}')">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا السعر؟');">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="delete_price">
-                                <input type="hidden" name="price_id" value="{{ p.id }}">
-                                <button type="submit" class="btn delete-btn">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p style="text-align:center; color:gray;">لا توجد أسعار فرعية بعد</p>
-    {% endif %}
-</div>
-
 
 
 
@@ -945,7 +916,254 @@
     border: none;
     border-top: 2px dashed #bdc3c7;
 }
+.price-models-section {
+    margin: 40px 0;
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #3498db;
+}
+
+.section-header h2 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.price-models-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.main-price-card {
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.main-price-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.main-price-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.main-price-info h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.3rem;
+}
+
+.sub-count {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.main-price-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-edit-main,
+.btn-delete-main,
+.btn-toggle {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-edit-main {
+    background: #fff;
+    color: #667eea;
+}
+
+.btn-edit-main:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+.btn-delete-main {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-delete-main:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
+.btn-toggle {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.btn-toggle:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.btn-toggle i {
+    transition: transform 0.3s ease;
+}
+
+.btn-toggle i.rotated {
+    transform: rotate(180deg);
+}
+
+.sub-prices-wrapper {
+    padding: 20px;
+    background: white;
+}
+
+.price-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.price-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.price-table th {
+    padding: 15px 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.price-table td {
+    padding: 12px 10px;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.price-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.price-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.action-cell {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-edit-price,
+.btn-delete-price {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-edit-price {
+    background: #3498db;
+    color: white;
+}
+
+.btn-edit-price:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+
+.btn-delete-price {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-delete-price:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
+.no-sub-prices {
+    text-align: center;
+    padding: 40px;
+    color: #95a5a6;
+}
+
+.no-sub-prices i {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+@media (max-width: 1200px) {
+    .price-table {
+        font-size: 0.85rem;
+    }
+    
+    .price-table th,
+    .price-table td {
+        padding: 8px 5px;
+    }
+}
+
+@media (max-width: 768px) {
+    .section-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .main-price-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .main-price-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .price-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
 .no-data {
     text-align: center;
     padding: 60px 20px;
