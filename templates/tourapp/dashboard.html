@@ -268,269 +268,270 @@
         </button>
     </div>
 
-<!-- عرض النماذج الرئيسية -->
-<div class="main-prices">
-    <h3>النماذج الرئيسية</h3>
-    <ul class="main-price-list">
-        {% for main in main_prices %}
-            <li class="main-item">
-                <!-- عنوان النموذج الرئيسي (قابل للنقر) -->
-                <div class="main-item-header" onclick="togglePriceList('main-{{ main.id }}')">
-                    <div class="main-title-wrapper">
-                        <i class="fas fa-chevron-down toggle-icon" id="icon-main-{{ main.id }}"></i>
-                        <strong class="main-title">{{ main.title }}</strong>
-                        <span class="price-count">({{ main.price_model_set.count }} سعر)</span>
-                    </div>
-                    <div class="main-actions" onclick="event.stopPropagation()">
-                        <button class="btn edit-btn-main" onclick="openEditMainModal('{{ main.id }}', '{{ main.title }}')">
-                            <i class="fas fa-edit"></i> تعديل
-                        </button>
-                        <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا النموذج؟ سيتم حذف جميع الأسعار الفرعية المرتبطة به!');">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="delete_main_price">
-                            <input type="hidden" name="main_price_id" value="{{ main.id }}">
-                            <button type="submit" class="btn delete-btn-main">
-                                <i class="fas fa-trash"></i> حذف
+    <!-- عرض النماذج الرئيسية -->
+    <div class="main-prices">
+        <h3>النماذج الرئيسية</h3>
+        <ul class="main-price-list">
+            {% for main in main_prices %}
+                <li class="main-item">
+                    <!-- عنوان النموذج الرئيسي (قابل للنقر) -->
+                    <div class="main-item-header" onclick="togglePriceList('{{ main.id }}')">
+                        <div class="main-title-wrapper">
+                            <i class="fas fa-chevron-down toggle-icon" id="icon-main-{{ main.id }}"></i>
+                            <strong class="main-title">{{ main.title }}</strong>
+                            <span class="price-count">({{ main.price_model_set.count }} سعر)</span>
+                        </div>
+                        <div class="main-actions" onclick="event.stopPropagation()">
+                            <button class="btn edit-btn-main" onclick="openEditMainModal('{{ main.id }}', '{{ main.title }}')">
+                                <i class="fas fa-edit"></i> تعديل
                             </button>
-                        </form>
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا النموذج؟ سيتم حذف جميع الأسعار الفرعية المرتبطة به!');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_main_price">
+                                <input type="hidden" name="main_price_id" value="{{ main.id }}">
+                                <button type="submit" class="btn delete-btn-main">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- الأسعار الفرعية (مخفية بشكل افتراضي) -->
-                <ul class="price-list" id="main-{{ main.id }}" style="display: none;">
-                    {% for p in prices %}
-                        {% if p.main_price_model.id == main.id %}
-                            <li class="price-item">
-                                <div class="price-header">
-                                    <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">
-                                        <i class="fas fa-users"></i> {{ p.numper_o_p }} شخص
-                                    </div>
-                                </div>
-                                <div class="price-details">
-                                    {% if p.total_g %}
-                                    <p><i class="fas fa-tag"></i> السعر بدون عشاء <span>{{ p.total_g }} ريال</span></p>
-                                    {% endif %}
-                                    {% if p.total_g_d %}
-                                    <p><i class="fas fa-utensils"></i> السعر مع العشاء <span>{{ p.total_g_d }} ريال</span></p>
-                                    {% endif %}
-                                    {% if p.total_g_b %}
-                                    <p><i class="fas fa-bus"></i> السعر بالباص <span>{{ p.total_g_b }} ريال</span></p>
-                                    {% endif %}
-                                    {% if p.total_g_v %}
-                                    <p><i class="fas fa-star"></i> السعر بـ VIP <span>{{ p.total_g_v }} ريال</span></p>
-                                    {% endif %}
-                                    {% if p.total_g_d_b %}
-                                    <p><i class="fas fa-bus"></i> السعر بالباص مع العشاء <span>{{ p.total_g_d_b }} ريال</span></p>
-                                    {% endif %}
-                                    {% if p.total_g_d_v %}
-                                    <p><i class="fas fa-crown"></i> السعر بالباص VIP مع العشاء <span>{{ p.total_g_d_v }} ريال</span></p>
-                                    {% endif %}
-                                </div>
-
-                                <!-- أزرار تعديل وحذف السعر الفرعي -->
-                                <div class="price-actions">
-                                    <button class="btn edit-btn" onclick="openEditModal('{{ p.id }}', '{{ p.numper_o_p }}', '{{ p.total_g }}', '{{ p.total_g_d }}', '{{ p.total_g_b }}', '{{ p.total_g_v }}', '{{ p.total_g_d_b }}', '{{ p.total_g_d_v }}')">
-                                        <i class="fas fa-edit"></i> تعديل
-                                    </button>
-                                    <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا السعر؟');">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="delete_price">
-                                        <input type="hidden" name="price_id" value="{{ p.id }}">
-                                        <button type="submit" class="btn delete-btn">
-                                            <i class="fas fa-trash"></i> حذف
-                                        </button>
-                                    </form>
-                                </div>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
                     
-                    <!-- رسالة في حالة عدم وجود أسعار فرعية -->
-                    {% if not main.price_model_set.exists %}
-                    <li class="no-prices-message">
-                        <i class="fas fa-info-circle"></i>
-                        <p>لا توجد أسعار فرعية لهذا النموذج بعد</p>
-                    </li>
-                    {% endif %}
-                </ul>
-            </li>
-        {% empty %}
-            <li style="text-align: center; padding: 40px; color: var(--text-gray);">
-                <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
-                لا توجد نماذج أسعار بعد
-            </li>
-        {% endfor %}
-    </ul>
-</div>
+                    <!-- الأسعار الفرعية (مخفية بشكل افتراضي) -->
+                    <ul class="price-list" id="main-{{ main.id }}" style="display: none;">
+                        {% for p in prices %}
+                            {% if p.main_price_model.id == main.id %}
+                                <li class="price-item">
+                                    <div class="price-header">
+                                        <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">
+                                            <i class="fas fa-users"></i> {{ p.numper_o_p }} شخص
+                                        </div>
+                                    </div>
+                                    <div class="price-details">
+                                        {% if p.total_g %}
+                                        <p><i class="fas fa-tag"></i> السعر بدون عشاء <span>{{ p.total_g }} ريال</span></p>
+                                        {% endif %}
+                                        {% if p.total_g_d %}
+                                        <p><i class="fas fa-utensils"></i> السعر مع العشاء <span>{{ p.total_g_d }} ريال</span></p>
+                                        {% endif %}
+                                        {% if p.total_g_b %}
+                                        <p><i class="fas fa-bus"></i> السعر بالباص <span>{{ p.total_g_b }} ريال</span></p>
+                                        {% endif %}
+                                        {% if p.total_g_v %}
+                                        <p><i class="fas fa-star"></i> السعر بـ VIP <span>{{ p.total_g_v }} ريال</span></p>
+                                        {% endif %}
+                                        {% if p.total_g_d_b %}
+                                        <p><i class="fas fa-bus"></i> السعر بالباص مع العشاء <span>{{ p.total_g_d_b }} ريال</span></p>
+                                        {% endif %}
+                                        {% if p.total_g_d_v %}
+                                        <p><i class="fas fa-crown"></i> السعر بالباص VIP مع العشاء <span>{{ p.total_g_d_v }} ريال</span></p>
+                                        {% endif %}
+                                    </div>
 
-<!-- ============ مودال تعديل نموذج رئيسي للأسعار ============ -->
-<div id="edit-main-price-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2><i class="fas fa-edit"></i> تعديل نموذج الأسعار الرئيسي</h2>
-            <span class="close" onclick="closeModal('edit-main-price-modal')">&times;</span>
-        </div>
-        <div class="modal-body">
-            <form method="POST" onsubmit="showLoading()">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="edit_main_price">
-                <input type="hidden" id="edit_main_price_id" name="main_price_id">
-
-                <div class="form-group">
-                    <label for="edit_main_title"><i class="fas fa-heading"></i> اسم النموذج</label>
-                    <input type="text" id="edit_main_title" name="title" required placeholder="أدخل اسم النموذج الرئيسي">
-                </div>
-
-                <div class="loading" id="edit-main-price-loading">
-                    <i class="fas fa-spinner"></i>
-                    <p>جاري التعديل...</p>
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    <i class="fas fa-save"></i> حفظ التعديلات
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- ============ مودال إضافة نموذج رئيسي للأسعار ============ -->
-<div id="main-price-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2><i class="fas fa-plus-circle"></i> إضافة نموذج أسعار رئيسي</h2>
-            <span class="close" onclick="closeModal('main-price-modal')">&times;</span>
-        </div>
-        <div class="modal-body">
-            <form method="POST" onsubmit="showLoading()">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="add_main_price">
-
-                <div class="form-group">
-                    <label for="title"><i class="fas fa-heading"></i> اسم النموذج</label>
-                    <input type="text" id="title" name="title" required placeholder="أدخل اسم النموذج الرئيسي">
-                </div>
-
-                <div class="loading" id="main-price-loading">
-                    <i class="fas fa-spinner"></i>
-                    <p>جاري الإضافة...</p>
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    <i class="fas fa-save"></i> حفظ النموذج
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- ============ مودال إضافة الأسعار الفرعية ============ -->
-<div id="price-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2><i class="fas fa-tags"></i> إضافة سعر فرعي</h2>
-            <span class="close" onclick="closeModal('price-modal')">&times;</span>
-        </div>
-        <div class="modal-body">
-            <form method="POST" onsubmit="showLoading()">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="add_price">
-
-                <div class="form-group">
-                    <label><i class="fas fa-link"></i> اختر النموذج الرئيسي</label>
-                    <select name="main_price_id" required>
-                        <option value="">-- اختر النموذج --</option>
-                        {% for main in main_prices %}
-                            <option value="{{ main.id }}">{{ main.title }}</option>
+                                    <!-- أزرار تعديل وحذف السعر الفرعي -->
+                                    <div class="price-actions">
+                                        <button class="btn edit-btn" onclick="openEditModal('{{ p.id }}', '{{ p.numper_o_p }}', '{{ p.total_g }}', '{{ p.total_g_d }}', '{{ p.total_g_b }}', '{{ p.total_g_v }}', '{{ p.total_g_d_b }}', '{{ p.total_g_d_v }}')">
+                                            <i class="fas fa-edit"></i> تعديل
+                                        </button>
+                                        <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا السعر؟');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_price">
+                                            <input type="hidden" name="price_id" value="{{ p.id }}">
+                                            <button type="submit" class="btn delete-btn">
+                                                <i class="fas fa-trash"></i> حذف
+                                            </button>
+                                        </form>
+                                    </div>
+                                </li>
+                            {% endif %}
                         {% endfor %}
-                    </select>
-                </div>
+                        
+                        <!-- رسالة في حالة عدم وجود أسعار فرعية -->
+                        {% if not main.price_model_set.exists %}
+                        <li class="no-prices-message">
+                            <i class="fas fa-info-circle"></i>
+                            <p>لا توجد أسعار فرعية لهذا النموذج بعد</p>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </li>
+            {% empty %}
+                <li style="text-align: center; padding: 40px; color: var(--text-gray);">
+                    <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
+                    لا توجد نماذج أسعار بعد
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> عدد الأشخاص</label>
-                    <input type="number" name="numper_o_p" placeholder="مثلاً: 10">
-                </div>
+    <!-- ============ مودال تعديل نموذج رئيسي للأسعار ============ -->
+    <div id="edit-main-price-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> تعديل نموذج الأسعار الرئيسي</h2>
+                <span class="close" onclick="closeModal('edit-main-price-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form method="POST" onsubmit="showLoading()">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit_main_price">
+                    <input type="hidden" id="edit_main_price_id" name="main_price_id">
 
-                <div class="form-group">
-                    <label><i class="fas fa-coins"></i>  سعر بدون عشاء أقل من 6</label>
-                    <input type="number" name="total_g" placeholder="مثلاً: 500">
-                </div>
+                    <div class="form-group">
+                        <label for="edit_main_title"><i class="fas fa-heading"></i> اسم النموذج</label>
+                        <input type="text" id="edit_main_title" name="title" required placeholder="أدخل اسم النموذج الرئيسي">
+                    </div>
 
-                <div class="form-group">
-                    <label>سعر مع عشاء أقل من 6</label>
-                    <input type="number" name="total_g_d">
-                </div>
+                    <div class="loading" id="edit-main-price-loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>جاري التعديل...</p>
+                    </div>
 
-                <div class="form-group">
-                    <label>سعر بدون عشاء أكبر من 6 باص عادي </label>
-                    <input type="number" name="total_g_b">
-                </div>
-
-                <div class="form-group">
-                    <label>سعر بدون عشاء أكبر من 6 باص فاخر </label>
-                    <input type="number" name="total_g_v">
-                </div>
-
-                <div class="form-group">
-                    <label>سعر عدد اكبر من 6 عشاء وباص عادي</label>
-                    <input type="number" name="total_g_d_b">
-                </div>
-
-                <div class="form-group">
-                    <label>سعر عدد اكبر من 6 عشاء وباص فاخر</label>
-                    <input type="number" name="total_g_d_v">
-                </div>
-
-                <div class="loading" id="price-loading">
-                    <i class="fas fa-spinner"></i>
-                    <p>جاري الإضافة...</p>
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    <i class="fas fa-save"></i> حفظ السعر
-                </button>
-            </form>
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-save"></i> حفظ التعديلات
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="edit-price-modal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>تعديل السعر</h2>
-      <span class="close" onclick="closeModal('edit-price-modal')">&times;</span>
+    <!-- ============ مودال إضافة نموذج رئيسي للأسعار ============ -->
+    <div id="main-price-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle"></i> إضافة نموذج أسعار رئيسي</h2>
+                <span class="close" onclick="closeModal('main-price-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form method="POST" onsubmit="showLoading()">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_main_price">
+
+                    <div class="form-group">
+                        <label for="title"><i class="fas fa-heading"></i> اسم النموذج</label>
+                        <input type="text" id="title" name="title" required placeholder="أدخل اسم النموذج الرئيسي">
+                    </div>
+
+                    <div class="loading" id="main-price-loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>جاري الإضافة...</p>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-save"></i> حفظ النموذج
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="modal-body">
-      <form method="POST">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="edit_price">
-        <input type="hidden" id="price_id" name="price_id">
 
-        <label>عدد الأشخاص:</label>
-        <input type="number" id="numper_o_p" name="numper_o_p" required>
+    <!-- ============ مودال إضافة الأسعار الفرعية ============ -->
+    <div id="price-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-tags"></i> إضافة سعر فرعي</h2>
+                <span class="close" onclick="closeModal('price-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form method="POST" onsubmit="showLoading()">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_price">
 
-        <label>السعر بدون عشاء:</label>
-        <input type="number" id="total_g" name="total_g">
+                    <div class="form-group">
+                        <label><i class="fas fa-link"></i> اختر النموذج الرئيسي</label>
+                        <select name="main_price_id" required>
+                            <option value="">-- اختر النموذج --</option>
+                            {% for main in main_prices %}
+                                <option value="{{ main.id }}">{{ main.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-        <label>السعر مع العشاء:</label>
-        <input type="number" id="total_g_d" name="total_g_d">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> عدد الأشخاص</label>
+                        <input type="number" name="numper_o_p" placeholder="مثلاً: 10">
+                    </div>
 
-        <label>السعر بالباص:</label>
-        <input type="number" id="total_g_b" name="total_g_b">
+                    <div class="form-group">
+                        <label><i class="fas fa-coins"></i>  سعر بدون عشاء أقل من 6</label>
+                        <input type="number" name="total_g" placeholder="مثلاً: 500">
+                    </div>
 
-        <label>السعر بالvip:</label>
-        <input type="number" id="total_g_v" name="total_g_v">
+                    <div class="form-group">
+                        <label>سعر مع عشاء أقل من 6</label>
+                        <input type="number" name="total_g_d">
+                    </div>
 
-        <label>السعر بالعشاء والباص</label>
-        <input type="number" id="total_g_d_b" name="total_g_d_b">
+                    <div class="form-group">
+                        <label>سعر بدون عشاء أكبر من 6 باص عادي </label>
+                        <input type="number" name="total_g_b">
+                    </div>
 
-        <label> السعر بالعشاء والباص الvip</label>
-        <input type="number" id="total_g_d_v" name="total_g_d_v">
+                    <div class="form-group">
+                        <label>سعر بدون عشاء أكبر من 6 باص فاخر </label>
+                        <input type="number" name="total_g_v">
+                    </div>
 
-        <button type="submit" class="submit-btn">حفظ التعديلات</button>
-      </form>
+                    <div class="form-group">
+                        <label>سعر عدد اكبر من 6 عشاء وباص عادي</label>
+                        <input type="number" name="total_g_d_b">
+                    </div>
+
+                    <div class="form-group">
+                        <label>سعر عدد اكبر من 6 عشاء وباص فاخر</label>
+                        <input type="number" name="total_g_d_v">
+                    </div>
+
+                    <div class="loading" id="price-loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>جاري الإضافة...</p>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-save"></i> حفظ السعر
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <div id="edit-price-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h2>تعديل السعر</h2>
+        <span class="close" onclick="closeModal('edit-price-modal')">&times;</span>
+        </div>
+        <div class="modal-body">
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_price">
+            <input type="hidden" id="price_id" name="price_id">
+
+            <label>عدد الأشخاص:</label>
+            <input type="number" id="numper_o_p" name="numper_o_p" required>
+
+            <label>السعر بدون عشاء:</label>
+            <input type="number" id="total_g" name="total_g">
+
+            <label>السعر مع العشاء:</label>
+            <input type="number" id="total_g_d" name="total_g_d">
+
+            <label>السعر بالباص:</label>
+            <input type="number" id="total_g_b" name="total_g_b">
+
+            <label>السعر بالvip:</label>
+            <input type="number" id="total_g_v" name="total_g_v">
+
+            <label>السعر بالعشاء والباص</label>
+            <input type="number" id="total_g_d_b" name="total_g_d_b">
+
+            <label> السعر بالعشاء والباص الvip</label>
+            <input type="number" id="total_g_d_v" name="total_g_d_v">
+
+            <button type="submit" class="submit-btn">حفظ التعديلات</button>
+        </form>
+        </div>
+    </div>
+    </div>
 </div>
 
 <!-- ✅ أضف هذا القسم قبل نهاية الـ container في صفحة dashboard.html -->
@@ -913,9 +914,9 @@
 <script>
 // دالة إظهار/إخفاء الأسعار الفرعية
 function togglePriceList(id) {
-    const priceList = document.getElementById(id);
-    const icon = document.getElementById('icon-' + id);
-    
+    const priceList = document.getElementById('main-' + id);
+    const icon = document.getElementById('icon-main-' + id);
+
     if (priceList.style.display === 'none' || priceList.style.display === '') {
         priceList.style.display = 'block';
         icon.classList.add('rotated');
@@ -924,6 +925,7 @@ function togglePriceList(id) {
         icon.classList.remove('rotated');
     }
 }
+
 
 // دالة فتح مودال تعديل النموذج الرئيسي
 function openEditMainModal(id, title) {
