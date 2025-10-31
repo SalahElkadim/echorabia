@@ -297,7 +297,7 @@
                     </div>
                     
                     <!-- الأسعار الفرعية (مخفية بشكل افتراضي) -->
-                    <ul class="price-list" id="main-{{ main.id }}" style="display: none;">
+                    <ul class="price-list" id="main-{{ main.id }}" style="display: none;">                        
                         {% for p in prices %}
                             {% if p.main_price_model.id == main.id %}
                                 <li class="price-item">
