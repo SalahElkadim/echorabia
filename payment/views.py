@@ -96,7 +96,7 @@ class CreatePaymentView(APIView):
             # 🔥 حساب المبلغ شامل الضريبة
             base_amount = booking.price.total_price
             vat = base_amount * Decimal('0.15')
-            total_with_vat = base_amount + vat
+            total_with_vat = base_amount 
             amount_halalah = int(total_with_vat * 100)
             
             logger.info(f"💰 Payment calculation:")
