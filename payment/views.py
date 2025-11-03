@@ -95,14 +95,14 @@ class CreatePaymentView(APIView):
             
             # 🔥 حساب المبلغ شامل الضريبة
             base_amount = booking.price.total_price
-            vat = base_amount * Decimal('0.15')
-            total_with_vat = base_amount 
-            amount_halalah = int(total_with_vat * 100)
+            #vat = base_amount * Decimal('0.15')
+            #total_with_vat = base_amount +vat
+            amount_halalah = int(base_amount * 100)
             
             logger.info(f"💰 Payment calculation:")
             logger.info(f"   Base: {base_amount} SAR")
-            logger.info(f"   VAT: {vat} SAR")
-            logger.info(f"   Total: {total_with_vat} SAR")
+            #logger.info(f"   VAT: {vat} SAR")
+            logger.info(f"   Total: {base_amount} SAR")
             logger.info(f"   Halalah: {amount_halalah}")
             
             # إنشاء الدفع عبر ميسر
