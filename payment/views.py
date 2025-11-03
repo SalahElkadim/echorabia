@@ -30,13 +30,13 @@ def payment_page(request, booking_id):
     amount_sar = booking.price.total_price  # السعر الأساسي من BookingPrice
 
 # حساب ضريبة القيمة المضافة 15%
-    vat = amount_sar * 0.15
+    #vat = amount_sar * 0.15
 
     # المجموع الكلي شامل الضريبة
-    total_with_vat = amount_sar + vat
+    #total_with_vat = amount_sar + vat
 
     # التحويل إلى halalah (لأن Moyasar تتعامل بالقروش)
-    amount_halalah = int(total_with_vat * 100)
+    amount_halalah = int(amount_sar * 100)
   # ميسر يستقبل بالهللة (1 SAR = 100 halalah)
     
     context = {
@@ -96,7 +96,7 @@ class CreatePaymentView(APIView):
             # 🔥 حساب المبلغ شامل الضريبة
             base_amount = booking.price.total_price
             #vat = base_amount * Decimal('0.15')
-            #total_with_vat = base_amount +vat
+            #total_with_vat = base_amount + vat
             amount_halalah = int(base_amount * 100)
             
             logger.info(f"💰 Payment calculation:")
