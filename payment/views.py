@@ -52,117 +52,187 @@ def payment_page(request, booking_id):
 logger = logging.getLogger(__name__)
 class CreatePaymentView(APIView):
     """
-    إنشاء دفعة جديدة باستخدام token من Moyasar Form (آمن للـ Production)
+    إنشاء دفعة جديدة باستخدام token من Moyasar Form
     """
     def post(self, request):
+        payment = None
+        
         try:
             data = request.data
+            logger.info(f"=== 🎬 Payment request started ===")
+            logger.info(f"Request data: {data}")
 
-            # 🟢 التحقق من وجود booking_id
+            # التحقق من booking_id
             booking_id = data.get("booking_id")
             if not booking_id:
+                logger.error("❌ booking_id is missing")
                 return Response({
                     "success": False,
                     "error": "booking_id is required"
                 }, status=400)
 
             booking = get_object_or_404(Booking, id=booking_id)
+            logger.info(f"✅ Booking found: {booking.id}")
             
-            # 🟢 استقبال التوكن من الـ frontend
+            # استقبال التوكن
             source_data = data.get("source", {})
             token = source_data.get("token")
 
             if not token:
+                logger.error("❌ Payment token is missing")
                 return Response({
                     "success": False,
                     "error": "Payment token is required"
                 }, status=400)
 
-            # 🟢 إعداد بيانات المصدر
+            logger.info(f"✅ Token received: {token[:20]}...")
+
+            # إعداد المصدر
             source = {
                 "type": "token",
                 "token": token
             }
             
-            # 🟡 إنشاء الدفع عبر ميسر
+            # 🔥 حساب المبلغ شامل الضريبة
+            base_amount = booking.price.total_price
+            vat = base_amount * Decimal('0.15')
+            total_with_vat = base_amount + vat
+            amount_halalah = int(total_with_vat * 100)
+            
+            logger.info(f"💰 Payment calculation:")
+            logger.info(f"   Base: {base_amount} SAR")
+            logger.info(f"   VAT: {vat} SAR")
+            logger.info(f"   Total: {total_with_vat} SAR")
+            logger.info(f"   Halalah: {amount_halalah}")
+            
+            # إنشاء الدفع عبر ميسر
+            logger.info("📤 Calling Moyasar API...")
+            
             payment_response = create_payment(
-                amount=booking.price.total_price,
-                description=data.get("description"),
+                amount=amount_halalah,
+                description=f"Booking #{booking_id} - {booking.servicebooking.title}",
                 callback_url="https://echorabia.com/payment/callback/",
                 source=source,
-                metadata=data.get("metadata", {"booking_id": booking_id})
+                metadata={"booking_id": str(booking_id)}
             )
 
-            # 🟢 حفظ الدفعة في قاعدة البيانات
-            if "id" in payment_response:
+            # التحقق من وجود خطأ
+            if "error" in payment_response or "message" in payment_response:
+                error_msg = payment_response.get("message") or payment_response.get("error")
+                logger.error(f"❌ Moyasar error: {error_msg}")
+                return Response({
+                    "success": False,
+                    "error": error_msg,
+                    "details": payment_response
+                }, status=400)
+
+            # التحقق من وجود ID
+            moyasar_id = payment_response.get("id")
+            if not moyasar_id:
+                logger.error(f"❌ No payment ID: {payment_response}")
+                return Response({
+                    "success": False,
+                    "error": "Failed to create payment - no ID returned",
+                    "response": payment_response
+                }, status=500)
+
+            logger.info(f"✅ Moyasar payment created: {moyasar_id}")
+
+            # حفظ في قاعدة البيانات
+            try:
                 payment, created = Payment.objects.get_or_create(
-                    moyasar_id=payment_response.get("id"),
+                    moyasar_id=moyasar_id,
                     defaults={
                         "booking": booking,
-                        "amount": payment_response.get("amount"),
-                        "status": payment_response.get("status"),
-                        "description": data.get("description", ""),
+                        "amount": payment_response.get("amount", amount_halalah),
+                        "status": payment_response.get("status", "initiated"),
+                        "description": f"Booking #{booking_id}",
+                        "source_type": payment_response.get("source", {}).get("type"),
                     }
                 )
 
-                # 🧾 إنشاء فاتورة جديدة لو أول مرة
+                action = "created" if created else "found existing"
+                logger.info(f"✅ Payment {action} in DB: ID={payment.id}, Moyasar ID={moyasar_id}")
+
+                # إنشاء فاتورة
                 if created:
                     try:
-                        self.create_invoice_for_payment(payment, data.get("description"))
+                        invoice = self.create_invoice_for_payment(payment)
+                        logger.info(f"✅ Invoice created: {invoice.invoice_number}")
                     except Exception as e:
-                        logger.error(f"Failed to create invoice: {str(e)}")
+                        logger.error(f"❌ Invoice creation failed: {str(e)}", exc_info=True)
 
-            # 🟣 التعامل مع حالات الدفع المختلفة
+            except Exception as e:
+                logger.error(f"❌ DB save failed: {str(e)}", exc_info=True)
+
+            # معالجة الحالات
             status = payment_response.get("status")
+            logger.info(f"📊 Payment status: {status}")
 
-            # ✅ حالة initiated (3DS)
             if status == "initiated":
                 tx_url = payment_response.get("source", {}).get("transaction_url")
+                if not tx_url:
+                    logger.error("❌ No transaction URL for 3DS")
+                    return Response({
+                        "success": False,
+                        "error": "3DS URL missing"
+                    }, status=500)
+                
+                logger.info(f"🔐 3DS required: {tx_url}")
                 return Response({
                     "success": True,
                     "status": "initiated",
                     "transaction_url": tx_url,
-                    "message": "Redirect the user to this URL to complete 3DS verification."
+                    "message": "Redirect to 3DS"
                 })
 
-            # ✅ حالة الدفع الناجح مباشرة
             elif status == "paid":
+                logger.info(f"✅ Payment completed (no 3DS)")
+                
+                booking.status = "confirmed"
+                booking.save()
+                logger.info(f"✅ Booking confirmed")
+                
                 return Response({
                     "success": True,
                     "status": "paid",
-                    "message": "Payment completed successfully.",
+                    "message": "Payment successful",
                     "moyasar_data": payment_response,
                 })
 
-            # ❌ أي حالة أخرى (failed أو pending)
             else:
+                logger.warning(f"⚠️ Unexpected status: {status}")
                 return Response({
                     "success": False,
                     "status": status,
-                    "message": "Payment not completed.",
+                    "message": f"Payment status: {status}",
                     "moyasar_data": payment_response,
-                })
+                }, status=400)
 
         except Exception as e:
-            logger.error(f"Error in CreatePaymentView: {str(e)}")
+            logger.error(f"❌ CRITICAL ERROR: {str(e)}", exc_info=True)
             return Response({
                 "success": False,
                 "error": str(e)
             }, status=500)
 
-    def create_invoice_for_payment(self, payment, description=None):
-        """إنشاء فاتورة جديدة عند الدفع"""
+    def create_invoice_for_payment(self, payment):
+        """إنشاء فاتورة"""
         invoice_number = f"INV-{timezone.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+        
+        amount_sar = Decimal(payment.amount) / 100
+        base_amount = amount_sar / Decimal('1.15')
+        vat_amount = amount_sar - base_amount
+        
         invoice = Invoice.objects.create(
             payment=payment,
             invoice_number=invoice_number,
-            amount=Decimal(payment.amount) / 100,
-            currency='USD',
-            description=description or f"Payment for {payment.moyasar_id}",
+            amount=base_amount.quantize(Decimal('0.01')),
+            tax_amount=vat_amount.quantize(Decimal('0.01')),
+            currency='SAR',
+            description=f"Booking #{payment.booking.id}",
         )
         return invoice
-
-
 
 @csrf_exempt
 @require_POST
@@ -249,20 +319,20 @@ def handle_payment_paid(payment_data):
                     # إرسال الإيميل
                     subject = f'New Booking: {service.title}'
                     message = f'''
-A new booking has been made and payment confirmed ✅:
+                    A new booking has been made and payment confirmed ✅:
 
-Service: {service.title}
-Name: {booking.name}
-Email: {booking.email}
-Phone: {booking.phone}
-Number of Adults: {booking.numofadult}
-Booking Date: {booking.date}
-Hotel: {booking.hotel}
-Room Number: {booking.room}
-Drop-off: {booking.dropoff}
-Medical Conditions: {booking.disease}
-Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
-'''
+                    Service: {service.title}
+                    Name: {booking.name}
+                    Email: {booking.email}
+                    Phone: {booking.phone}
+                    Number of Adults: {booking.numofadult}
+                    Booking Date: {booking.date}
+                    Hotel: {booking.hotel}
+                    Room Number: {booking.room}
+                    Drop-off: {booking.dropoff}
+                    Medical Conditions: {booking.disease}
+                    Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
+                    '''
                     send_mail(
                         subject,
                         message,
@@ -334,48 +404,83 @@ def update_invoice_on_payment_success(payment):
     except Exception as e:
         logger.error(f"Error updating invoice for payment {payment.moyasar_id}: {str(e)}")
 
-
 @csrf_exempt
 def payment_callback_view(request):
     """
-    Callback URL لإعادة توجيه المستخدم بعد الدفع
+    Callback URL بعد إتمام الدفع
     """
     try:
         status = request.GET.get("status")
         moyasar_id = request.GET.get("id")
+        
+        logger.info(f"🔔 === CALLBACK RECEIVED ===")
+        logger.info(f"Status: {status}, Moyasar ID: {moyasar_id}")
+        logger.info(f"Full URL: {request.build_absolute_uri()}")
 
-        payment = None
-        invoice = None
+        if not moyasar_id:
+            logger.error("❌ No Moyasar ID in callback")
+            return render(request, "tourapp/payment_failed.html", {
+                "error": "معلومات الدفع غير كاملة"
+            })
 
-        if moyasar_id:
-            try:
-                payment = Payment.objects.get(moyasar_id=moyasar_id)
-                invoice = getattr(payment, "invoice", None)
+        try:
+            payment = Payment.objects.get(moyasar_id=moyasar_id)
+            invoice = getattr(payment, "invoice", None)
+            booking = payment.booking
+            
+            logger.info(f"✅ Payment found: ID={payment.id}, Current status={payment.status}")
+            
+            # جلب التحديث من ميسر
+            logger.info("📤 Fetching from Moyasar...")
+            payment_data, status_code = fetch_payment_api(moyasar_id)
+            
+            if status_code == 200 and payment_data:
+                moyasar_status = payment_data.get("status")
+                old_status = payment.status
                 
-                # تحديث حالة الدفع من Moyasar
-                payment_data, status_code = fetch_payment_api(moyasar_id)
-                if status_code == 200:
-                    old_status = payment.status
-                    payment.status = payment_data.get("status")
-                    payment.save()
+                logger.info(f"📊 Status: {old_status} → {moyasar_status}")
+                
+                payment.status = moyasar_status
+                payment.save()
+                
+                # لو الدفع نجح
+                if old_status != "paid" and moyasar_status == "paid":
+                    logger.info("🎉 PAYMENT SUCCESS - Updating records...")
                     
-                    # إذا تم الدفع بنجاح، نحدث الفاتورة
-                    if old_status != "paid" and payment.status == "paid":
-                        update_invoice_on_payment_success(payment)
-                        
-            except Payment.DoesNotExist:
-                logger.warning(f"Payment {moyasar_id} not found in callback")
+                    # تحديث الفاتورة
+                    if invoice and not invoice.paid_at:
+                        invoice.status = 'paid'
+                        invoice.paid_at = timezone.now()
+                        invoice.save()
+                        logger.info(f"✅ Invoice updated")
+                    
+                    # تحديث الحجز
+                    if booking.status != "confirmed":
+                        booking.status = "confirmed"
+                        booking.save()
+                        logger.info(f"✅ Booking confirmed")
+                
+                status = moyasar_status
+            else:
+                logger.warning(f"⚠️ Moyasar fetch failed: {status_code}")
+                
+        except Payment.DoesNotExist:
+            logger.error(f"❌ Payment not found: {moyasar_id}")
+            return render(request, "tourapp/payment_failed.html", {
+                "error": "لم يتم العثور على عملية الدفع",
+                "moyasar_id": moyasar_id
+            })
 
-        if status == "paid" and payment:
-            # جيب الـ booking عشان تعرض تفاصيله
-            booking = payment.booking if payment else None
-
+        # التوجيه حسب الحالة
+        if status == "paid":
+            logger.info(f"✅ → SUCCESS PAGE")
             return render(request, "tourapp/payment_success.html", {
                 "payment": payment,
                 "invoice": invoice,
                 "booking": booking,
             })
         else:
+            logger.warning(f"⚠️ → FAILED PAGE (status: {status})")
             return render(request, "tourapp/payment_failed.html", {
                 "payment": payment,
                 "status": status,
@@ -383,7 +488,7 @@ def payment_callback_view(request):
             })
 
     except Exception as e:
-        logger.error(f"Error in payment_callback_view: {str(e)}")
-        return render(request, "payments/payment_failed.html", {
+        logger.error(f"❌ Callback error: {str(e)}", exc_info=True)
+        return render(request, "tourapp/payment_failed.html", {
             "error": "حدث خطأ في معالجة الدفعة"
         })

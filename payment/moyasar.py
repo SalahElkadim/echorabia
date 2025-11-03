@@ -3,7 +3,7 @@ import uuid
 from django.conf import settings
 import json
 
-def create_payment( amount, currency="USD", description=None, source=None, metadata=None):
+def create_payment( amount, description=None, source=None, metadata=None):
     url = "https://api.moyasar.com/v1/payments"
     headers = {
         "Content-Type": "application/json",
@@ -12,7 +12,7 @@ def create_payment( amount, currency="USD", description=None, source=None, metad
     payload = {
         "given_id": str(uuid.uuid4()),   # توليد UUID لكل عملية
         "amount": amount,
-        "currency": currency,
+        "currency": "SAR",
         "description": description,
         "callback_url": "https://echorabia.com/payment/callback/",
         "source": source,
