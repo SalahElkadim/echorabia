@@ -47,7 +47,6 @@
       line-height: 1.6;
     }
 
-    /* ✅ Moyasar form container */
     .mysr-form {
       background: #ffffff;
       border-radius: 24px;
@@ -71,12 +70,7 @@
     .mysr-form input[type="email"],
     .mysr-form input[type="number"],
     .mysr-form select,
-    .mysr-form-input,
-    #mysr-cc-name,
-    #mysr-cc-number,
-    #mysr-cc-month,
-    #mysr-cc-year,
-    #mysr-cc-cvc {
+    .mysr-form-input {
       width: 100% !important;
       padding: 14px 18px !important;
       font-size: 16px !important;
@@ -109,7 +103,6 @@
       padding-left: 4px;
     }
 
-    /* Pay button */
     .mysr-form button,
     .mysr-form input[type="submit"] {
       width: 100%;
@@ -133,13 +126,6 @@
       box-shadow: 0 10px 30px rgba(139, 94, 52, 0.4) !important;
     }
 
-    .mysr-form button:active,
-    .mysr-form input[type="submit"]:active {
-      transform: translateY(-1px) !important;
-      box-shadow: 0 4px 15px rgba(139, 94, 52, 0.3) !important;
-    }
-
-    /* Loading overlay */
     body.loading {
       pointer-events: none;
       position: relative;
@@ -172,48 +158,17 @@
       z-index: 9999;
     }
 
-    .loading-text {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, calc(-50% + 60px));
-      font-size: 18px;
-      font-weight: 600;
-      color: #6f4e2c;
-      z-index: 9999;
-      animation: pulse 1.5s ease-in-out infinite;
-      display: none;
-    }
-
-    body.loading .loading-text {
-      display: block;
-    }
-
     @keyframes spin {
       to { transform: translate(-50%, -50%) rotate(360deg); }
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
-    }
-
-    /* Payment logos */
-    .payment-logos {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 12px;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid #e8ddd0;
-      opacity: 0.7;
-    }
-
-    .payment-logos span {
-      font-size: 13px;
-      color: #6d5b4c;
-      font-weight: 500;
+    .error-message {
+      background: #fee;
+      color: #c00;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
     }
 
     @media (max-width: 480px) {
@@ -225,26 +180,10 @@
         font-size: 26px;
       }
 
-      p {
-        font-size: 15px;
-      }
-
       .mysr-form {
         width: 100%;
         padding: 28px 22px;
         border-radius: 20px;
-      }
-
-      .mysr-form input,
-      .mysr-form select {
-        padding: 12px 16px !important;
-        font-size: 15px !important;
-      }
-
-      .mysr-form button,
-      .mysr-form input[type="submit"] {
-        padding: 14px 20px !important;
-        font-size: 17px !important;
       }
     }
   </style>
@@ -252,113 +191,67 @@
 
 <body>
   <h2>Complete Your Payment</h2>
-  <p>Please pay here to confirm your booking.</p>
+  <p>Please enter your card details to confirm your booking.</p>
 
-  <!-- ✅ Moyasar Form -->
+  <div class="error-message" id="errorMessage"></div>
+
+  <!-- ✅ Moyasar Form Container -->
   <div class="mysr-form"></div>
 
   <script>
-  // ===== Helper function to log with style =====
-  function logStep(step, data = null) {
-    console.log(
-      `%c🧭 STEP: ${step}`,
-      "color: white; background: #007bff; padding: 3px 6px; border-radius: 3px;"
-    );
-    if (data) console.log(data);
-  }
+    const bookingId = "{{ booking_id }}";
+    const paymentSessionId = "{{ payment_session_id }}";
 
-  // ===== Initialize Moyasar =====
-  document.addEventListener("DOMContentLoaded", function () {
-    logStep("Initializing Moyasar...");
+    console.log("🔍 Booking ID:", bookingId);
+    console.log("🔍 Payment Session ID:", paymentSessionId);
 
-    try {
-      Moyasar.init({
-        element: ".mysr-form",
-        amount: {{ amount }}, // Amount in cents
-        currency: "SAR",
-        description: "Tour booking payment",
-        publishable_api_key:
-          "pk_live_AUPkqG63z5VEJ6XRKMS2fuUtpB3k5LVgyXTER5TE",
-        callback_url: "https://echorabia.com/payment/callback/",
-        supported_networks: ["visa", "mastercard", "mada"],
-        methods: ["creditcard"],
+    // ✅ Initialize Moyasar with callback_url containing session_id
+    Moyasar.init({
+      element: '.mysr-form',
+      amount: {{ amount }},
+      currency: 'SAR',
+      description: 'Tour booking payment - Booking #' + bookingId,
+      publishable_api_key: 'pk_live_AUPkqG63z5VEJ6XRKMS2fuUtpB3k5LVgyXTER5TE',
+      callback_url: "https://echorabia.com/payment/callback/?session_id=" + paymentSessionId,
+      supported_networks: ['visa', 'mastercard', 'mada'],
+      methods: ['creditcard'],
 
-        // When Moyasar is ready
-        on_initialized: function () {
-          logStep("Moyasar form initialized successfully");
-        },
-
-        // When payment is completed
-        on_completed: function (payment) {
-          logStep("✅ on_completed triggered", payment);
-          if (payment?.source?.token) {
-            logStep("🎟 Token received", payment.source.token);
-            sendTokenToServer(payment.source.token);
-          } else {
-            logStep("⚠️ No token found in payment object", payment);
-          }
-        },
-
-        // When payment fails
-        on_failed: function (error) {
-          logStep("❌ on_failed triggered", error);
-          alert("An error occurred while creating the payment token: " + error.message);
-        },
-
-        // When user cancels the payment
-        on_canceled: function () {
-          logStep("⚠️ on_canceled triggered");
-        },
-      });
-
-      logStep("Moyasar.init called successfully");
-    } catch (err) {
-      console.error("💥 Moyasar initialization error:", err);
-    }
-  });
-
-  // ===== Send token to Django backend =====
-  function sendTokenToServer(token) {
-    logStep("📤 Sending token to server", token);
-
-    const data = {
-      booking_id: "{{ booking_id }}",
-      description: "Tour booking payment",
-      source: { token: token },
-    };
-
-    fetch("/payment/create/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCSRFToken(),
+      on_completed: function (payment) {
+        console.log("✅ Payment completed:", payment);
+        
+        // إذا كان الدفع ناجح مباشرة (بدون 3D Secure)
+        if (payment.status === 'paid') {
+          console.log("✅ Payment already paid, redirecting...");
+          window.location.href = "/payment/callback/?status=paid&id=" + payment.id + "&session_id=" + paymentSessionId;
+        }
+        // إذا كان يحتاج 3D Secure
+        else if (payment.status === 'initiated' && payment.source && payment.source.transaction_url) {
+          console.log("🔄 Redirecting to 3D Secure...");
+          window.location.href = payment.source.transaction_url;
+        }
+        // أي حالة أخرى
+        else {
+          console.log("⚠️ Unknown payment status:", payment.status);
+          showError("Unexpected payment status: " + payment.status);
+        }
       },
-      body: JSON.stringify(data),
-    })
-      .then((response) => {
-        logStep("📩 Response received from server", response);
-        return response.json();
-      })
-      .then((data) => {
-        logStep("📦 Server responded with data", data);
-      })
-      .catch((error) => {
-        console.error("🚨 Error sending to server:", error);
-      });
-  }
 
-  // ===== CSRF Helper =====
-  function getCSRFToken() {
-    const name = "csrftoken=";
-    const decoded = decodeURIComponent(document.cookie);
-    const cookies = decoded.split(";");
-    for (let cookie of cookies) {
-      cookie = cookie.trim();
-      if (cookie.startsWith(name)) return cookie.substring(name.length);
+      on_failed: function (error) {
+        console.error("❌ Payment failed:", error);
+        showError("Payment failed: " + (error.message || "An unexpected error occurred"));
+      }
+    });
+
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      if (!errorDiv) {
+        alert(message);
+        return;
+      }
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      setTimeout(() => errorDiv.style.display = 'none', 7000);
     }
-    return "";
-  }
-</script>
-
+  </script>
 </body>
 </html>
