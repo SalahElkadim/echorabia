@@ -1,10 +1,21 @@
 from django.urls import path
-from .views import CreatePaymentView,payment_callback_view,moyasar_webhook, payment_page
+from .views import (
+    payment_page,
+    payment_callback_view,
+    moyasar_webhook,
+    fetch_payment_view,
+)
 
 urlpatterns = [
-    path("create/", CreatePaymentView.as_view(), name="create-payment"),
+    # ✅ صفحة الدفع (الصفحة الرئيسية)
     path("pay/<int:booking_id>/", payment_page, name="payment_page"),
+    
+    # ✅ Callback بعد إتمام الدفع (يرجع المستخدم هنا بعد 3D Secure)
     path('callback/', payment_callback_view, name='payment-callback'),
+    
+    # ✅ Webhook endpoint (Moyasar يرسل التحديثات هنا)
     path('webhook/', moyasar_webhook, name='moyasar-webhook'),
-
+    
+    # ✅ جلب تفاصيل دفعة معينة (optional - للـ debugging)
+    path('fetch/<str:moyasar_id>/', fetch_payment_view, name='fetch-payment'),
 ]
