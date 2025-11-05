@@ -208,42 +208,6 @@ def handle_payment_paid(payment_data):
             # تحديث الفاتورة
             update_invoice_on_payment_success(payment)
 
-            # تحديث الحجز
-            if payment.booking:
-                booking = payment.booking
-                booking.status = "confirmed"
-                booking.save()
-                logger.info(f"✅ Booking confirmed")
-
-                # إرسال الإيميل
-                try:
-                    service = booking.servicebooking
-                    subject = f'New Booking: {service.title}'
-                    message = f'''
-A new booking has been made and payment confirmed ✅:
-
-Service: {service.title}
-Name: {booking.name}
-Email: {booking.email}
-Phone: {booking.phone}
-Number of Adults: {booking.numofadult}
-Booking Date: {booking.date}
-Hotel: {booking.hotel}
-Room Number: {booking.room}
-Drop-off: {booking.dropoff}
-Medical Conditions: {booking.disease}
-Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
-                    '''
-                    send_mail(
-                        subject,
-                        message,
-                        settings.DEFAULT_FROM_EMAIL,
-                        ['echorabia@gmail.com'],
-                        fail_silently=False,
-                    )
-                    logger.info(f"✅ Email sent for booking {booking.id}")
-                except Exception as e:
-                    logger.error(f"❌ Email sending failed: {e}")
 
     except Exception as e:
         logger.error(f"❌ Error in handle_payment_paid: {str(e)}", exc_info=True)
