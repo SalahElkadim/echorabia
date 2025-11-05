@@ -203,7 +203,7 @@ def handle_payment_paid(payment_data):
 
             # تحديث الحجز بسرعة
             if payment.booking:
-                payment.booking.status = "confirmed"
+                payment.booking.confirmed = True
                 payment.booking.save(update_fields=['status'])
                 logger.info(f"✅ Booking confirmed")
 
@@ -449,7 +449,7 @@ def payment_callback_view(request):
                         logger.info(f"✅ Created payment in callback")
                         
                         if payment.status == "paid" and payment.booking:
-                            payment.booking.status = "confirmed"
+                            payment.booking.confirmed = True
                             payment.booking.save()
                             update_invoice_on_payment_success(payment)
                 else:
@@ -463,8 +463,8 @@ def payment_callback_view(request):
             booking = payment.booking
             
             # التأكد من تحديث حالة الحجز
-            if payment.status == "paid" and booking and booking.status != "confirmed":
-                booking.status = "confirmed"
+            if payment.status == "paid" and booking and booking.confirmed != True:
+                booking.confirmed = True
                 booking.save(update_fields=['status'])
 
         # ✅ التوجيه حسب الحالة
