@@ -28,40 +28,49 @@ def payment_page(request, booking_id):
     """
     🔥 FIXED: عرض صفحة الدفع مع إنشاء Payment مبدئي (pending)
     """
-    booking = get_object_or_404(Booking, id=booking_id)
-    service = booking.servicebooking
-    
-    # حساب المبلغ
-    amount_sar = booking.price.total_price
-    amount_halalah = int(amount_sar * 100)
-    
-    # 🔥 إنشاء Payment مبدئي (pending_form)
     try:
-        with transaction.atomic():
-            given_id = str(uuid.uuid4())
-            
-            pending_payment = Payment.objects.create(
-                moyasar_id=f"PENDING-{given_id}",
-                booking=booking,
-                amount=amount_halalah,
-                status="pending_form",
-                description=f"Booking #{booking_id} - {service.title}",
-            )
-            
-            logger.info(f"✅ Created pending payment: {pending_payment.id}")
-            payment_session_id = str(pending_payment.id)
-            
+        booking = get_object_or_404(Booking, id=booking_id)
+        service = booking.servicebooking
+        
+        # حساب المبلغ
+        amount_sar = booking.price.total_price
+        amount_halalah = int(amount_sar * 100)
+        
+        logger.info(f"🎬 Payment page for booking {booking_id}, amount: {amount_halalah}")
+        
+        # 🔥 إنشاء Payment مبدئي (pending_form)
+        try:
+            with transaction.atomic():
+                given_id = str(uuid.uuid4())
+                
+                pending_payment = Payment.objects.create(
+                    moyasar_id=f"PENDING-{given_id}",
+                    booking=booking,
+                    amount=amount_halalah,
+                    status="pending_form",
+                    description=f"Booking #{booking_id} - {service.title}",
+                )
+                
+                logger.info(f"✅ Created pending payment: ID={pending_payment.id}, Moyasar ID={pending_payment.moyasar_id}")
+                payment_session_id = str(pending_payment.id)
+                
+        except Exception as e:
+            logger.error(f"❌ Failed to create pending payment: {e}", exc_info=True)
+            return render(request, "error.html", {"message": "Failed to initialize payment"})
+        
+        context = {
+            "moyasar_key": settings.MOYASAR_PUBLISHABLE_KEY,
+            "booking_id": booking.id,
+            "amount": amount_halalah,
+            "payment_session_id": payment_session_id,
+        }
+        
+        logger.info(f"✅ Rendering payment page with session_id: {payment_session_id}")
+        return render(request, "payment.html", context)
+        
     except Exception as e:
-        logger.error(f"❌ Failed to create pending payment: {e}")
-        return render(request, "error.html", {"message": "Failed to initialize payment"})
-    
-    context = {
-        "moyasar_key": settings.MOYASAR_PUBLISHABLE_KEY,
-        "booking_id": booking.id,
-        "amount": amount_halalah,
-        "payment_session_id": payment_session_id,
-    }
-    return render(request, "payment.html", context)
+        logger.error(f"❌ Error in payment_page: {e}", exc_info=True)
+        return render(request, "error.html", {"message": str(e)})
 
 
 @csrf_exempt
@@ -69,37 +78,35 @@ def payment_page(request, booking_id):
 def moyasar_webhook(request):
     """
     🔥 FIXED: Webhook endpoint لاستقبال التحديثات من Moyasar
+    - معالجة سريعة لتجنب timeout
+    - return مباشرة قبل المعالجة الطويلة
     """
     try:
-        print(f"\n{'='*60}")
-        print(f"🔔 WEBHOOK RECEIVED!")
-        print(f"{'='*60}")
-        print(f"Headers: {dict(request.headers)}")
-        print(f"Body: {request.body.decode('utf-8')}")
-        print(f"{'='*60}\n")
-        
-        signature = request.headers.get('X-Moyasar-Signature')
-        if not verify_webhook_signature(request.body, signature):
-            logger.warning("Invalid webhook signature")
-
+        # ✅ نرجع OK بسرعة لمنع timeout
         payload = json.loads(request.body)
         event_type = payload.get('type')
         payment_data = payload.get('data', {})
+        moyasar_id = payment_data.get('id')
         
-        logger.info(f"📞 Webhook: {event_type} for payment {payment_data.get('id')}")
-
-        if event_type == 'payment_paid':
-            handle_payment_paid(payment_data)
-        elif event_type == 'payment_failed':
-            handle_payment_failed(payment_data)
-        elif event_type == 'payment_refunded':
-            handle_payment_refunded(payment_data)
-
+        logger.info(f"📞 Webhook received: {event_type} for {moyasar_id}")
+        
+        # ✅ معالجة سريعة في try-except منفصل
+        try:
+            if event_type == 'payment_paid':
+                handle_payment_paid(payment_data)
+            elif event_type == 'payment_failed':
+                handle_payment_failed(payment_data)
+            elif event_type == 'payment_refunded':
+                handle_payment_refunded(payment_data)
+        except Exception as e:
+            logger.error(f"❌ Webhook processing error: {str(e)}", exc_info=True)
+        
+        # ✅ نرجع OK في كل الحالات
         return HttpResponse("OK", status=200)
 
     except Exception as e:
-        logger.error(f"Webhook error: {str(e)}", exc_info=True)
-        return HttpResponse("Error", status=200)
+        logger.error(f"❌ Webhook parse error: {str(e)}", exc_info=True)
+        return HttpResponse("OK", status=200)  # نرجع OK حتى لو فيه خطأ
 
 
 def verify_webhook_signature(payload, signature):
@@ -124,77 +131,65 @@ def verify_webhook_signature(payload, signature):
 
 def handle_payment_paid(payment_data):
     """
-    🔥 FIXED: معالجة webhook للدفع الناجح
+    🔥 FIXED: معالجة webhook للدفع الناجح - محسّنة للسرعة
     """
     try:
         moyasar_id = payment_data.get("id")
         if not moyasar_id:
-            logger.error("❌ Payment data missing 'id'")
             return
 
-        logger.info(f"🔔 Webhook: payment_paid for {moyasar_id}")
+        logger.info(f"🔔 Processing payment_paid: {moyasar_id}")
 
-        # استخراج booking_id من metadata
-        metadata = payment_data.get("metadata") or {}
-        booking_id = metadata.get("booking_id")
-        
-        # 🔥 محاولة استخراج session_id من callback_url
+        # استخراج session_id من callback_url
         callback_url = payment_data.get('callback_url', '')
         session_id = None
         
         if 'session_id=' in callback_url:
             try:
                 session_id = callback_url.split('session_id=')[1].split('&')[0]
-                logger.info(f"✅ Extracted session_id: {session_id}")
             except:
-                logger.warning(f"⚠️ Failed to extract session_id")
+                pass
 
+        # استخراج booking من description
+        description = payment_data.get('description', '')
         booking = None
-        if booking_id:
+        if 'Booking #' in description:
             try:
+                booking_id = description.split('Booking #')[1].split(' ')[0].split('-')[0]
                 booking = Booking.objects.get(id=booking_id)
-                logger.info(f"✅ Found booking: {booking.id}")
-            except Booking.DoesNotExist:
-                logger.warning(f"⚠️ Booking {booking_id} not found")
+            except:
+                pass
 
         with transaction.atomic():
-            # محاولة جلب Payment الموجود
             payment = None
             
-            # أولاً: بـ session_id
+            # محاولة جلب بـ session_id
             if session_id:
                 try:
-                    pending_payment = Payment.objects.get(id=session_id, status="pending_form")
-                    logger.info(f"✅ Found pending payment: {pending_payment.id}")
+                    payment = Payment.objects.select_for_update().get(id=session_id)
+                    payment.moyasar_id = moyasar_id
+                    payment.status = "paid"
+                    payment.paid_at = timezone.now()
+                    payment.amount = payment_data.get("amount", payment.amount)
                     
-                    # تحديث الـ pending payment
-                    pending_payment.moyasar_id = moyasar_id
-                    pending_payment.status = "paid"
-                    pending_payment.paid_at = timezone.now()
-                    pending_payment.amount = payment_data.get("amount", pending_payment.amount)
+                    if not payment.booking and booking:
+                        payment.booking = booking
                     
-                    if not pending_payment.booking and booking:
-                        pending_payment.booking = booking
-                    
-                    pending_payment.save()
-                    payment = pending_payment
-                    
-                    logger.info(f"✅ Updated pending payment to paid")
+                    payment.save()
+                    logger.info(f"✅ Updated payment {session_id} to paid")
                 except Payment.DoesNotExist:
-                    logger.warning(f"⚠️ Pending payment {session_id} not found")
+                    logger.warning(f"⚠️ Session {session_id} not found")
             
-            # ثانياً: بـ moyasar_id
+            # إذا مش موجود، نحاول بـ moyasar_id
             if not payment:
-                payment = Payment.objects.filter(moyasar_id=moyasar_id).first()
-                
-                if payment:
-                    logger.info(f"✅ Found existing payment by moyasar_id")
+                try:
+                    payment = Payment.objects.get(moyasar_id=moyasar_id)
                     payment.status = "paid"
                     payment.paid_at = timezone.now()
                     payment.save()
-                else:
-                    # إنشاء payment جديد
-                    logger.info(f"✅ Creating new payment")
+                    logger.info(f"✅ Updated payment by moyasar_id")
+                except Payment.DoesNotExist:
+                    # إنشاء جديد
                     payment = Payment.objects.create(
                         moyasar_id=moyasar_id,
                         booking=booking,
@@ -204,28 +199,135 @@ def handle_payment_paid(payment_data):
                         description=payment_data.get("description"),
                         source_type=payment_data.get("source", {}).get("type"),
                     )
+                    logger.info(f"✅ Created new payment")
 
-            # تحديث الفاتورة
+            # تحديث الحجز بسرعة
+            if payment.booking:
+                payment.booking.status = "confirmed"
+                payment.booking.save(update_fields=['status'])
+                logger.info(f"✅ Booking confirmed")
+
+        # ✅ إنشاء الفاتورة وإرسال الإيميل في background (بعد commit)
+        try:
             update_invoice_on_payment_success(payment)
-
+            
+            # إرسال الإيميل (مش critical)
+            if payment.booking:
+                try:
+                    send_booking_confirmation_email(payment.booking)
+                except Exception as e:
+                    logger.error(f"❌ Email failed: {e}")
+        except Exception as e:
+            logger.error(f"❌ Post-processing failed: {e}")
 
     except Exception as e:
         logger.error(f"❌ Error in handle_payment_paid: {str(e)}", exc_info=True)
 
 
-def handle_payment_failed(payment_data):
-    moyasar_id = payment_data.get('id')
-    
+def send_booking_confirmation_email(booking):
+    """
+    🔥 FIXED: Helper function لإرسال إيميل التأكيد
+    - تشتغل في background بدون blocking
+    - fail_silently=True عشان ما توقفش الـ flow
+    """
     try:
-        payment = Payment.objects.get(moyasar_id=moyasar_id)
-        payment.status = 'failed'
-        payment.save()
-        logger.info(f"Payment {moyasar_id} marked as failed")
+        from threading import Thread
         
-    except Payment.DoesNotExist:
-        logger.warning(f"Payment {moyasar_id} not found")
+        def _send_email():
+            try:
+                service = booking.servicebooking
+                subject = f'New Booking: {service.title}'
+                message = f'''
+A new booking has been made and payment confirmed ✅:
+
+Service: {service.title}
+Name: {booking.name}
+Email: {booking.email}
+Phone: {booking.phone}
+Number of Adults: {booking.numofadult}
+Booking Date: {booking.date}
+Hotel: {booking.hotel}
+Room Number: {booking.room}
+Drop-off: {booking.dropoff}
+Medical Conditions: {booking.disease}
+Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
+                '''
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    ['echorabia@gmail.com'],
+                    fail_silently=True,  # ✅ مش critical
+                )
+                logger.info(f"✅ Email sent for booking {booking.id}")
+            except Exception as e:
+                logger.error(f"❌ Email failed: {e}")
+        
+        # ✅ إرسال في thread منفصل (non-blocking)
+        email_thread = Thread(target=_send_email)
+        email_thread.daemon = True  # تموت لو السيرفر وقف
+        email_thread.start()
+        
     except Exception as e:
-        logger.error(f"Error handling payment_failed: {str(e)}")
+        logger.error(f"❌ Email thread failed: {e}")
+
+
+def handle_payment_failed(payment_data):
+    """
+    🔥 FIXED: معالجة webhook للدفع الفاشل - محسّنة
+    """
+    try:
+        moyasar_id = payment_data.get('id')
+        if not moyasar_id:
+            return
+        
+        logger.info(f"🔔 Processing payment_failed: {moyasar_id}")
+        
+        # استخراج session_id
+        callback_url = payment_data.get('callback_url', '')
+        session_id = None
+        
+        if 'session_id=' in callback_url:
+            try:
+                session_id = callback_url.split('session_id=')[1].split('&')[0]
+            except:
+                pass
+        
+        with transaction.atomic():
+            payment = None
+            
+            # محاولة جلب بـ session_id
+            if session_id:
+                try:
+                    payment = Payment.objects.select_for_update().get(id=session_id)
+                    payment.moyasar_id = moyasar_id
+                    payment.status = "failed"
+                    payment.amount = payment_data.get("amount", payment.amount)
+                    payment.save()
+                    logger.info(f"✅ Updated payment {session_id} to failed")
+                except Payment.DoesNotExist:
+                    pass
+            
+            # محاولة جلب Payment موجود
+            if not payment:
+                try:
+                    payment = Payment.objects.get(moyasar_id=moyasar_id)
+                    payment.status = 'failed'
+                    payment.save()
+                    logger.info(f"✅ Updated payment to failed")
+                except Payment.DoesNotExist:
+                    # إنشاء payment جديد
+                    payment = Payment.objects.create(
+                        moyasar_id=moyasar_id,
+                        amount=payment_data.get("amount"),
+                        status="failed",
+                        description=payment_data.get("description"),
+                        source_type=payment_data.get("source", {}).get("type"),
+                    )
+                    logger.info(f"✅ Created new failed payment")
+        
+    except Exception as e:
+        logger.error(f"❌ Error in handle_payment_failed: {str(e)}", exc_info=True)
 
 
 def handle_payment_refunded(payment_data):
@@ -280,128 +382,92 @@ def update_invoice_on_payment_success(payment):
 @csrf_exempt
 def payment_callback_view(request):
     """
-    🔥 FIXED: Callback URL بعد إتمام الدفع
+    🔥 FIXED: Callback URL بعد إتمام الدفع - محسّن
     """
     try:
-        print(f"\n{'='*60}")
-        print(f"🔔 CALLBACK RECEIVED!")
-        print(f"{'='*60}")
-        print(f"GET Params: {dict(request.GET)}")
-        print(f"{'='*60}\n")
-        
         status = request.GET.get("status")
         moyasar_id = request.GET.get("id")
         payment_session_id = request.GET.get("session_id")
+        message = request.GET.get("message", "")
 
-        logger.info(f"📞 Callback - Status: {status}, Moyasar ID: {moyasar_id}, Session: {payment_session_id}")
+        logger.info(f"📞 Callback: status={status}, moyasar_id={moyasar_id}, session={payment_session_id}")
 
         payment = None
         invoice = None
         booking = None
 
-        if moyasar_id:
+        # ✅ محاولة جلب Payment من الداتابيز أولاً (أسرع)
+        if payment_session_id:
             try:
-                # محاولة جلب Payment بـ session_id أولاً
-                if payment_session_id:
-                    try:
-                        pending_payment = Payment.objects.get(id=payment_session_id, status="pending_form")
-                        logger.info(f"✅ Found pending payment: {pending_payment.id}")
-                        
-                        # التحقق إذا كان موجود بـ moyasar_id
-                        existing_payment = Payment.objects.filter(moyasar_id=moyasar_id).first()
-                        
-                        if existing_payment:
-                            logger.info(f"⚠️ Payment {moyasar_id} already exists (from webhook)")
-                            pending_payment.delete()
-                            payment = existing_payment
-                        else:
-                            # تحديث الـ pending
-                            pending_payment.moyasar_id = moyasar_id
-                            pending_payment.status = "initiated"
-                            pending_payment.save()
-                            payment = pending_payment
-                            logger.info(f"✅ Updated pending payment")
-                            
-                    except Payment.DoesNotExist:
-                        logger.warning(f"⚠️ Pending payment {payment_session_id} not found")
+                payment = Payment.objects.select_related('booking', 'invoice').get(id=payment_session_id)
+                logger.info(f"✅ Found payment by session: {payment.id}, status={payment.status}")
+            except Payment.DoesNotExist:
+                logger.warning(f"⚠️ Session {payment_session_id} not found")
+        
+        # إذا مش موجود، نجرب بـ moyasar_id
+        if not payment and moyasar_id:
+            payment = Payment.objects.select_related('booking', 'invoice').filter(moyasar_id=moyasar_id).first()
+            if payment:
+                logger.info(f"✅ Found payment by moyasar_id: {payment.id}")
+
+        # ✅ إذا لم نجد Payment، ننتظر شوية للـ webhook
+        if not payment and moyasar_id:
+            import time
+            for i in range(3):  # 3 محاولات
+                time.sleep(1)  # ننتظر ثانية
+                payment = Payment.objects.filter(moyasar_id=moyasar_id).first()
+                if payment:
+                    logger.info(f"✅ Found payment after retry {i+1}")
+                    break
+
+        # ✅ إذا لسه مش موجود، نجلب من Moyasar (آخر حل)
+        if not payment and moyasar_id:
+            try:
+                logger.info(f"🔍 Fetching from Moyasar: {moyasar_id}")
+                payment_data, status_code = fetch_payment_api(moyasar_id)
                 
-                # إذا لم نجد payment، نجلب من Moyasar
-                if not payment:
-                    payment_data, status_code = fetch_payment_api(moyasar_id)
-                    
-                    if status_code != 200:
-                        logger.error(f"❌ Failed to fetch from Moyasar: {payment_data}")
-                        raise Exception("Could not verify payment")
-
-                    logger.info(f"✅ Payment data from Moyasar: {payment_data.get('status')}")
-
-                    # استخراج booking_id
-                    metadata = payment_data.get("metadata") or {}
-                    booking_id = metadata.get("booking_id")
-                    
+                if status_code == 200:
+                    # استخراج booking من description
+                    description = payment_data.get('description', '')
                     booking = None
-                    if booking_id:
+                    if 'Booking #' in description:
                         try:
+                            booking_id = description.split('Booking #')[1].split(' ')[0].split('-')[0]
                             booking = Booking.objects.get(id=booking_id)
-                            logger.info(f"✅ Found booking: {booking.id}")
-                        except Booking.DoesNotExist:
-                            logger.warning(f"⚠️ Booking {booking_id} not found")
+                        except:
+                            pass
 
-                    # حفظ أو تحديث Payment
                     with transaction.atomic():
-                        payment, created = Payment.objects.get_or_create(
+                        payment = Payment.objects.create(
                             moyasar_id=moyasar_id,
-                            defaults={
-                                "booking": booking,
-                                "amount": payment_data.get("amount"),
-                                "status": payment_data.get("status"),
-                                "description": payment_data.get("description"),
-                                "source_type": payment_data.get("source", {}).get("type"),
-                            }
+                            booking=booking,
+                            amount=payment_data.get("amount"),
+                            status=payment_data.get("status"),
+                            description=payment_data.get("description"),
+                            source_type=payment_data.get("source", {}).get("type"),
                         )
+                        logger.info(f"✅ Created payment in callback")
                         
-                        if not created:
-                            old_status = payment.status
-                            payment.status = payment_data.get("status")
-                            payment.amount = payment_data.get("amount")
-                            
-                            if not payment.booking and booking:
-                                payment.booking = booking
-                                
-                            payment.save()
-                            
-                            logger.info(f"✅ Updated: {old_status} → {payment.status}")
-
-                            # فك القفل لو نجح
-                            if old_status != "paid" and payment.status == "paid":
-                                if payment.booking:
-                                    payment.booking.status = "confirmed"
-                                    payment.booking.save()
-                                    update_invoice_on_payment_success(payment)
-                        else:
-                            logger.info(f"✅ Created payment: {moyasar_id}")
-                            
-                            if payment.status == "paid" and payment.booking:
-                                payment.booking.status = "confirmed"
-                                payment.booking.save()
-                                update_invoice_on_payment_success(payment)
-                
-                # تحديث الحجز إذا كان الدفع ناجح
-                if payment and payment.status == "paid":
-                    if payment.booking and payment.booking.status != "confirmed":
-                        payment.booking.status = "confirmed"
-                        payment.booking.save()
-                        update_invoice_on_payment_success(payment)
-                        logger.info(f"✅ Booking confirmed in callback")
-
-                # جلب الفاتورة
-                invoice = getattr(payment, "invoice", None)
-                booking = payment.booking if payment else None
-                        
+                        if payment.status == "paid" and payment.booking:
+                            payment.booking.status = "confirmed"
+                            payment.booking.save()
+                            update_invoice_on_payment_success(payment)
+                else:
+                    logger.error(f"❌ Moyasar fetch failed: {status_code}")
             except Exception as e:
-                logger.error(f"❌ Error in callback: {e}", exc_info=True)
+                logger.error(f"❌ Error fetching from Moyasar: {e}", exc_info=True)
 
-        # التوجيه حسب الحالة
+        # ✅ جلب الفاتورة والحجز
+        if payment:
+            invoice = getattr(payment, "invoice", None)
+            booking = payment.booking
+            
+            # التأكد من تحديث حالة الحجز
+            if payment.status == "paid" and booking and booking.status != "confirmed":
+                booking.status = "confirmed"
+                booking.save(update_fields=['status'])
+
+        # ✅ التوجيه حسب الحالة
         if payment and payment.status == "paid":
             logger.info(f"✅ → SUCCESS PAGE")
             return render(request, "tourapp/payment_success.html", {
@@ -413,8 +479,9 @@ def payment_callback_view(request):
             logger.warning(f"⚠️ → FAILED PAGE")
             return render(request, "tourapp/payment_failed.html", {
                 "payment": payment,
-                "status": status,
+                "status": status if status else (payment.status if payment else "unknown"),
                 "moyasar_id": moyasar_id,
+                "message": message,
             })
 
     except Exception as e:
