@@ -6,6 +6,7 @@ class Payment(models.Model):
     PAYMENT_STATUS_CHOICES = [
         ('initiated', 'Initiated'),
         ('pending', 'Pending'),
+        ('pending_form', 'Pending Form'),  # ✅ أضف هذا
         ('paid', 'Paid'),
         ('failed', 'Failed'),
         ('refunded', 'Refunded'),
@@ -18,9 +19,11 @@ class Payment(models.Model):
     currency = models.CharField(max_length=10, default="SAR")
     description = models.TextField(blank=True, null=True)
     booking = models.ForeignKey(
-        "tourapp.Booking",   # أو اسم الـ app اللي فيه موديل Booking
+        "tourapp.Booking",
         on_delete=models.CASCADE,
-        related_name="payments"
+        related_name="payments",
+        null=True,  # ✅ اجعله nullable
+        blank=True
     )
     
     # تواريخ مهمة
@@ -29,8 +32,8 @@ class Payment(models.Model):
     paid_at = models.DateTimeField(blank=True, null=True)
     
     # معلومات إضافية من Moyasar
-    moyasar_fee = models.IntegerField(blank=True, null=True)  # رسوم ميسر
-    source_type = models.CharField(max_length=50, blank=True, null=True)  # نوع مصدر الدفع
+    moyasar_fee = models.IntegerField(blank=True, null=True)
+    source_type = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return f"Payment {self.moyasar_id} - {self.status}"
@@ -62,11 +65,11 @@ class Invoice(models.Model):
         related_name='invoice'
     )
     invoice_number = models.CharField(max_length=50, unique=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)  # المبلغ بالريال
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=10, default='SAR')
     description = models.TextField(blank=True, null=True)
     
-    # معلومات العميل (نسخة من بيانات المستخدم وقت إنشاء الفاتورة)
+    # معلومات العميل
     customer_name = models.CharField(max_length=200, blank=True, null=True)
     customer_email = models.EmailField(blank=True, null=True)
     customer_phone = models.CharField(max_length=20, blank=True, null=True)
@@ -81,7 +84,7 @@ class Invoice(models.Model):
     
     # معلومات إضافية
     notes = models.TextField(blank=True, null=True)
-    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # ضريبة القيمة المضافة
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     
     class Meta:
         ordering = ['-created_at']
@@ -110,5 +113,3 @@ class Invoice(models.Model):
             self.status = 'paid'
             self.paid_at = timezone.now()
             self.save()
-
-    

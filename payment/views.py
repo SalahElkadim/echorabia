@@ -78,11 +78,8 @@ def payment_page(request, booking_id):
 def moyasar_webhook(request):
     """
     🔥 FIXED: Webhook endpoint لاستقبال التحديثات من Moyasar
-    - معالجة سريعة لتجنب timeout
-    - return مباشرة قبل المعالجة الطويلة
     """
     try:
-        # ✅ نرجع OK بسرعة لمنع timeout
         payload = json.loads(request.body)
         event_type = payload.get('type')
         payment_data = payload.get('data', {})
@@ -90,7 +87,6 @@ def moyasar_webhook(request):
         
         logger.info(f"📞 Webhook received: {event_type} for {moyasar_id}")
         
-        # ✅ معالجة سريعة في try-except منفصل
         try:
             if event_type == 'payment_paid':
                 handle_payment_paid(payment_data)
@@ -101,37 +97,16 @@ def moyasar_webhook(request):
         except Exception as e:
             logger.error(f"❌ Webhook processing error: {str(e)}", exc_info=True)
         
-        # ✅ نرجع OK في كل الحالات
         return HttpResponse("OK", status=200)
 
     except Exception as e:
         logger.error(f"❌ Webhook parse error: {str(e)}", exc_info=True)
-        return HttpResponse("OK", status=200)  # نرجع OK حتى لو فيه خطأ
-
-
-def verify_webhook_signature(payload, signature):
-    try:
-        if not signature or not hasattr(settings, 'MOYASAR_WEBHOOK_SECRET'):
-            return True
-        
-        import hmac
-        import hashlib
-        
-        expected_signature = hmac.new(
-            settings.MOYASAR_WEBHOOK_SECRET.encode(),
-            payload,
-            hashlib.sha256
-        ).hexdigest()
-        
-        return hmac.compare_digest(signature, expected_signature)
-    except Exception as e:
-        logger.error(f"Error verifying webhook signature: {str(e)}")
-        return True
+        return HttpResponse("OK", status=200)
 
 
 def handle_payment_paid(payment_data):
     """
-    🔥 FIXED: معالجة webhook للدفع الناجح - محسّنة للسرعة
+    🔥 FIXED: معالجة webhook للدفع الناجح
     """
     try:
         moyasar_id = payment_data.get("id")
@@ -201,17 +176,16 @@ def handle_payment_paid(payment_data):
                     )
                     logger.info(f"✅ Created new payment")
 
-            # تحديث الحجز بسرعة
+            # ✅ FIX: تحديث الحجز بدون update_fields
             if payment.booking:
                 payment.booking.confirmed = True
-                payment.booking.save(update_fields=['status'])
+                payment.booking.save()  # ✅ بدون update_fields=['status']
                 logger.info(f"✅ Booking confirmed")
 
-        # ✅ إنشاء الفاتورة وإرسال الإيميل في background (بعد commit)
+        # إنشاء الفاتورة وإرسال الإيميل
         try:
             update_invoice_on_payment_success(payment)
             
-            # إرسال الإيميل (مش critical)
             if payment.booking:
                 try:
                     send_booking_confirmation_email(payment.booking)
@@ -227,8 +201,6 @@ def handle_payment_paid(payment_data):
 def send_booking_confirmation_email(booking):
     """
     🔥 FIXED: Helper function لإرسال إيميل التأكيد
-    - تشتغل في background بدون blocking
-    - fail_silently=True عشان ما توقفش الـ flow
     """
     try:
         from threading import Thread
@@ -257,15 +229,14 @@ Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
                     message,
                     settings.DEFAULT_FROM_EMAIL,
                     ['echorabia@gmail.com'],
-                    fail_silently=True,  # ✅ مش critical
+                    fail_silently=True,
                 )
                 logger.info(f"✅ Email sent for booking {booking.id}")
             except Exception as e:
                 logger.error(f"❌ Email failed: {e}")
         
-        # ✅ إرسال في thread منفصل (non-blocking)
         email_thread = Thread(target=_send_email)
-        email_thread.daemon = True  # تموت لو السيرفر وقف
+        email_thread.daemon = True
         email_thread.start()
         
     except Exception as e:
@@ -274,7 +245,7 @@ Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
 
 def handle_payment_failed(payment_data):
     """
-    🔥 FIXED: معالجة webhook للدفع الفاشل - محسّنة
+    🔥 FIXED: معالجة webhook للدفع الفاشل
     """
     try:
         moyasar_id = payment_data.get('id')
@@ -308,7 +279,6 @@ def handle_payment_failed(payment_data):
                 except Payment.DoesNotExist:
                     pass
             
-            # محاولة جلب Payment موجود
             if not payment:
                 try:
                     payment = Payment.objects.get(moyasar_id=moyasar_id)
@@ -316,7 +286,6 @@ def handle_payment_failed(payment_data):
                     payment.save()
                     logger.info(f"✅ Updated payment to failed")
                 except Payment.DoesNotExist:
-                    # إنشاء payment جديد
                     payment = Payment.objects.create(
                         moyasar_id=moyasar_id,
                         amount=payment_data.get("amount"),
@@ -350,9 +319,7 @@ def update_invoice_on_payment_success(payment):
     🔥 FIXED: تحديث الفاتورة عند نجاح الدفع
     """
     try:
-        # محاولة جلب الفاتورة
         if not hasattr(payment, 'invoice'):
-            # إنشاء فاتورة جديدة
             invoice_number = f"INV-{timezone.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
             
             amount_sar = Decimal(payment.amount) / 100
@@ -382,7 +349,7 @@ def update_invoice_on_payment_success(payment):
 @csrf_exempt
 def payment_callback_view(request):
     """
-    🔥 FIXED: Callback URL بعد إتمام الدفع - محسّن
+    🔥 FIXED: Callback URL بعد إتمام الدفع
     """
     try:
         status = request.GET.get("status")
@@ -396,7 +363,7 @@ def payment_callback_view(request):
         invoice = None
         booking = None
 
-        # ✅ محاولة جلب Payment من الداتابيز أولاً (أسرع)
+        # محاولة جلب Payment من الداتابيز
         if payment_session_id:
             try:
                 payment = Payment.objects.select_related('booking', 'invoice').get(id=payment_session_id)
@@ -404,30 +371,28 @@ def payment_callback_view(request):
             except Payment.DoesNotExist:
                 logger.warning(f"⚠️ Session {payment_session_id} not found")
         
-        # إذا مش موجود، نجرب بـ moyasar_id
         if not payment and moyasar_id:
             payment = Payment.objects.select_related('booking', 'invoice').filter(moyasar_id=moyasar_id).first()
             if payment:
                 logger.info(f"✅ Found payment by moyasar_id: {payment.id}")
 
-        # ✅ إذا لم نجد Payment، ننتظر شوية للـ webhook
+        # إذا لم نجد Payment، ننتظر للـ webhook
         if not payment and moyasar_id:
             import time
-            for i in range(3):  # 3 محاولات
-                time.sleep(1)  # ننتظر ثانية
+            for i in range(3):
+                time.sleep(1)
                 payment = Payment.objects.filter(moyasar_id=moyasar_id).first()
                 if payment:
                     logger.info(f"✅ Found payment after retry {i+1}")
                     break
 
-        # ✅ إذا لسه مش موجود، نجلب من Moyasar (آخر حل)
+        # إذا لسه مش موجود، نجلب من Moyasar
         if not payment and moyasar_id:
             try:
                 logger.info(f"🔍 Fetching from Moyasar: {moyasar_id}")
                 payment_data, status_code = fetch_payment_api(moyasar_id)
                 
                 if status_code == 200:
-                    # استخراج booking من description
                     description = payment_data.get('description', '')
                     booking = None
                     if 'Booking #' in description:
@@ -457,7 +422,7 @@ def payment_callback_view(request):
             except Exception as e:
                 logger.error(f"❌ Error fetching from Moyasar: {e}", exc_info=True)
 
-        # ✅ جلب الفاتورة والحجز
+        # جلب الفاتورة والحجز
         if payment:
             invoice = getattr(payment, "invoice", None)
             booking = payment.booking
@@ -465,9 +430,9 @@ def payment_callback_view(request):
             # التأكد من تحديث حالة الحجز
             if payment.status == "paid" and booking and booking.confirmed != True:
                 booking.confirmed = True
-                booking.save(update_fields=['status'])
+                booking.save()
 
-        # ✅ التوجيه حسب الحالة
+        # التوجيه حسب الحالة
         if payment and payment.status == "paid":
             logger.info(f"✅ → SUCCESS PAGE")
             return render(request, "tourapp/payment_success.html", {
