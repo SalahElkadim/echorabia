@@ -342,7 +342,9 @@ def update_invoice_on_payment_success(payment):
 @csrf_exempt
 def payment_callback_view(request):
     """
-    🔥 FIXED: Callback URL بعد إتمام الدفع
+    🔥 ULTIMATE FIX: Callback URL بعد إتمام الدفع
+    - ننتظر ALWAYS قبل ما نبدأ نبحث
+    - polling مكثف للتأكد من تحديث الـ status
     """
     try:
         status = request.GET.get("status")
@@ -350,53 +352,78 @@ def payment_callback_view(request):
         payment_session_id = request.GET.get("session_id")
         message = request.GET.get("message", "")
 
-        logger.info(f"📞 Callback: status={status}, moyasar_id={moyasar_id}, session={payment_session_id}")
+        logger.info(f"📞 Callback RECEIVED: status={status}, moyasar_id={moyasar_id}, session={payment_session_id}")
 
         payment = None
         invoice = None
         booking = None
-
-        # ✅ أولوية للـ moyasar_id (أهم من session_id)
-        if moyasar_id and not moyasar_id.startswith('PENDING-'):
-            payment = Payment.objects.select_related('booking', 'invoice').filter(moyasar_id=moyasar_id).first()
-            if payment:
-                logger.info(f"✅ Found payment by moyasar_id: {payment.id}, status={payment.status}")
         
-        # إذا مش موجود بـ moyasar_id، نجرب session_id
-        if not payment and payment_session_id:
+        # ✅ CRITICAL: ننتظر 3 ثواني في البداية لإعطاء الـ webhook فرصة
+        import time
+        logger.info(f"⏳ Waiting 3 seconds for webhook to process...")
+        time.sleep(3)
+
+        # ✅ Strategy 1: البحث بـ session_id (أضمن طريقة)
+        if payment_session_id:
+            logger.info(f"🔍 Strategy 1: Looking for session_id={payment_session_id}")
             try:
-                payment = Payment.objects.select_related('booking', 'invoice').get(id=payment_session_id)
-                logger.info(f"✅ Found payment by session: {payment.id}, status={payment.status}")
+                # نحاول نلاقي الـ payment ونتأكد من تحديث الـ status
+                for attempt in range(8):  # 8 محاولات × 2 ثانية = 16 ثانية
+                    payment = Payment.objects.select_related('booking', 'invoice').get(id=payment_session_id)
+                    logger.info(f"🔄 Attempt {attempt + 1}: Found payment ID={payment.id}, moyasar={payment.moyasar_id}, status={payment.status}")
+                    
+                    # ✅ إذا الـ status بقى paid، نخرج
+                    if payment.status == 'paid':
+                        logger.info(f"🎉 Payment is PAID! Success!")
+                        break
+                    
+                    # ✅ إذا الـ moyasar_id اتحدث من PENDING لـ ID حقيقي، كويس!
+                    if payment.moyasar_id and not payment.moyasar_id.startswith('PENDING-'):
+                        logger.info(f"✅ Moyasar ID updated: {payment.moyasar_id}")
+                        # نكمل polling عشان الـ status يتحدث
+                    
+                    # ننتظر قبل المحاولة التالية
+                    if attempt < 7:
+                        time.sleep(2)
+                    
             except Payment.DoesNotExist:
-                logger.warning(f"⚠️ Session {payment_session_id} not found")
-
-        # ✅ إذا لم نجد Payment، ننتظر للـ webhook (زود الوقت)
+                logger.error(f"❌ Session {payment_session_id} not found!")
+        
+        # ✅ Strategy 2: البحث بـ moyasar_id (لو موجود)
         if not payment and moyasar_id and not moyasar_id.startswith('PENDING-'):
-            import time
-            for i in range(5):  # ✅ زودت المحاولات من 3 لـ 5
-                time.sleep(1.5)  # ✅ زودت الوقت من 1 لـ 1.5 ثانية
-                payment = Payment.objects.select_related('booking', 'invoice').filter(moyasar_id=moyasar_id).first()
-                if payment and payment.status == 'paid':  # ✅ تأكد إن الـ status اتحدث
-                    logger.info(f"✅ Found PAID payment after retry {i+1}")
+            logger.info(f"🔍 Strategy 2: Looking for moyasar_id={moyasar_id}")
+            
+            for attempt in range(5):
+                payment = Payment.objects.select_related('booking', 'invoice').filter(
+                    moyasar_id=moyasar_id
+                ).first()
+                
+                if payment and payment.status == 'paid':
+                    logger.info(f"✅ Found PAID payment by moyasar_id")
                     break
-                elif payment:
-                    logger.info(f"⏳ Found payment but status={payment.status}, waiting...")
+                
+                if attempt < 4:
+                    time.sleep(2)
 
-        # إذا لسه مش موجود، نجلب من Moyasar
-        if not payment and moyasar_id:
+        # ✅ Strategy 3: آخر حل - نجلب من Moyasar API
+        if not payment and moyasar_id and not moyasar_id.startswith('PENDING-'):
+            logger.info(f"🔍 Strategy 3: Fetching from Moyasar API: {moyasar_id}")
             try:
-                logger.info(f"🔍 Fetching from Moyasar: {moyasar_id}")
                 payment_data, status_code = fetch_payment_api(moyasar_id)
                 
                 if status_code == 200:
+                    logger.info(f"✅ Moyasar API returned: status={payment_data.get('status')}")
+                    
+                    # استخراج booking من description
                     description = payment_data.get('description', '')
                     booking = None
                     if 'Booking #' in description:
                         try:
                             booking_id = description.split('Booking #')[1].split(' ')[0].split('-')[0]
                             booking = Booking.objects.get(id=booking_id)
-                        except:
-                            pass
+                            logger.info(f"✅ Found booking: {booking_id}")
+                        except Exception as e:
+                            logger.error(f"❌ Failed to extract booking: {e}")
 
                     with transaction.atomic():
                         payment = Payment.objects.create(
@@ -406,15 +433,17 @@ def payment_callback_view(request):
                             status=payment_data.get("status"),
                             description=payment_data.get("description"),
                             source_type=payment_data.get("source", {}).get("type"),
+                            paid_at=timezone.now() if payment_data.get("status") == "paid" else None,
                         )
-                        logger.info(f"✅ Created payment in callback")
+                        logger.info(f"✅ Created payment from Moyasar API: ID={payment.id}, status={payment.status}")
                         
                         if payment.status == "paid" and payment.booking:
                             payment.booking.confirmed = True
                             payment.booking.save()
                             update_invoice_on_payment_success(payment)
+                            logger.info(f"✅ Booking confirmed and invoice created")
                 else:
-                    logger.error(f"❌ Moyasar fetch failed: {status_code}")
+                    logger.error(f"❌ Moyasar API failed: status_code={status_code}")
             except Exception as e:
                 logger.error(f"❌ Error fetching from Moyasar: {e}", exc_info=True)
 
