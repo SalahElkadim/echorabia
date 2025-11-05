@@ -182,17 +182,19 @@ def handle_payment_paid(payment_data):
                 payment.booking.save()  # ✅ بدون update_fields=['status']
                 logger.info(f"✅ Booking confirmed")
 
-        # إنشاء الفاتورة وإرسال الإيميل
+        # ✅ إنشاء الفاتورة (سريع)
         try:
             update_invoice_on_payment_success(payment)
-            
-            if payment.booking:
-                try:
-                    send_booking_confirmation_email(payment.booking)
-                except Exception as e:
-                    logger.error(f"❌ Email failed: {e}")
         except Exception as e:
-            logger.error(f"❌ Post-processing failed: {e}")
+            logger.error(f"❌ Invoice creation failed: {e}")
+        
+        # ✅ إرسال الإيميل في background (بدون انتظار)
+        if payment.booking:
+            from threading import Thread
+            email_thread = Thread(target=send_booking_confirmation_email, args=(payment.booking,))
+            email_thread.daemon = True
+            email_thread.start()
+            logger.info(f"✅ Email task started in background")
 
     except Exception as e:
         logger.error(f"❌ Error in handle_payment_paid: {str(e)}", exc_info=True)
@@ -200,16 +202,14 @@ def handle_payment_paid(payment_data):
 
 def send_booking_confirmation_email(booking):
     """
-    🔥 FIXED: Helper function لإرسال إيميل التأكيد
+    🔥 FIXED: إرسال إيميل التأكيد (يشتغل في background)
+    - مش هيبطئ الـ webhook
+    - fail_silently=True عشان ما يكسرش الـ flow
     """
     try:
-        from threading import Thread
-        
-        def _send_email():
-            try:
-                service = booking.servicebooking
-                subject = f'New Booking: {service.title}'
-                message = f'''
+        service = booking.servicebooking
+        subject = f'New Booking: {service.title}'
+        message = f'''
 A new booking has been made and payment confirmed ✅:
 
 Service: {service.title}
@@ -223,24 +223,17 @@ Room Number: {booking.room}
 Drop-off: {booking.dropoff}
 Medical Conditions: {booking.disease}
 Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
-                '''
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    ['echorabia@gmail.com'],
-                    fail_silently=True,
-                )
-                logger.info(f"✅ Email sent for booking {booking.id}")
-            except Exception as e:
-                logger.error(f"❌ Email failed: {e}")
-        
-        email_thread = Thread(target=_send_email)
-        email_thread.daemon = True
-        email_thread.start()
-        
+        '''
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            ['echorabia@gmail.com'],
+            fail_silently=True,  # ✅ مش critical
+        )
+        logger.info(f"✅ Email sent successfully for booking {booking.id}")
     except Exception as e:
-        logger.error(f"❌ Email thread failed: {e}")
+        logger.error(f"❌ Email failed for booking {booking.id}: {e}", exc_info=True)
 
 
 def handle_payment_failed(payment_data):
@@ -363,28 +356,31 @@ def payment_callback_view(request):
         invoice = None
         booking = None
 
-        # محاولة جلب Payment من الداتابيز
-        if payment_session_id:
+        # ✅ أولوية للـ moyasar_id (أهم من session_id)
+        if moyasar_id and not moyasar_id.startswith('PENDING-'):
+            payment = Payment.objects.select_related('booking', 'invoice').filter(moyasar_id=moyasar_id).first()
+            if payment:
+                logger.info(f"✅ Found payment by moyasar_id: {payment.id}, status={payment.status}")
+        
+        # إذا مش موجود بـ moyasar_id، نجرب session_id
+        if not payment and payment_session_id:
             try:
                 payment = Payment.objects.select_related('booking', 'invoice').get(id=payment_session_id)
                 logger.info(f"✅ Found payment by session: {payment.id}, status={payment.status}")
             except Payment.DoesNotExist:
                 logger.warning(f"⚠️ Session {payment_session_id} not found")
-        
-        if not payment and moyasar_id:
-            payment = Payment.objects.select_related('booking', 'invoice').filter(moyasar_id=moyasar_id).first()
-            if payment:
-                logger.info(f"✅ Found payment by moyasar_id: {payment.id}")
 
-        # إذا لم نجد Payment، ننتظر للـ webhook
-        if not payment and moyasar_id:
+        # ✅ إذا لم نجد Payment، ننتظر للـ webhook (زود الوقت)
+        if not payment and moyasar_id and not moyasar_id.startswith('PENDING-'):
             import time
-            for i in range(3):
-                time.sleep(1)
-                payment = Payment.objects.filter(moyasar_id=moyasar_id).first()
-                if payment:
-                    logger.info(f"✅ Found payment after retry {i+1}")
+            for i in range(5):  # ✅ زودت المحاولات من 3 لـ 5
+                time.sleep(1.5)  # ✅ زودت الوقت من 1 لـ 1.5 ثانية
+                payment = Payment.objects.select_related('booking', 'invoice').filter(moyasar_id=moyasar_id).first()
+                if payment and payment.status == 'paid':  # ✅ تأكد إن الـ status اتحدث
+                    logger.info(f"✅ Found PAID payment after retry {i+1}")
                     break
+                elif payment:
+                    logger.info(f"⏳ Found payment but status={payment.status}, waiting...")
 
         # إذا لسه مش موجود، نجلب من Moyasar
         if not payment and moyasar_id:
@@ -424,6 +420,9 @@ def payment_callback_view(request):
 
         # جلب الفاتورة والحجز
         if payment:
+            # ✅ أعد جلب الـ payment من الداتابيز للتأكد من آخر تحديث
+            payment.refresh_from_db()
+            
             invoice = getattr(payment, "invoice", None)
             booking = payment.booking
             
@@ -431,6 +430,7 @@ def payment_callback_view(request):
             if payment.status == "paid" and booking and booking.confirmed != True:
                 booking.confirmed = True
                 booking.save()
+                logger.info(f"✅ Booking {booking.id} confirmed in callback")
 
         # التوجيه حسب الحالة
         if payment and payment.status == "paid":
