@@ -619,7 +619,7 @@ body {
 }
 
 .main-title::after {
-    content: '\f078';
+    content: '▼';
     font-family: 'Font Awesome 6 Free';
     font-weight: 900;
     font-size: 1rem;
@@ -689,10 +689,7 @@ body {
     border-bottom: none;
 }
 
-.price-details p::before {
-    content: '💰';
-    margin-left: 8px;
-}
+
 
 .price-actions {
     display: flex;
