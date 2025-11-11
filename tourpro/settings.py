@@ -138,7 +138,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email settings

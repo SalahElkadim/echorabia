@@ -228,7 +228,7 @@ Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
             subject,
             message,
             settings.DEFAULT_FROM_EMAIL,
-            ['echorabia@gmail.com'],
+            ['sm249481@gmail.com'],
             fail_silently=True,  # ✅ مش critical
         )
         logger.info(f"✅ Email sent successfully for booking {booking.id}")
