@@ -146,8 +146,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'echorabia@gmail.com'
-EMAIL_HOST_PASSWORD = 'tjfj smhr ejil khyv'
+EMAIL_HOST_USER = 'salah.mohamed.elkadim@gmail.com'
+EMAIL_HOST_PASSWORD = 'ayii xmox zmlc coxo'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 DEBUG = False
 # إعدادات الأمان عند تفعيل HTTPS
