@@ -77,7 +77,7 @@ def payment_page(request, booking_id):
 @require_POST
 def moyasar_webhook(request):
     """
-    🔥 FIXED: Webhook endpoint لاستقبال التحديثات من Moyasar
+    🔥 FIXED: نرجع response بسرعة قبل ما Moyasar تقطع
     """
     try:
         payload = json.loads(request.body)
@@ -87,24 +87,29 @@ def moyasar_webhook(request):
         
         logger.info(f"📞 Webhook received: {event_type} for {moyasar_id}")
         
-        try:
-            if event_type == 'payment_paid':
-                handle_payment_paid(payment_data)
-            elif event_type == 'payment_failed':
-                handle_payment_failed(payment_data)
-            elif event_type == 'payment_refunded':
-                handle_payment_refunded(payment_data)
-        except Exception as e:
-            logger.error(f"❌ Webhook processing error: {str(e)}", exc_info=True)
+        # ✅ نرجع response فوراً (خلال milliseconds)
+        response = HttpResponse("OK", status=200)
         
-        return HttpResponse("OK", status=200)
+        # ✅ بعد ما نرجع response، نشتغل في background
+        if event_type == 'payment_paid':
+            # نحفظ البيانات في الـ database بسرعة
+            try:
+                handle_payment_paid_fast(payment_data)
+            except Exception as e:
+                logger.error(f"❌ Webhook processing error: {str(e)}", exc_info=True)
+        elif event_type == 'payment_failed':
+            handle_payment_failed(payment_data)
+        elif event_type == 'payment_refunded':
+            handle_payment_refunded(payment_data)
+        
+        return response
 
     except Exception as e:
         logger.error(f"❌ Webhook parse error: {str(e)}", exc_info=True)
         return HttpResponse("OK", status=200)
 
 
-def handle_payment_paid(payment_data):
+def handle_payment_paid_fast(payment_data):
     """
     🔥 FIXED: معالجة webhook للدفع الناجح
     """
@@ -187,15 +192,6 @@ def handle_payment_paid(payment_data):
             update_invoice_on_payment_success(payment)
         except Exception as e:
             logger.error(f"❌ Invoice creation failed: {e}")
-        
-        # ✅ إرسال الإيميل في background (بدون انتظار)
-        if payment.booking:
-            from threading import Thread
-            email_thread = Thread(target=send_booking_confirmation_email, args=(payment.booking,))
-            email_thread.daemon = False
-            email_thread.start()
-            email_thread.join(timeout=10)
-            logger.info(f"✅ Email task started in background")
 
     except Exception as e:
         logger.error(f"❌ Error in handle_payment_paid: {str(e)}", exc_info=True)

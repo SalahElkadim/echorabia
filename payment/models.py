@@ -18,6 +18,7 @@ class Payment(models.Model):
     status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default="initiated")
     currency = models.CharField(max_length=10, default="SAR")
     description = models.TextField(blank=True, null=True)
+    email_sent = models.BooleanField(default=False)  # ⬅️ جديد
     booking = models.ForeignKey(
         "tourapp.Booking",
         on_delete=models.CASCADE,
