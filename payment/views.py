@@ -192,8 +192,9 @@ def handle_payment_paid(payment_data):
         if payment.booking:
             from threading import Thread
             email_thread = Thread(target=send_booking_confirmation_email, args=(payment.booking,))
-            email_thread.daemon = True
+            email_thread.daemon = False
             email_thread.start()
+            email_thread.join(timeout=10)
             logger.info(f"✅ Email task started in background")
 
     except Exception as e:
