@@ -71,7 +71,6 @@ class Booking(models.Model):
     dropoff = models.CharField(max_length = 50,default="I don't need")
     policy = models.BooleanField(default= True)
     disease = models.CharField(max_length = 50,blank=True, null=True)
-    confirmed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name}"
