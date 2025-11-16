@@ -186,6 +186,12 @@ def handle_payment_paid_fast(payment_data):
                 payment.booking.confirmed = True
                 payment.booking.save()  # ✅ بدون update_fields=['status']
                 logger.info(f"✅ Booking confirmed")
+                # 🔥 Send confirmation email
+                try:
+                    send_booking_confirmation_email(payment.booking)
+                except Exception as e:
+                    logger.error(f"❌ Failed to send booking email: {e}", exc_info=True)
+
 
         # ✅ إنشاء الفاتورة (سريع)
         try:
@@ -224,8 +230,8 @@ Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
         send_mail(
             subject,
             message,
-            settings.DEFAULT_FROM_EMAIL,
-            ['sm249481@gmail.com'],
+            from_email='sm249481@gmail.com',
+            recipient_list=['salah.mohamed.elkadim@gmail.com'],
             fail_silently=True,  # ✅ مش critical
         )
         logger.info(f"✅ Email sent successfully for booking {booking.id}")
