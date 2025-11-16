@@ -205,23 +205,9 @@ def send_booking_confirmation_email(booking):
     - fail_silently=True عشان ما يكسرش الـ flow
     """
     try:
-        service = booking.servicebooking
-        subject = f'New Booking: {service.title}'
-        message = f'''
-A new booking has been made and payment confirmed ✅:
-
-Service: {service.title}
-Name: {booking.name}
-Email: {booking.email}
-Phone: {booking.phone}
-Number of Adults: {booking.numofadult}
-Booking Date: {booking.date}
-Hotel: {booking.hotel}
-Room Number: {booking.room}
-Drop-off: {booking.dropoff}
-Medical Conditions: {booking.disease}
-Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
-        '''
+        
+        subject = f'New Booking:'
+        message = "new booking has been confirmed"
         send_mail(
             subject,
             message,
