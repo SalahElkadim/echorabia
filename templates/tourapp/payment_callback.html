@@ -1,0 +1,125 @@
+<!-- payments/payment_callback.html -->
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing Payment...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #C7B199 0%, #8A5A44 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .callback-container {
+            background: #F4F1EA;
+            border-radius: 6px;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+            padding: 40px 35px;
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            animation: fadeIn 0.4s ease-out;
+            border: 1px solid #D2C7BA;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: scale(0.97);}
+            to {opacity: 1; transform: scale(1);}
+        }
+
+        .spinner {
+            border: 4px solid #ddd;
+            border-top: 4px solid #5C4033;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+
+        @keyframes spin {
+            0% {transform: rotate(0deg);}
+            100% {transform: rotate(360deg);}
+        }
+
+        h1 {
+            color: #5C4033;
+            font-size: 1.9em;
+            margin-bottom: 15px;
+        }
+
+        p {
+            color: #6A594D;
+            font-size: 1.05em;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .confirm-btn {
+            background: linear-gradient(135deg, #8A5A44 0%, #5C4033 100%);
+            color: white;
+            padding: 14px 36px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.15em;
+            font-weight: bold;
+            transition: 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 3px 12px rgba(92, 64, 51, 0.35);
+        }
+
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 16px rgba(92, 64, 51, 0.45);
+        }
+
+        .confirm-btn:active {
+            transform: translateY(0px);
+        }
+
+        .info-box {
+            background: #E9E4DA;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 18px 0 28px;
+            border-left: 4px solid #8A5A44;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #5C4033;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="callback-container">
+        <div class="spinner"></div>
+
+        <h1>Processing Payment...</h1>
+
+        <p>Your payment request has been received successfully.<br>
+        Please click the button below to confirm your booking.</p>
+
+        <div class="info-box">
+            <p>💡 Booking details will be sent to your email after confirmation.</p>
+        </div>
+
+        <a href="/payment/confirm-booking/{{ payment_session_id }}/" class="confirm-btn">
+            Confirm Booking ✅
+        </a>
+    </div>
+</body>
+</html>

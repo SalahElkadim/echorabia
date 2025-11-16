@@ -3,7 +3,7 @@ from .views import (
     payment_page,
     payment_callback_view,
     moyasar_webhook,
-    fetch_payment_view,
+    fetch_payment_view,confirm_booking_view
 )
 
 urlpatterns = [
@@ -18,4 +18,6 @@ urlpatterns = [
     
     # ✅ جلب تفاصيل دفعة معينة (optional - للـ debugging)
     path('fetch/<str:moyasar_id>/', fetch_payment_view, name='fetch-payment'),
+    path('confirm-booking/<int:payment_session_id>/', confirm_booking_view, name='confirm_booking'),
+
 ]

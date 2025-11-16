@@ -1,33 +1,39 @@
 <!-- payments/payment_success.html -->
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html dir="ltr" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نجح الدفع!</title>
-    <!-- Google Fonts: Tajwal -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <title>Payment Successful!</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Tajawal', sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #4fc3f7 0%, #81d4fa 100%);
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f1ed 0%, #e8e0d5 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
         
         .success-container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            padding: 40px;
+            background: #ffffff;
+            border-radius: 3px;
+            box-shadow: 0 8px 32px rgba(101, 84, 68, 0.12);
+            padding: 50px 40px;
             text-align: center;
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
-            animation: slideUp 0.5s ease-out;
+            animation: slideUp 0.6s ease-out;
+            border-top: 3px solid #8b6f47;
         }
         
         @keyframes slideUp {
@@ -40,100 +46,218 @@
                 transform: translateY(0);
             }
         }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            background: linear-gradient(135deg, #8b6f47 0%, #6d5638 100%);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.5s ease-out 0.3s both;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .success-icon svg {
+            width: 45px;
+            height: 45px;
+            stroke: white;
+            stroke-width: 3;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
         
         h1 {
-            color: #0277bd;
-            font-size: 2.5em;
-            margin: 0 0 20px 0;
+            color: #3d3026;
+            font-size: 2.2em;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #6d5d4b;
+            font-size: 1.1em;
+            margin-bottom: 35px;
+            font-weight: 400;
         }
         
         .payment-details {
-            background: #f8f9ff;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            border-left: 4px solid #0277bd;
-            text-align: right;
+            background: #faf8f5;
+            padding: 25px;
+            border-radius: 2px;
+            margin: 25px 0;
+            border-left: 3px solid #8b6f47;
+            text-align: left;
+        }
+
+        .payment-details h3 {
+            color: #3d3026;
+            margin-bottom: 18px;
+            font-size: 1.3em;
+            font-weight: 700;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8dfd2;
+        }
+
+        .payment-details p {
+            margin: 12px 0;
+            font-size: 1em;
+            line-height: 1.8;
+            color: #4a3f2f;
+        }
+
+        .payment-details p strong {
+            color: #3d3026;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 130px;
+        }
+
+        .total-amount {
+            background: #f0e9dd;
+            border-left-color: #6d5638;
+        }
+
+        .total-amount p:last-child {
+            font-size: 1.3em;
+            color: #3d3026;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #d4c4ad;
         }
         
+        .btn-container {
+            margin-top: 35px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
         .btn {
-            background: linear-gradient(135deg, #0288d1 0%, #03a9f4 100%);
+            background: linear-gradient(135deg, #8b6f47 0%, #6d5638 100%);
             color: white;
-            padding: 12px 30px;
+            padding: 14px 35px;
             border: none;
-            border-radius: 25px;
+            border-radius: 2px;
             cursor: pointer;
             font-size: 1em;
-            margin: 10px;
+            font-weight: 600;
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
+            font-family: 'Inter', sans-serif;
         }
         
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(3, 169, 244, 0.4);
+            box-shadow: 0 6px 20px rgba(109, 86, 56, 0.3);
+            background: linear-gradient(135deg, #6d5638 0%, #5a4630 100%);
         }
         
         .btn-secondary {
-            background: linear-gradient(135deg, #81d4fa 0%, #4fc3f7 100%);
+            background: linear-gradient(135deg, #c8b393 0%, #a89776 100%);
+            color: #3d3026;
         }
         
         .btn-secondary:hover {
-            box-shadow: 0 5px 15px rgba(79, 195, 247, 0.4);
+            box-shadow: 0 6px 20px rgba(168, 151, 118, 0.3);
+            background: linear-gradient(135deg, #a89776 0%, #927f5f 100%);
         }
-        .payment-details h3 {
-        margin-bottom: 15px;
-        font-size: 1.3em;
-    }
 
-    .payment-details p {
-        margin: 10px 0;
-        font-size: 1em;
-        line-height: 1.6;
-    }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #d4c4ad, transparent);
+            margin: 30px 0;
+        }
+
+        @media (max-width: 600px) {
+            .success-container {
+                padding: 35px 25px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .payment-details {
+                padding: 20px;
+            }
+
+            .btn-container {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="success-container">
-        <h1>تم الدفع بنجاح!</h1>
-        <p>شكراً لك، تمت معالجة دفعتك بنجاح</p>
+        <div class="success-icon">
+            <svg viewBox="0 0 52 52">
+                <polyline points="14 27 22 35 38 19"/>
+            </svg>
+        </div>
+
+        <h1>Payment Successful!</h1>
+        <p class="subtitle">Thank you, your payment has been processed successfully</p>
         
         {% if payment %}
         <div class="payment-details">
-            <p><strong>رقم العملية:</strong> {{ payment.moyasar_id }}</p>
-            <p><strong>المبلغ:</strong> {{ payment.amount_in_sar }} ريال سعودي</p>
-            <p><strong>التاريخ:</strong> {{ payment.created_at|date:"d M Y H:i" }}</p>
+            <h3>Payment Details</h3>
+            <p><strong>Transaction ID:</strong> {{ payment.moyasar_id }}</p>
+            <p><strong>Amount:</strong> {{ payment.amount_in_sar }} SAR</p>
+            <p><strong>Date:</strong> {{ payment.created_at|date:"d M Y H:i" }}</p>
             {% if invoice %}
-            <p><strong>رقم الفاتورة:</strong> {{ invoice.invoice_number }}</p>
+            <p><strong>Invoice Number:</strong> {{ invoice.invoice_number }}</p>
             {% endif %}
         </div>
         {% endif %}
-        {% if booking %}
-<div class="payment-details" style="margin-top: 20px;">
-    <h3 style="color: #0277bd; margin-bottom: 15px;">تفاصيل الحجز</h3>
-    <p><strong>الخدمة:</strong> {{ booking.servicebooking.title }}</p>
-    <p><strong>الاسم:</strong> {{ booking.name }}</p>
-    <p><strong>البريد الإلكتروني:</strong> {{ booking.email }}</p>
-    <p><strong>رقم الهاتف:</strong> {{ booking.phone }}</p>
-    <p><strong>تاريخ الحجز:</strong> {{ booking.date|date:"d M Y" }}</p>
-    <p><strong>عدد البالغين:</strong> {{ booking.numofadult }}</p>
-    {% if booking.hotel %}
-    <p><strong>الفندق:</strong> {{ booking.hotel }}</p>
-    {% endif %}
-    {% if booking.room %}
-    <p><strong>رقم الغرفة:</strong> {{ booking.room }}</p>
-    {% endif %}
-</div>
 
-<div class="payment-details" style="margin-top: 20px; background: #e8f5e9; border-left-color: #4caf50;">
-    <h3 style="color: #2e7d32; margin-bottom: 15px;">تفاصيل المبلغ</h3>
-    <p><strong>السعر الأساسي:</strong> {{ booking.price.base_price }} ريال</p>
-    <p><strong>ضريبة القيمة المضافة (15%):</strong> {{ booking.price.vat_amount }} ريال</p>
-    <p style="font-size: 1.2em; color: #2e7d32;"><strong>الإجمالي:</strong> {{ booking.price.total_price }} ريال</p>
-</div>
-{% endif %}
-        
+        {% if booking %}
+        <div class="divider"></div>
+
+        <div class="payment-details">
+            <h3>Booking Details</h3>
+            <p><strong>Service:</strong> {{ booking.servicebooking.title }}</p>
+            <p><strong>Name:</strong> {{ booking.name }}</p>
+            <p><strong>Email:</strong> {{ booking.email }}</p>
+            <p><strong>Phone:</strong> {{ booking.phone }}</p>
+            <p><strong>Booking Date:</strong> {{ booking.date|date:"d M Y" }}</p>
+            <p><strong>Number of Adults:</strong> {{ booking.numofadult }}</p>
+            {% if booking.hotel %}
+            <p><strong>Hotel:</strong> {{ booking.hotel }}</p>
+            {% endif %}
+            {% if booking.room %}
+            <p><strong>Room Number:</strong> {{ booking.room }}</p>
+            {% endif %}
+        </div>
+
+        <div class="payment-details total-amount">
+            <h3>Amount Details</h3>
+            <p><strong>Base Price:</strong> {{ booking.price.base_price }} SAR</p>
+            <p><strong>VAT (15%):</strong> {{ booking.price.vat_amount }} SAR</p>
+            <p><strong>Total:</strong> {{ booking.price.total_price }} SAR</p>
+        </div>
+        {% endif %}
+
+        <div class="btn-container">
+            <a href="/" class="btn">Back to Home</a>
+        </div>
     </div>
 </body>
 </html>
