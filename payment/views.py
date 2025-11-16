@@ -227,7 +227,7 @@ Agreed to Cancellation Policy: {'Yes' if booking.policy else 'No'}
             message,
             from_email='sm249481@gmail.com',
             recipient_list=['salah.mohamed.elkadim@gmail.com'],
-            fail_silently=True,  # ✅ مش critical
+            fail_silently=False,  # ✅ مش critical
         )
         logger.info(f"✅ Email sent successfully for booking {booking.id}")
     except Exception as e:
