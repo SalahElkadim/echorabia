@@ -428,13 +428,20 @@ def confirm_booking_view(request, payment_session_id):
             invoice = getattr(payment, "invoice", None)
             booking = payment.booking
         
-        # ✅ إرسال الإيميل (فقط إذا الدفع ناجح)
+        # ✅ إرسال الإيميل في background thread (عشان ما يبطئش الـ response)
         if payment and payment.status == 'paid' and booking:
             try:
-                logger.info(f"📧 Sending confirmation email...")
-                send_booking_confirmation_email(booking)
+                import threading
+                logger.info(f"📧 Sending confirmation email in background...")
+                email_thread = threading.Thread(
+                    target=send_booking_confirmation_email,
+                    args=(booking,),
+                    daemon=True
+                )
+                email_thread.start()
+                logger.info(f"✅ Email thread started")
             except Exception as e:
-                logger.error(f"❌ Email failed: {e}", exc_info=True)
+                logger.error(f"❌ Email thread failed: {e}", exc_info=True)
                 # نكمل حتى لو الإيميل فشل
         
         # ✅ التوجيه حسب الحالة
