@@ -13,6 +13,7 @@ import requests
 from django.conf import settings
 import logging
 from .integration_services import get_tour_guide_license_details, get_tour_operator_license_details
+from payment.models import Payment, Invoice
 
 
 def login_view(request):
@@ -67,7 +68,6 @@ def privacy(request):
     return render(request, 'tourapp/privacy.html')
 
 
-from payment.models import Payment, Invoice
 # ثم عدّل دالة dashboard لتصبح:
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):

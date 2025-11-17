@@ -148,7 +148,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'salah.mohamed.elkadim@gmail.com'
 EMAIL_HOST_PASSWORD = 'ayii xmox zmlc coxo'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-DEBUG = False
+DEBUG = True
 # إعدادات الأمان عند تفعيل HTTPS
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
