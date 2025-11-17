@@ -66,6 +66,9 @@ def home(request):
 def privacy(request):
     return render(request, 'tourapp/privacy.html')
 
+
+from payment.models import Payment, Invoice, BookingPrice
+# ثم عدّل دالة dashboard لتصبح:
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
     servicecards = ServiceCard.objects.all()
@@ -76,6 +79,23 @@ def dashboard(request):
     # إضافة الريفيوهات المعلقة والمعتمدة
     pending_reviews = Review.objects.filter(is_approved=False).order_by('-created_at')
     approved_reviews = Review.objects.filter(is_approved=True).order_by('-created_at')
+    
+    # ✅ إضافة بيانات الدفع والحجوزات
+    payments = Payment.objects.select_related(
+        'booking', 
+        'booking__servicebooking',
+        'invoice'
+    ).order_by('-created_at')
+    
+    bookings = Booking.objects.select_related(
+        'servicebooking',
+        'price'
+    ).order_by('-created_at')
+    
+    # إحصائيات سريعة
+    total_payments = payments.filter(status='paid').count()
+    total_revenue = sum([p.amount / 100 for p in payments.filter(status='paid')])
+    pending_payments = payments.filter(status='pending_form').count()
     
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -135,7 +155,7 @@ def dashboard(request):
                 Main_price_model.objects.create(title=title)
                 messages.success(request, 'تم إضافة نموذج الأسعار الرئيسي بنجاح!')
 
-            # ✅ تعديل نموذج رئيسي للأسعار
+            # تعديل نموذج رئيسي للأسعار
             elif action == 'edit_main_price':
                 main_price_id = request.POST.get('main_price_id')
                 title = request.POST.get('title')
@@ -144,7 +164,7 @@ def dashboard(request):
                 main_price.save()
                 messages.success(request, 'تم تعديل نموذج الأسعار الرئيسي بنجاح!')
 
-            # ✅ حذف نموذج رئيسي للأسعار
+            # حذف نموذج رئيسي للأسعار
             elif action == 'delete_main_price':
                 main_price_id = request.POST.get('main_price_id')
                 main_price = Main_price_model.objects.get(id=main_price_id)
@@ -200,8 +220,13 @@ def dashboard(request):
         'prices': prices,
         'pending_reviews': pending_reviews,
         'approved_reviews': approved_reviews,
+        # ✅ إضافة البيانات الجديدة
+        'payments': payments,
+        'bookings': bookings,
+        'total_payments': total_payments,
+        'total_revenue': total_revenue,
+        'pending_payments': pending_payments,
     })
-
 
 # ثالثاً: إضافة دوال الموافقة والرفض
 @user_passes_test(lambda u: u.is_superuser)
