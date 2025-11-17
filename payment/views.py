@@ -198,27 +198,6 @@ def handle_payment_paid_fast(payment_data):
         logger.error(f"❌ Error in handle_payment_paid: {str(e)}", exc_info=True)
 
 
-def send_booking_confirmation_email(booking):
-    """
-    🔥 FIXED: إرسال إيميل التأكيد (يشتغل في background)
-    - مش هيبطئ الـ webhook
-    - fail_silently=True عشان ما يكسرش الـ flow
-    """
-    try:
-        
-        subject = f'New Booking:'
-        message = "new booking has been confirmed"
-        send_mail(
-            subject,
-            message,
-            from_email='sm249481@gmail.com',
-            recipient_list=['salah.mohamed.elkadim@gmail.com'],
-            fail_silently=False,  # ✅ مش critical
-        )
-        logger.info(f"✅ Email sent successfully for booking {booking.id}")
-    except Exception as e:
-        logger.error(f"❌ Email failed for booking {booking.id}: {e}", exc_info=True)
-
 def handle_payment_failed(payment_data):
     """
     🔥 FIXED: معالجة webhook للدفع الفاشل
@@ -413,22 +392,6 @@ def confirm_booking_view(request, payment_session_id):
             payment.refresh_from_db()
             invoice = getattr(payment, "invoice", None)
             booking = payment.booking
-        
-        # ✅ إرسال الإيميل في background thread (عشان ما يبطئش الـ response)
-        if payment and payment.status == 'paid' and booking:
-            try:
-                import threading
-                logger.info(f"📧 Sending confirmation email in background...")
-                email_thread = threading.Thread(
-                    target=send_booking_confirmation_email,
-                    args=(booking,),
-                    daemon=True
-                )
-                email_thread.start()
-                logger.info(f"✅ Email thread started")
-            except Exception as e:
-                logger.error(f"❌ Email thread failed: {e}", exc_info=True)
-                # نكمل حتى لو الإيميل فشل
         
         # ✅ التوجيه حسب الحالة
         if payment and payment.status == "paid":

@@ -547,6 +547,269 @@
         </div>
     </div>
     </div>
+
+    <!-- ==================== قسم إحصائيات الدفع ==================== -->
+<div class="payment-stats-section">
+    <div class="stats-grid">
+        <div class="stat-card payment-stat">
+            <i class="fas fa-money-bill-wave"></i>
+            <h3>{{ total_payments }}</h3>
+            <p>إجمالي الدفعات المكتملة</p>
+        </div>
+        <div class="stat-card revenue-stat">
+            <i class="fas fa-coins"></i>
+            <h3>{{ total_revenue|floatformat:2 }} ر.س</h3>
+            <p>إجمالي الإيرادات</p>
+        </div>
+        <div class="stat-card pending-stat">
+            <i class="fas fa-clock"></i>
+            <h3>{{ pending_payments }}</h3>
+            <p>الدفعات المعلقة</p>
+        </div>
+        <div class="stat-card bookings-stat">
+            <i class="fas fa-calendar-check"></i>
+            <h3>{{ bookings.count }}</h3>
+            <p>إجمالي الحجوزات</p>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== قسم إدارة الدفعات والفواتير ==================== -->
+<div class="payments-management-section">
+    <div class="section-header">
+        <h2><i class="fas fa-file-invoice-dollar"></i> إدارة الدفعات والفواتير</h2>
+    </div>
+
+    <!-- الدفعات المكتملة -->
+    <div class="payments-container">
+        <h3 class="subsection-title">
+            <i class="fas fa-check-circle"></i> الدفعات المكتملة ({{ payments|length }})
+        </h3>
+        
+        {% if payments %}
+            <div class="payments-table-wrapper">
+                <table class="payments-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> رقم الدفعة</th>
+                            <th><i class="fas fa-user"></i> العميل</th>
+                            <th><i class="fas fa-concierge-bell"></i> الخدمة</th>
+                            <th><i class="fas fa-money-bill"></i> المبلغ</th>
+                            <th><i class="fas fa-info-circle"></i> الحالة</th>
+                            <th><i class="fas fa-calendar"></i> التاريخ</th>
+                            <th><i class="fas fa-file-invoice"></i> الفاتورة</th>
+                            <th><i class="fas fa-cogs"></i> التفاصيل</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr class="payment-row {% if payment.status == 'paid' %}paid{% elif payment.status == 'failed' %}failed{% else %}pending{% endif %}">
+                            <td>
+                                <strong>#{{ payment.moyasar_id|truncatechars:15 }}</strong>
+                            </td>
+                            <td>
+                                {% if payment.booking %}
+                                    <div class="customer-info">
+                                        <strong>{{ payment.booking.name }}</strong>
+                                        <small>{{ payment.booking.email }}</small>
+                                        <small>{{ payment.booking.phone }}</small>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payment.booking and payment.booking.servicebooking %}
+                                    <span class="service-name">{{ payment.booking.servicebooking.title|truncatechars:30 }}</span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong class="amount">{{ payment.amount|floatformat:0|add:"0"|slice:":-2" }} ر.س</strong>
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ payment.status }}">
+                                    {% if payment.status == 'paid' %}
+                                        <i class="fas fa-check-circle"></i> مكتمل
+                                    {% elif payment.status == 'failed' %}
+                                        <i class="fas fa-times-circle"></i> فاشل
+                                    {% elif payment.status == 'refunded' %}
+                                        <i class="fas fa-undo"></i> مسترد
+                                    {% else %}
+                                        <i class="fas fa-clock"></i> معلق
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="date-info">
+                                    {% if payment.paid_at %}
+                                        <span>{{ payment.paid_at|date:"d/m/Y" }}</span>
+                                        <small>{{ payment.paid_at|date:"h:i A" }}</small>
+                                    {% else %}
+                                        <span>{{ payment.created_at|date:"d/m/Y" }}</span>
+                                        <small>{{ payment.created_at|date:"h:i A" }}</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if payment.invoice %}
+                                    <button class="btn-view-invoice" onclick="viewInvoice({{ payment.invoice.id }})">
+                                        <i class="fas fa-file-pdf"></i> عرض
+                                    </button>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn-view-details" onclick="viewPaymentDetails({{ payment.id }})">
+                                    <i class="fas fa-eye"></i> التفاصيل
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="no-data">
+                <i class="fas fa-inbox"></i>
+                <h3>لا توجد دفعات</h3>
+                <p>لم يتم تسجيل أي دفعات بعد</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ==================== قسم تفاصيل الحجوزات ==================== -->
+<div class="bookings-management-section">
+    <div class="section-header">
+        <h2><i class="fas fa-calendar-alt"></i> تفاصيل الحجوزات</h2>
+    </div>
+
+    {% if bookings %}
+        <div class="bookings-grid">
+            {% for booking in bookings %}
+            <div class="booking-card {% if booking.confirmed %}confirmed{% else %}pending{% endif %}">
+                <div class="booking-header">
+                    <div class="booking-id">
+                        <i class="fas fa-ticket-alt"></i>
+                        <strong>حجز #{{ booking.id }}</strong>
+                    </div>
+                    <span class="booking-status {% if booking.confirmed %}confirmed{% else %}pending{% endif %}">
+                        {% if booking.confirmed %}
+                            <i class="fas fa-check-circle"></i> مؤكد
+                        {% else %}
+                            <i class="fas fa-hourglass-half"></i> معلق
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="booking-service">
+                    <h4>{{ booking.servicebooking.title }}</h4>
+                </div>
+
+                <div class="booking-details">
+                    <div class="detail-row">
+                        <i class="fas fa-user"></i>
+                        <span><strong>العميل:</strong> {{ booking.name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <i class="fas fa-envelope"></i>
+                        <span><strong>البريد:</strong> {{ booking.email }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <i class="fas fa-phone"></i>
+                        <span><strong>الهاتف:</strong> {{ booking.phone }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <i class="fas fa-calendar"></i>
+                        <span><strong>تاريخ الرحلة:</strong> {{ booking.date|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <i class="fas fa-users"></i>
+                        <span><strong>عدد الأشخاص:</strong> {{ booking.numofadult }}</span>
+                    </div>
+                    {% if booking.hotel %}
+                    <div class="detail-row">
+                        <i class="fas fa-hotel"></i>
+                        <span><strong>الفندق:</strong> {{ booking.hotel }}</span>
+                    </div>
+                    {% endif %}
+                    {% if booking.room %}
+                    <div class="detail-row">
+                        <i class="fas fa-door-open"></i>
+                        <span><strong>رقم الغرفة:</strong> {{ booking.room }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="detail-row">
+                        <i class="fas fa-utensils"></i>
+                        <span><strong>العشاء:</strong> {{ booking.include_dinner|yesno:"متضمن,غير متضمن" }}</span>
+                    </div>
+                    {% if booking.bus_type != 'none' %}
+                    <div class="detail-row">
+                        <i class="fas fa-bus"></i>
+                        <span><strong>نوع الباص:</strong> 
+                            {% if booking.bus_type == 'vip' %}
+                                فاخر (VIP)
+                            {% else %}
+                                عادي
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% if booking.price %}
+                    <div class="detail-row price-row">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span><strong>السعر الإجمالي:</strong> <strong class="price-value">{{ booking.price.total_price }} ر.س</strong></span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="booking-footer">
+                    <small class="booking-date">
+                        <i class="fas fa-clock"></i>
+                        تم الحجز في: {{ booking.created_at|date:"d/m/Y - h:i A" }}
+                    </small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-data">
+            <i class="fas fa-inbox"></i>
+            <h3>لا توجد حجوزات</h3>
+            <p>لم يتم تسجيل أي حجوزات بعد</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- ==================== مودال تفاصيل الدفع ==================== -->
+<div id="payment-details-modal" class="modal">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h2><i class="fas fa-file-invoice-dollar"></i> تفاصيل الدفعة</h2>
+            <span class="close" onclick="closeModal('payment-details-modal')">&times;</span>
+        </div>
+        <div class="modal-body" id="payment-details-content">
+            <!-- سيتم ملئها ديناميكياً -->
+        </div>
+    </div>
+</div>
+
+<!-- ==================== مودال الفاتورة ==================== -->
+<div id="invoice-modal" class="modal">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h2><i class="fas fa-file-invoice"></i> الفاتورة</h2>
+            <span class="close" onclick="closeModal('invoice-modal')">&times;</span>
+        </div>
+        <div class="modal-body" id="invoice-content">
+            <!-- سيتم ملئها ديناميكياً -->
+        </div>
+    </div>
+</div>
+
 </div>
 
 <!-- ✅ أضف هذا القسم قبل نهاية الـ container في صفحة dashboard.html -->
@@ -678,11 +941,6 @@
     </div>
 </div>
 
-
-
-
-
-<!-- ✅ CSS للتقييمات -->
 <style>
 .reviews-management-section {
     margin: 40px 0;
@@ -1204,6 +1462,340 @@
         justify-content: center;
     }
 }
+/* ==================== إحصائيات الدفع ==================== */
+.payment-stats-section {
+    margin: 30px 0;
+}
+
+.payment-stats-section .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.payment-stat {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.revenue-stat {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.pending-stat {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    color: #333;
+}
+
+.bookings-stat {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+/* ==================== قسم الدفعات ==================== */
+.payments-management-section,
+.bookings-management-section {
+    margin: 40px 0;
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.payments-table-wrapper {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.payments-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.payments-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.payments-table th {
+    padding: 15px 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.payments-table td {
+    padding: 15px 10px;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.payments-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.customer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: right;
+}
+
+.customer-info strong {
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.customer-info small {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+}
+
+.service-name {
+    display: block;
+    color: #34495e;
+    font-weight: 500;
+}
+
+.amount {
+    color: #27ae60;
+    font-size: 1.1rem;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-paid {
+    background: #d5f4e6;
+    color: #27ae60;
+}
+
+.status-failed {
+    background: #fadbd8;
+    color: #e74c3c;
+}
+
+.status-refunded {
+    background: #fff3cd;
+    color: #f39c12;
+}
+
+.status-pending_form {
+    background: #e3f2fd;
+    color: #2196f3;
+}
+
+.date-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.date-info span {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.date-info small {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+}
+
+.btn-view-invoice,
+.btn-view-details {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-view-invoice {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-view-invoice:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
+.btn-view-details {
+    background: #3498db;
+    color: white;
+}
+
+.btn-view-details:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+
+/* ==================== قسم الحجوزات ==================== */
+.bookings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.booking-card {
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.booking-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+}
+
+.booking-card.confirmed {
+    border-right: 5px solid #27ae60;
+    background: #f0fff4;
+}
+
+.booking-card.pending {
+    border-right: 5px solid #f39c12;
+    background: #fffbf0;
+}
+
+.booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.booking-id {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+}
+
+.booking-id i {
+    color: #3498db;
+}
+
+.booking-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.booking-status.confirmed {
+    background: #d5f4e6;
+    color: #27ae60;
+}
+
+.booking-status.pending {
+    background: #fff3cd;
+    color: #f39c12;
+}
+
+.booking-service h4 {
+    color: #2c3e50;
+    margin: 15px 0;
+    font-size: 1.2rem;
+}
+
+.booking-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.detail-row i {
+    color: #3498db;
+    min-width: 20px;
+}
+
+.detail-row span {
+    color: #34495e;
+    font-size: 0.9rem;
+}
+
+.detail-row.price-row {
+    background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+    border: 2px solid #667eea;
+    margin-top: 10px;
+}
+
+.price-value {
+    color: #27ae60;
+    font-size: 1.2rem;
+    margin-right: 5px;
+}
+
+.booking-footer {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.booking-date {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+}
+
+.text-muted {
+    color: #95a5a6;
+}
+
+/* ==================== المودال الكبير ==================== */
+.modal-content.large {
+    max-width: 800px;
+}
+
+/* ==================== Responsive ==================== */
+@media (max-width: 768px) {
+    .bookings-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .payments-table {
+        font-size: 0.85rem;
+    }
+    
+    .payments-table th,
+    .payments-table td {
+        padding: 10px 5px;
+    }
+}
 </style>
 
    <script src="{% static 'js/dashboard.js' %}"></script>
@@ -1263,6 +1855,44 @@ function openEditModal(id, numper, g, gd, gb, gv, gdb, gdv) {
     document.getElementById('total_g_d_v').value = gdv;
     openModal('edit-price-modal');
 }
+
+
+// دالة عرض تفاصيل الدفع
+function viewPaymentDetails(paymentId) {
+    // هنا يمكنك إضافة AJAX لجلب التفاصيل من السيرفر
+    // أو يمكنك استخدام البيانات الموجودة في الصفحة
+    const modal = document.getElementById('payment-details-modal');
+    const content = document.getElementById('payment-details-content');
+    
+    content.innerHTML = `
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>جاري تحميل التفاصيل...</p>
+        </div>
+    `;
+    
+    openModal('payment-details-modal');
+    
+    // يمكنك إضافة طلب AJAX هنا لجلب التفاصيل الكاملة
+}
+
+// دالة عرض الفاتورة
+function viewInvoice(invoiceId) {
+    const modal = document.getElementById('invoice-modal');
+    const content = document.getElementById('invoice-content');
+    
+    content.innerHTML = `
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>جاري تحميل الفاتورة...</p>
+        </div>
+    `;
+    
+    openModal('invoice-modal');
+    
+    // يمكنك إضافة طلب AJAX هنا لجلب الفاتورة
+}
+
 </script>
 </body>
 </html>
