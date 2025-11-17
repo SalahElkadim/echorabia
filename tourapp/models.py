@@ -71,6 +71,9 @@ class Booking(models.Model):
     dropoff = models.CharField(max_length = 50,default="I don't need")
     policy = models.BooleanField(default= True)
     disease = models.CharField(max_length = 50,blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    
 
     def __str__(self):
         return f"{self.name}"
