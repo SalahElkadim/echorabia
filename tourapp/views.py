@@ -67,7 +67,7 @@ def privacy(request):
     return render(request, 'tourapp/privacy.html')
 
 
-from payment.models import Payment, Invoice, BookingPrice
+from payment.models import Payment, Invoice
 # ثم عدّل دالة dashboard لتصبح:
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
