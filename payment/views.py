@@ -443,3 +443,101 @@ def fetch_payment_view(request, moyasar_id):
     except Exception as e:
         logger.error(f"Error in fetch_payment_view: {str(e)}")
         return Response({"error": str(e)}, status=500)
+    
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+
+@require_http_methods(["GET"])
+def payment_details_view(request, payment_id):
+    """
+    عرض تفاصيل الدفعة بصيغة JSON
+    """
+    try:
+        payment = Payment.objects.select_related('booking__servicebooking').get(id=payment_id)
+        booking = payment.booking
+        
+        payment_data = {
+            'moyasar_id': payment.moyasar_id,
+            'amount_sar': float(payment.amount_in_sar),
+            'status': payment.status,
+            'source_type': payment.source_type,
+            'paid_at': payment.paid_at.strftime('%Y-%m-%d %H:%M') if payment.paid_at else None,
+            'created_at': payment.created_at.strftime('%Y-%m-%d %H:%M'),
+            'moyasar_fee': payment.moyasar_fee,
+        }
+        
+        booking_data = None
+        if booking:
+            booking_data = {
+                'name': booking.name,
+                'email': booking.email,
+                'phone': booking.phone,
+                'numofadult': booking.numofadult,
+                'date': booking.date.strftime('%Y-%m-%d'),
+                'hotel': booking.hotel,
+                'service_title': booking.servicebooking.title,
+                'include_dinner': booking.include_dinner,
+                'bus_type': booking.bus_type,
+            }
+        
+        return JsonResponse({
+            'payment': payment_data,
+            'booking': booking_data,
+        })
+        
+    except Payment.DoesNotExist:
+        return JsonResponse({'error': 'الدفعة غير موجودة'}, status=404)
+    except Exception as e:
+        logger.error(f"Error in payment_details_view: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+def invoice_details_view(request, invoice_id):
+    """
+    عرض تفاصيل الفاتورة بصيغة JSON
+    """
+    try:
+        invoice = Invoice.objects.select_related('payment__booking__servicebooking').get(id=invoice_id)
+        payment = invoice.payment
+        booking = payment.booking if payment else None
+        
+        invoice_data = {
+            'invoice_number': invoice.invoice_number,
+            'amount': float(invoice.amount),
+            'currency': invoice.currency,
+            'tax_amount': float(invoice.tax_amount),
+            'total_amount': float(invoice.total_amount),
+            'description': invoice.description,
+            'status': invoice.status,
+            'created_at': invoice.created_at.strftime('%Y-%m-%d %H:%M'),
+            'paid_at': invoice.paid_at.strftime('%Y-%m-%d %H:%M') if invoice.paid_at else None,
+        }
+        
+        payment_data = None
+        if payment:
+            payment_data = {
+                'moyasar_id': payment.moyasar_id,
+                'status': payment.status,
+            }
+        
+        booking_data = None
+        if booking:
+            booking_data = {
+                'name': booking.name,
+                'email': booking.email,
+                'phone': booking.phone,
+                'numofadult': booking.numofadult,
+            }
+        
+        return JsonResponse({
+            'invoice': invoice_data,
+            'payment': payment_data,
+            'booking': booking_data,
+        })
+        
+    except Invoice.DoesNotExist:
+        return JsonResponse({'error': 'الفاتورة غير موجودة'}, status=404)
+    except Exception as e:
+        logger.error(f"Error in invoice_details_view: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
