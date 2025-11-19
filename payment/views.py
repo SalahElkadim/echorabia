@@ -34,9 +34,14 @@ def payment_page(request, booking_id):
         
         # حساب المبلغ
         amount_sar = booking.price.total_price
-        amount_halalah = int(amount_sar * 100)
+        amount_tax = amount_sar * Decimal('0.14')
+        amount_total = amount_sar + amount_tax
         
-        logger.info(f"🎬 Payment page for booking {booking_id}, amount: {amount_halalah}")
+        # 🔥 تقريب المبلغ لأقرب عدد صحيح (بدون أرقام عشرية)
+        amount_total_rounded = round(amount_total)  # أو يمكنك استخدام math.ceil(amount_total) للتقريب لأعلى
+        amount_halalah = int(amount_total_rounded * 100)
+        
+        logger.info(f"🎬 Payment page for booking {booking_id}, amount: {amount_halalah} (SAR {amount_total_rounded})")
         
         # 🔥 إنشاء Payment مبدئي (pending_form)
         try:
@@ -71,7 +76,6 @@ def payment_page(request, booking_id):
     except Exception as e:
         logger.error(f"❌ Error in payment_page: {e}", exc_info=True)
         return render(request, "error.html", {"message": str(e)})
-
 
 @csrf_exempt
 @require_POST
