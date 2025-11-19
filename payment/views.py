@@ -456,13 +456,21 @@ def payment_details_view(request, payment_id):
         payment = Payment.objects.select_related('booking__servicebooking').get(id=payment_id)
         booking = payment.booking
         
+        # دالة مساعدة لتحويل التاريخ
+        def format_date(date_obj):
+            if date_obj is None:
+                return None
+            if isinstance(date_obj, str):
+                return date_obj
+            return date_obj.strftime('%Y-%m-%d %H:%M')
+        
         payment_data = {
             'moyasar_id': payment.moyasar_id,
             'amount_sar': float(payment.amount_in_sar),
             'status': payment.status,
             'source_type': payment.source_type,
-            'paid_at': payment.paid_at.strftime('%Y-%m-%d %H:%M') if payment.paid_at else None,
-            'created_at': payment.created_at.strftime('%Y-%m-%d %H:%M'),
+            'paid_at': format_date(payment.paid_at),
+            'created_at': format_date(payment.created_at),
             'moyasar_fee': payment.moyasar_fee,
         }
         
@@ -473,9 +481,9 @@ def payment_details_view(request, payment_id):
                 'email': booking.email,
                 'phone': booking.phone,
                 'numofadult': booking.numofadult,
-                'date': booking.date.strftime('%Y-%m-%d'),
+                'date': format_date(booking.date),
                 'hotel': booking.hotel,
-                'service_title': booking.servicebooking.title,
+                'service_title': booking.servicebooking.title if booking.servicebooking else 'غير محدد',
                 'include_dinner': booking.include_dinner,
                 'bus_type': booking.bus_type,
             }
@@ -502,6 +510,14 @@ def invoice_details_view(request, invoice_id):
         payment = invoice.payment
         booking = payment.booking if payment else None
         
+        # دالة مساعدة لتحويل التاريخ
+        def format_date(date_obj):
+            if date_obj is None:
+                return None
+            if isinstance(date_obj, str):
+                return date_obj
+            return date_obj.strftime('%Y-%m-%d %H:%M')
+        
         invoice_data = {
             'invoice_number': invoice.invoice_number,
             'amount': float(invoice.amount),
@@ -510,8 +526,8 @@ def invoice_details_view(request, invoice_id):
             'total_amount': float(invoice.total_amount),
             'description': invoice.description,
             'status': invoice.status,
-            'created_at': invoice.created_at.strftime('%Y-%m-%d %H:%M'),
-            'paid_at': invoice.paid_at.strftime('%Y-%m-%d %H:%M') if invoice.paid_at else None,
+            'created_at': format_date(invoice.created_at),
+            'paid_at': format_date(invoice.paid_at),
         }
         
         payment_data = None
