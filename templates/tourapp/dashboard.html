@@ -591,10 +591,6 @@
             <i class="fas fa-check-circle"></i> الدفعات المكتملة ({{ payments|length }})
         </h3>
         
-        <h3 class="subsection-title">
-            <i class="fas fa-check-circle"></i> الدفعات المكتملة ({{ payments|length }})
-        </h3>
-        
         {% if payments %}
             <div class="payments-table-wrapper">
                 <table class="payments-table">
@@ -1911,6 +1907,200 @@
         justify-content: center;
     }
 }
+/* ==================== تفاصيل الدفع والفاتورة ==================== */
+.payment-details-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.detail-section {
+    background: var(--light-blue);
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.detail-section h3 {
+    color: var(--dark-blue);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-blue);
+    font-size: 1.1rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item .label {
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.detail-item .value {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.detail-item .value.amount {
+    color: var(--success);
+    font-size: 1.1rem;
+}
+
+/* الفاتورة */
+.invoice-container {
+    background: var(--white);
+    padding: 30px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.company-info h2 {
+    color: var(--dark-blue);
+    margin-bottom: 5px;
+}
+
+.invoice-info {
+    text-align: left;
+}
+
+.invoice-info h3 {
+    color: var(--primary-blue);
+    margin-bottom: 10px;
+}
+
+.invoice-divider {
+    border: none;
+    border-top: 2px solid var(--primary-blue);
+    margin: 20px 0;
+}
+
+.invoice-section {
+    margin: 25px 0;
+}
+
+.invoice-section h4 {
+    color: var(--dark-blue);
+    margin-bottom: 15px;
+    font-size: 1.05rem;
+}
+
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.invoice-table th,
+.invoice-table td {
+    padding: 12px;
+    text-align: right;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.invoice-table th {
+    background: var(--light-blue);
+    color: var(--dark-blue);
+    font-weight: 600;
+}
+
+.invoice-total {
+    margin-top: 30px;
+    padding: 20px;
+    background: var(--light-blue);
+    border-radius: 6px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 1rem;
+}
+
+.total-row.grand-total {
+    border-top: 2px solid var(--primary-blue);
+    margin-top: 10px;
+    padding-top: 15px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--success);
+}
+
+.invoice-status {
+    text-align: center;
+    margin: 25px 0;
+}
+
+.invoice-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn-print,
+.btn-download {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-print {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+.btn-print:hover {
+    background: var(--dark-blue);
+}
+
+.btn-download {
+    background: var(--success);
+    color: var(--white);
+}
+
+.btn-download:hover {
+    background: #229954;
+}
+
+.error-message {
+    text-align: center;
+    padding: 40px;
+    color: var(--danger);
+}
+
+.error-message i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+@media print {
+    .invoice-actions,
+    .modal-header,
+    .close {
+        display: none !important;
+    }
+}
 </style>
 
    <script src="{% static 'js/dashboard.js' %}"></script>
@@ -1973,9 +2163,7 @@ function openEditModal(id, numper, g, gd, gb, gv, gdb, gdv) {
 
 
 // دالة عرض تفاصيل الدفع
-function viewPaymentDetails(paymentId) {
-    // هنا يمكنك إضافة AJAX لجلب التفاصيل من السيرفر
-    // أو يمكنك استخدام البيانات الموجودة في الصفحة
+async function viewPaymentDetails(paymentId) {
     const modal = document.getElementById('payment-details-modal');
     const content = document.getElementById('payment-details-content');
     
@@ -1988,11 +2176,117 @@ function viewPaymentDetails(paymentId) {
     
     openModal('payment-details-modal');
     
-    // يمكنك إضافة طلب AJAX هنا لجلب التفاصيل الكاملة
+    try {
+        const response = await fetch(`/payment/details/${paymentId}/`);
+        const data = await response.json();
+        
+        if (data.error) {
+            content.innerHTML = `<div class="error-message">${data.error}</div>`;
+            return;
+        }
+        
+        const payment = data.payment;
+        const booking = data.booking;
+        
+        content.innerHTML = `
+            <div class="payment-details-grid">
+                <div class="detail-section">
+                    <h3><i class="fas fa-money-bill-wave"></i> معلومات الدفعة</h3>
+                    <div class="detail-item">
+                        <span class="label">رقم الدفعة:</span>
+                        <span class="value">${payment.moyasar_id}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">المبلغ:</span>
+                        <span class="value amount">${payment.amount_sar} ر.س</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">الحالة:</span>
+                        <span class="value">
+                            <span class="status-badge status-${payment.status}">
+                                ${getStatusText(payment.status)}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">طريقة الدفع:</span>
+                        <span class="value">${payment.source_type || 'بطاقة ائتمانية'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">تاريخ الدفع:</span>
+                        <span class="value">${payment.paid_at || payment.created_at}</span>
+                    </div>
+                    ${payment.moyasar_fee ? `
+                    <div class="detail-item">
+                        <span class="label">رسوم الدفع:</span>
+                        <span class="value">${(payment.moyasar_fee / 100).toFixed(2)} ر.س</span>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                ${booking ? `
+                <div class="detail-section">
+                    <h3><i class="fas fa-user"></i> معلومات العميل</h3>
+                    <div class="detail-item">
+                        <span class="label">الاسم:</span>
+                        <span class="value">${booking.name}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">البريد الإلكتروني:</span>
+                        <span class="value">${booking.email}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">الهاتف:</span>
+                        <span class="value">${booking.phone}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">عدد الأشخاص:</span>
+                        <span class="value">${booking.numofadult}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">تاريخ الرحلة:</span>
+                        <span class="value">${booking.date}</span>
+                    </div>
+                    ${booking.hotel ? `
+                    <div class="detail-item">
+                        <span class="label">الفندق:</span>
+                        <span class="value">${booking.hotel}</span>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="detail-section">
+                    <h3><i class="fas fa-concierge-bell"></i> معلومات الخدمة</h3>
+                    <div class="detail-item">
+                        <span class="label">الخدمة:</span>
+                        <span class="value">${booking.service_title}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">العشاء:</span>
+                        <span class="value">${booking.include_dinner ? 'متضمن' : 'غير متضمن'}</span>
+                    </div>
+                    ${booking.bus_type !== 'none' ? `
+                    <div class="detail-item">
+                        <span class="label">نوع الباص:</span>
+                        <span class="value">${booking.bus_type === 'vip' ? 'فاخر (VIP)' : 'عادي'}</span>
+                    </div>
+                    ` : ''}
+                </div>
+                ` : ''}
+            </div>
+        `;
+    } catch (error) {
+        content.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>حدث خطأ في تحميل التفاصيل</p>
+            </div>
+        `;
+    }
 }
 
 // دالة عرض الفاتورة
-function viewInvoice(invoiceId) {
+async function viewInvoice(invoiceId) {
     const modal = document.getElementById('invoice-modal');
     const content = document.getElementById('invoice-content');
     
@@ -2005,7 +2299,142 @@ function viewInvoice(invoiceId) {
     
     openModal('invoice-modal');
     
-    // يمكنك إضافة طلب AJAX هنا لجلب الفاتورة
+    try {
+        const response = await fetch(`/payment/invoice/${invoiceId}/`);
+        const data = await response.json();
+        
+        if (data.error) {
+            content.innerHTML = `<div class="error-message">${data.error}</div>`;
+            return;
+        }
+        
+        const invoice = data.invoice;
+        const payment = data.payment;
+        const booking = data.booking;
+        
+        content.innerHTML = `
+            <div class="invoice-container">
+                <!-- رأس الفاتورة -->
+                <div class="invoice-header">
+                    <div class="company-info">
+                        <h2>شركة السياحة</h2>
+                        <p>المملكة العربية السعودية</p>
+                    </div>
+                    <div class="invoice-info">
+                        <h3>فاتورة</h3>
+                        <p><strong>رقم الفاتورة:</strong> ${invoice.invoice_number}</p>
+                        <p><strong>التاريخ:</strong> ${invoice.created_at}</p>
+                        ${invoice.paid_at ? `<p><strong>تاريخ الدفع:</strong> ${invoice.paid_at}</p>` : ''}
+                    </div>
+                </div>
+                
+                <hr class="invoice-divider">
+                
+                <!-- معلومات العميل -->
+                ${booking ? `
+                <div class="invoice-section">
+                    <h4><i class="fas fa-user"></i> معلومات العميل</h4>
+                    <p><strong>الاسم:</strong> ${booking.name}</p>
+                    <p><strong>البريد الإلكتروني:</strong> ${booking.email}</p>
+                    <p><strong>الهاتف:</strong> ${booking.phone}</p>
+                </div>
+                ` : ''}
+                
+                <!-- تفاصيل الخدمة -->
+                <div class="invoice-section">
+                    <h4><i class="fas fa-list"></i> تفاصيل الخدمة</h4>
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>الوصف</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${invoice.description || 'خدمة سياحية'}</td>
+                                <td>${booking ? booking.numofadult : 1}</td>
+                                <td>${invoice.amount} ${invoice.currency}</td>
+                                <td>${invoice.amount} ${invoice.currency}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- المجموع -->
+                <div class="invoice-total">
+                    <div class="total-row">
+                        <span>المبلغ الأساسي:</span>
+                        <span>${invoice.amount} ${invoice.currency}</span>
+                    </div>
+                    ${invoice.tax_amount > 0 ? `
+                    <div class="total-row">
+                        <span>الضريبة:</span>
+                        <span>${invoice.tax_amount} ${invoice.currency}</span>
+                    </div>
+                    ` : ''}
+                    <div class="total-row grand-total">
+                        <span>الإجمالي:</span>
+                        <span>${invoice.total_amount} ${invoice.currency}</span>
+                    </div>
+                </div>
+                
+                <!-- حالة الدفع -->
+                <div class="invoice-status">
+                    <span class="status-badge status-${invoice.status}">
+                        ${getStatusText(invoice.status)}
+                    </span>
+                </div>
+                
+                <!-- أزرار -->
+                <div class="invoice-actions">
+                    <button onclick="printInvoice()" class="btn-print">
+                        <i class="fas fa-print"></i> طباعة
+                    </button>
+                    <button onclick="downloadInvoice(${invoiceId})" class="btn-download">
+                        <i class="fas fa-download"></i> تحميل PDF
+                    </button>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        content.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>حدث خطأ في تحميل الفاتورة</p>
+            </div>
+        `;
+    }
+}
+
+// دالة مساعدة لترجمة الحالات
+function getStatusText(status) {
+    const statusMap = {
+        'paid': '✓ مدفوع',
+        'pending': '⏳ معلق',
+        'pending_form': '⏳ في الانتظار',
+        'failed': '✗ فاشل',
+        'refunded': '↺ مسترد',
+        'canceled': '✗ ملغي',
+        'initiated': '⏳ تم الإنشاء'
+    };
+    return statusMap[status] || status;
+}
+
+// دالة طباعة الفاتورة
+function printInvoice() {
+    window.print();
+}
+
+// دالة تحميل الفاتورة
+async function downloadInvoice(invoiceId) {
+    try {
+        window.location.href = `/payment/invoice/${invoiceId}/pdf/`;
+    } catch (error) {
+        alert('حدث خطأ في تحميل الفاتورة');
+    }
 }
 
 function toggleSection(sectionId) {
