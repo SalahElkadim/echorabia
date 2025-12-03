@@ -12,6 +12,158 @@
     <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --beige-light: #f5f5dc;
+            --beige-medium: #e8dcc4;
+            --cafe-light: #c9b8a3;
+            --cafe-medium: #a89176;
+            --cafe-dark: #8b7355;
+            --text-primary: #5a4a3a;
+            --text-secondary: #6b5d4f;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, var(--beige-light) 0%, var(--beige-medium) 100%);
+            color: var(--text-primary);
+            line-height: 1.8;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        /* Main Content Container */
+        .body-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 4rem;
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(138, 115, 85, 0.15);
+            border: 1px solid var(--cafe-light);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--cafe-dark);
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--cafe-light);
+        }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--cafe-medium);
+            font-size: 1.8rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            padding-left: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-left: 4px solid var(--cafe-light);
+            border-bottom: 1px solid var(--beige-medium);
+        }
+
+        h3 {
+            color: var(--cafe-dark);
+            font-size: 1.3rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 1.2rem;
+            text-align: justify;
+            color: var(--text-primary);
+            line-height: 1.9;
+        }
+
+        ul {
+            margin: 1rem 0 1.5rem 2rem;
+            list-style: none;
+        }
+
+        ul li {
+            position: relative;
+            padding-left: 1.8rem;
+            margin-bottom: 0.8rem;
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+
+        ul li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--cafe-medium);
+            font-size: 1.5rem;
+            line-height: 1.2;
+        }
+
+        strong {
+            color: var(--cafe-dark);
+            font-weight: 600;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .body-container {
+                padding: 2rem 1.5rem;
+                margin: 0;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .body-container {
+                padding: 1.5rem 1rem;
+            }
+
+            h1 {
+                font-size: 1.7rem;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .body-container {
+            animation: fadeIn 0.8s ease-out;
+        }
+    </style>
 </head>
 
 <body>
@@ -38,164 +190,161 @@
         </div>
     </nav>
 <div class="body-container">
-<h1>مرحباً بكم في الموقع الرسمي لـ ايكورابيا</h1>
+        <h1>Welcome to the Official Website of Echorabia</h1>
 
-<p>
-    مرحبا بكم إلى الموقع الرسمي لمؤسسة ايكورابيا على شبكة الإنترنت (ويشار إليه بلفظ “الموقع”).
-</p>
+        <p>
+            Welcome to the official website of Echorabia on the Internet (referred to as "the Website").
+        </p>
 
-<h2>ملكية الموقع</h2>
-<p>
-    تعود ملكية هذا الموقع ومحتوياته ومسؤولية تشغيله لمؤسسة ايكورابيا لتنظيم الرحلات السياحية،
-    ومقرها الرئيس الكائن في مدينة بريدة بمنطقة القصيم بالمملكة العربية السعودية.
-</p>
+        <h2>Website Ownership</h2>
+        <p>
+            This website, its contents, and operational responsibilities belong to Echorabia Travel Organization, with its headquarters located in Buraydah, Qassim Region, Kingdom of Saudi Arabia.
+        </p>
 
-<h2>العقد</h2>
-<p>
-    تخضع عملية الدخول إلى الموقع واستخدامه للأحكام والشروط الواردة أدناه ("الشروط").
-    يعتبر دخولك للموقع واستخدامك له قبولاً كاملاً لهذه الشروط. في حال عدم الموافقة يجب التوقف عن استخدام الموقع فوراً.
-</p>
+        <h2>Agreement</h2>
+        <p>
+            Access to and use of the Website are subject to the terms and conditions outlined below ("Terms"). Your access to and use of the Website constitutes full acceptance of these Terms. If you do not agree, you must immediately stop using the Website.
+        </p>
 
-<h2>محتويات الموقع</h2>
-<p>
-    كافة البيانات أو المواد أو التوصيات أو الخدمات المنشورة على الموقع مقدمة من ايكورابيا.
-</p>
+        <h2>Website Content</h2>
+        <p>
+            All data, materials, recommendations, or services published on the Website are provided by Echorabia.
+        </p>
 
-<h2>الاستخدام المصرح به وإساءة الاستخدام</h2>
-<p>
-    يجب أن يكون المستخدم فوق 18 عاماً وأن يمتلك الأهلية القانونية لاستخدام الموقع.
-</p>
-<p>يحظر استخدام الموقع في:</p>
-<ul>
-    <li>إرسال البريد المزعج أو أي مواد ترويجية غير مصرح بها.</li>
-    <li>نشر أو التحريض على أي مخالفات شرعية أو قانونية.</li>
-    <li>نقل فيروسات أو برامج ضارة.</li>
-    <li>التعدي على حقوق الملكية الفكرية.</li>
-    <li>العبث بالبيانات أو إجراءات الحماية.</li>
-</ul>
+        <h2>Authorized Use and Misuse</h2>
+        <p>
+            Users must be over 18 years of age and possess legal capacity to use the Website.
+        </p>
+        <p>The following uses of the Website are prohibited:</p>
+        <ul>
+            <li>Sending spam or any unauthorized promotional materials</li>
+            <li>Publishing or inciting any religious or legal violations</li>
+            <li>Transmitting viruses or malicious software</li>
+            <li>Infringing on intellectual property rights</li>
+            <li>Tampering with data or security procedures</li>
+        </ul>
 
-<h2>لا ضمانات ولا مسؤولية</h2>
-<p>
-    لا تقدم Echorabia أي ضمانات حول دقة أو اكتمال المعلومات، ويستخدم الزائر الموقع على مسؤوليته الخاصة.
-</p>
+        <h2>No Warranties and Liability</h2>
+        <p>
+            Echorabia provides no warranties regarding the accuracy or completeness of information, and visitors use the Website at their own risk.
+        </p>
 
-<h2>شروط وأحكام الحجز</h2>
-<ul>
-    <li>يجب التأكد من صحة أسماء المنضمين للرحلة.</li>
-    <li>قد تحدث مشاكل تقنية تتطلب التواصل مع الدعم.</li>
-    <li>تحتفظ Echorabia بالحق في رفض أي حجز.</li>
-    <li>قد يتم تعديل أو سحب بعض المرافق أو الأنشطة.</li>
-</ul>
+        <h2>Booking Terms and Conditions</h2>
+        <ul>
+            <li>Names of trip participants must be verified for accuracy</li>
+            <li>Technical issues may occur requiring contact with support</li>
+            <li>Echorabia reserves the right to refuse any booking</li>
+            <li>Some facilities or activities may be modified or withdrawn</li>
+        </ul>
 
-<h2>سياسة التعديل</h2>
-<p>
-    قد تفرض رسوم إضافية حسب نوع الخدمة عند طلب التعديل.
-</p>
+        <h2>Modification Policy</h2>
+        <p>
+            Additional fees may apply depending on the service type when requesting modifications.
+        </p>
 
-<h2>سياسة الإلغاء</h2>
-<p>
-    <strong>رسوم الإلغاء:</strong><br>
-    • 15% قبل الرحلة بأربعة أيام أو أكثر  
-    • 100% قبل الرحلة بأقل من أربعة أيام  
-</p>
-<p>
-    الحجوزات غير القابلة للاسترجاع تخضع لسياسة المورد.
-</p>
+        <h2>Cancellation Policy</h2>
+        <p>
+            <strong>Cancellation Fees:</strong><br>
+            • 15% for cancellations four days or more before the trip<br>
+            • 100% for cancellations less than four days before the trip
+        </p>
+        <p>
+            Non-refundable bookings are subject to supplier policy.
+        </p>
 
-<h2>ترقية الرحلات</h2>
-<p>
-    يمكن ترقية الرحلات بعد التواصل مع Echorabia ودفع الفروقات حسب التوفر.
-</p>
+        <h2>Trip Upgrades</h2>
+        <p>
+            Trips can be upgraded after contacting Echorabia and paying the difference, subject to availability.
+        </p>
 
-<h2>الأسعار والعروض</h2>
-<p>
-    الأسعار قابلة للتغيير وفق المزود أو الأسعار الضريبية، وأي عروض جديدة لا تنطبق على الحجوزات السابقة.
-</p>
+        <h2>Prices and Offers</h2>
+        <p>
+            Prices are subject to change according to supplier or tax rates, and any new offers do not apply to previous bookings.
+        </p>
 
-<h2>سياسة الاسترجاع</h2>
-<p>
-    • الاسترجاع يتم بناءً على طريقة الدفع الأصلية  
-    • معالجة الطلب خلال 48 ساعة  
-    • إرجاع المبلغ من البنك قد يستغرق حتى 7 أيام عمل  
-</p>
+        <h2>Refund Policy</h2>
+        <p>
+            • Refunds are processed according to the original payment method<br>
+            • Request processing within 48 hours<br>
+            • Bank refunds may take up to 7 business days
+        </p>
 
-<h2>تعديل الشروط</h2>
-<p>
-    يجوز لـ Echorabia تعديل الشروط في أي وقت دون إشعار مسبق.
-</p>
+        <h2>Terms Modification</h2>
+        <p>
+            Echorabia may modify the Terms at any time without prior notice.
+        </p>
 
-<h2>العروض والكوبونات</h2>
-<p>
-    الكوبونات غير مسترجعة وتستخدم لمرة واحدة فقط، ويحق لـ Echorabia إيقافها في أي وقت.
-</p>
+        <h2>Offers and Coupons</h2>
+        <p>
+            Coupons are non-refundable and can only be used once. Echorabia reserves the right to discontinue them at any time.
+        </p>
 
-<h2>أحكام الجوائز</h2>
-<p>
-    القسائم غير قابلة للتحويل أو التعديل وتخضع لشروطها الخاصة.
-</p>
+        <h2>Prize Terms</h2>
+        <p>
+            Vouchers are non-transferable and non-modifiable and are subject to their specific terms.
+        </p>
 
-<h2>المشاكل والشكاوى</h2>
-<p>
-    يمكن تقديم الشكاوى عبر البريد info@echorabia.com ويجب أن تكون مدعومة بالأدلة ورقم الحجز.
-</p>
+        <h2>Issues and Complaints</h2>
+        <p>
+            Complaints can be submitted via email at info@echorabia.com and must be supported by evidence and booking number.
+        </p>
 
-<h2>حدود المسؤولية القانونية</h2>
-<p>
-    لا تتحمل ايكورابيا أي مسؤولية عن أي أضرار ناتجة عن استخدام الموقع أو عدم القدرة على الوصول إليه.
-</p>
+        <h2>Legal Liability Limitations</h2>
+        <p>
+            Echorabia bears no responsibility for any damages resulting from use of the Website or inability to access it.
+        </p>
 
-<h2>الخصوصية والسرية</h2>
-<p>
-    تلتزم Echorabia بحماية بياناتكم وفق التقنيات الأمنية المتاحة، دون ضمان بنسبة 100%.
-</p>
+        <h2>Privacy and Confidentiality</h2>
+        <p>
+            Echorabia is committed to protecting your data using available security technologies, without 100% guarantee.
+        </p>
 
-<h2>استخدام ملفات تعريف الارتباط (Cookies)</h2>
-<p>
-    قد يستخدم الموقع ملفات تعريف الارتباط لتحسين تجربة المستخدم ولأغراض تحليلية.
-</p>
+        <h2>Use of Cookies</h2>
+        <p>
+            The Website may use cookies to improve user experience and for analytical purposes.
+        </p>
 
-<h2>جمع واستخدام البيانات</h2>
-<p>
-    يتم جمع البيانات المقدمة من المستخدم لأغراض تقديم الخدمات أو الرد على الطلبات.
-</p>
+        <h2>Data Collection and Use</h2>
+        <p>
+            Data provided by users is collected for the purpose of providing services or responding to requests.
+        </p>
 
-<h2>المواقع المرتبطة</h2>
-<p>
-    لا تتحمل Echorabia مسؤولية المحتوى المقدم في المواقع المرتبطة الخارجية.
-</p>
+        <h2>Linked Websites</h2>
+        <p>
+            Echorabia is not responsible for content provided on external linked websites.
+        </p>
 
-<h2>المنتجات والخدمات</h2>
-<p>
-    المعلومات حول خدمات Echorabia يُعتقد أنها موثوقة، لكن يجب على المستخدم التحقق منها.
-</p>
+        <h2>Products and Services</h2>
+        <p>
+            Information about Echorabia services is believed to be reliable, but users should verify it themselves.
+        </p>
 
-<h2>القانون والاختصاص</h2>
-<p>
-    تخضع هذه الشروط لقوانين المملكة العربية السعودية، وتنعقد الاختصاصات للمحاكم السعودية.
-</p>
+        <h2>Law and Jurisdiction</h2>
+        <p>
+            These Terms are subject to the laws of the Kingdom of Saudi Arabia, and jurisdiction is vested in Saudi courts.
+        </p>
 
-<h2>طريقة الدفع</h2>
-<p>
-    الدفع يتم بواسطة الفيزا والماستر كارد أو التحويل البنكي.  
-    لا يوجد محفظة إلكترونية داخل الموقع.
-</p>
+        <h2>Payment Methods</h2>
+        <p>
+            Payment is made via Visa and Mastercard or bank transfer. There is no electronic wallet within the Website.
+        </p>
 
-<h2>عام</h2>
-<h3>تجزئة النصوص</h3>
-<p>
-    إذا أصبح أي شرط غير صالح، يتم استبداله بنص قانوني مشابه.
-</p>
+        <h2>General</h2>
+        <h3>Severability</h3>
+        <p>
+            If any term becomes invalid, it will be replaced with a similar legal text.
+        </p>
 
-<h3>التنازل</h3>
-<p>
-    عدم تطبيق Echorabia لأي شرط لا يعني التنازل عنه.
-</p>
+        <h3>Waiver</h3>
+        <p>
+            Echorabia's failure to enforce any term does not constitute a waiver of that term.
+        </p>
 
-<h3>الاتفاقية الكاملة</h3>
-<p>
-    تمثل هذه الشروط الاتفاقية الكاملة بين المستخدم و ايكورابيا.
-</p>
-</div>
+        <h3>Entire Agreement</h3>
+        <p>
+            These Terms represent the complete agreement between the user and Echorabia.
+        </p>
+    </div>
 
 </body>
     <!-- Font Awesome icons (only if needed) -->
