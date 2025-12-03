@@ -12,6 +12,7 @@ sitemaps_dict = {
 urlpatterns = [
     path('', views.home, name= 'home'),
     path('privacy/', views.privacy, name='privacy'),
+    path('terms/', views.terms, name='terms'),
     path('dashboard', views.dashboard, name= 'dashboard'),
     path("delete-item/", views.delete_item, name="delete_item"),
     path('login/', views.login_view, name='login'),
@@ -23,6 +24,8 @@ urlpatterns = [
     path('reject-review/<int:review_id>/', views.reject_review, name='reject_review'),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps_dict}, name='django.contrib.sitemaps.views.sitemap'),
     path("robots.txt", views.robots_txt, name="robots_txt"),
+    path('verify/guide/<str:id_no>/<str:license_no>/', views.verify_tour_guide, name='verify_tour_guide'),
+    path('verify/operator/', views.verify_operator, name='verify_operator'),
 
 
 

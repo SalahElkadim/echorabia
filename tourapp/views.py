@@ -67,6 +67,9 @@ def home(request):
 def privacy(request):
     return render(request, 'tourapp/privacy.html')
 
+def terms(request):
+    return render(request, 'tourapp/terms.html')
+
 
 # ثم عدّل دالة dashboard لتصبح:
 @user_passes_test(lambda u: u.is_superuser)
@@ -382,7 +385,7 @@ def verify_tour_guide(request, id_no, license_no):
 
 def verify_operator(request):
     company_id = "1000120087"
-    license_no = "73101348"
+    license_no = "73106474"
     commercial_no = "1010478246"
     data = get_tour_operator_license_details(company_id, license_no, commercial_no)
     return JsonResponse(data)

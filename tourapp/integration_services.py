@@ -3,8 +3,8 @@ from requests.auth import HTTPBasicAuth
 from django.conf import settings
 
 # بيانات الدخول اللي الوزارة هتديهالك
-MT_USERNAME = getattr(settings, "MT_USERNAME", "")
-MT_PASSWORD = getattr(settings, "MT_PASSWORD", "")
+MT_USERNAME = settings.MT_USERNAME
+MT_PASSWORD = settings.MT_PASSWORD
 BASE_URL = "https://prod-api.mt.gov.sa/gateway/TLG/1.0/"  # أو الـ Sandbox لو للتجارب
 
 # 🧭 دالة للتحقق من شركة تنظيم رحلات

@@ -26,6 +26,7 @@
                 <li><a href="{% url 'home' %}">Services</a></li>
                 <li><a href="{% url 'home' %}">About</a></li>
                 <li><a href="{% url "privacy" %}">Privacy</a></li>
+                <li><a href="{% url "terms" %}">Terms and Policies</a></li>
                 <li><a href="{% url 'home' %}">Contact</a></li>
                 {% if request.user.is_authenticated and request.user.is_superuser %}
                 <li><a href="{% url 'dashboard' %}"> Dashboard</a></li>

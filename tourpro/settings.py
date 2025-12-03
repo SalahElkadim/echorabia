@@ -157,5 +157,6 @@ CSRF_COOKIE_SECURE = True
 # مهم جداً مع Railway ونطاق مخصص
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-MT_USERNAME = "username_from_ministry"
-MT_PASSWORD = "password_from_ministry"
+MT_USERNAME = "mt_th22th_user"
+MT_PASSWORD = "mT39RF4#2mG_i1pr0dU$er"
+
