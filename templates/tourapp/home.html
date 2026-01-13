@@ -125,7 +125,7 @@
                         <div class="service-content">
                         <h3 class="service-title">{{ card.title }}</h3>
                         <p class="service-description">{{ card.description }}</p>
-                        <h3 class="service-title">price start from {{ card.initial_price }}SAR</h3>
+                        <h3 class="service-title">price start from <span class="pricecard">{{ card.initial_price }}</span> SAR</h3>
                         <a href="{% url 'service_detail' card.id %}" class="book-btn">Book Now</a>
                         </div>
                     </div>

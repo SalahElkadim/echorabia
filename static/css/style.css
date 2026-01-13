@@ -435,6 +435,9 @@ body::-webkit-scrollbar-thumb:hover {
             margin-bottom: 1rem;
             font-size: 1.3rem;
         }
+        .pricecard{
+          color: #1e74ff;
+        }
 
         .footer-section p, .footer-section a {
             color: #ccc;
