@@ -51,6 +51,8 @@ class ServiceCard(models.Model):
     title = models.CharField(max_length=50)
     description = models.TextField()
     image = CloudinaryField('image', blank=True, null=True)
+    intial_price = models.IntegerField(default=0)
+
 
     def __str__(self):
         return self.title

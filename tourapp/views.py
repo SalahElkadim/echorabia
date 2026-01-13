@@ -132,6 +132,7 @@ def dashboard(request):
             # إنشاء كرت خدمة
             elif action == 'add_card':
                 card_title = request.POST.get('card_title')
+                initial_price = request.POST.get('initial_price')
                 card_description = request.POST.get('card_description')
                 card_image = request.FILES.get('card_image')
                 booking_id = request.POST.get('card_id')
@@ -139,7 +140,8 @@ def dashboard(request):
                 card = ServiceCard(
                     title=card_title,
                     description=card_description,
-                    image=card_image
+                    image=card_image,
+                    initial_price = initial_price
                 )
                 
                 if booking_id:
