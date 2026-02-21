@@ -26,7 +26,7 @@ urlpatterns = [
     path("robots.txt", views.robots_txt, name="robots_txt"),
     path('verify/guide/<str:id_no>/<str:license_no>/', views.verify_tour_guide, name='verify_tour_guide'),
     path('verify/operator/', views.verify_operator, name='verify_operator'),
-
+    path('bulk-delete-reviews/', views.bulk_delete_reviews, name='bulk_delete_reviews'),
 
 
     

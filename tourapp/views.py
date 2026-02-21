@@ -402,3 +402,14 @@ def robots_txt(request):
         "Sitemap: https://echorabia.com/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
+# views.py
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+@require_POST
+def bulk_delete_reviews(request):
+    ids = request.POST.getlist('review_ids[]')
+    if ids:
+        Review.objects.filter(id__in=ids).delete()
+        return JsonResponse({'status': 'success', 'deleted': len(ids)})
+    return JsonResponse({'status': 'error', 'message': 'No IDs provided'})

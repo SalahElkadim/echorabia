@@ -14,6 +14,194 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 </head>
 <body>
+    <!-- ✅ أضف هذا القسم قبل نهاية الـ container في صفحة dashboard.html -->
+    <h1> قسم ادارة التقييمات</h1>
+    <!-- ==================== قسم إدارة التقييمات ==================== -->
+    <div class="reviews-management-section">
+        <div class="section-header">
+            <h2><i class="fas fa-star"></i> إدارة التقييمات</h2>
+        </div>
+
+        <!-- ===== شريط الحذف الجماعي ===== -->
+        <div class="bulk-actions-bar" id="bulk-actions-bar" style="display: none;">
+            <div class="bulk-info">
+                <i class="fas fa-check-square"></i>
+                <span id="selected-count">0</span> تقييم محدد
+            </div>
+            <div class="bulk-buttons">
+                <button class="btn-bulk-delete" onclick="bulkDeleteReviews()">
+                    <i class="fas fa-trash-alt"></i> حذف المحدد
+                </button>
+                <button class="btn-bulk-cancel" onclick="clearAllSelections()">
+                    <i class="fas fa-times"></i> إلغاء التحديد
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== التقييمات المعلقة ===== -->
+        <div class="pending-reviews-container">
+            <div class="subsection-header">
+                <h3 class="subsection-title">
+                    <i class="fas fa-clock"></i> التقييمات المعلقة ({{ pending_reviews.count }})
+                </h3>
+                {% if pending_reviews %}
+                <div class="select-all-wrapper">
+                    <label class="custom-checkbox-label">
+                        <input type="checkbox" id="select-all-pending" onchange="toggleSelectAll('pending', this.checked)">
+                        <span class="custom-checkbox"></span>
+                        تحديد الكل
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if pending_reviews %}
+                <div class="reviews-grid">
+                    {% for review in pending_reviews %}
+                    <div class="review-card pending" id="review-card-{{ review.id }}" data-status="pending">
+
+                        <!-- Checkbox -->
+                        <div class="review-select">
+                            <label class="custom-checkbox-label">
+                                <input type="checkbox" 
+                                    class="review-checkbox pending-checkbox" 
+                                    value="{{ review.id }}"
+                                    onchange="updateBulkBar()">
+                                <span class="custom-checkbox"></span>
+                            </label>
+                        </div>
+
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <i class="fas fa-user-circle"></i>
+                                <div>
+                                    <strong>{{ review.name }}</strong>
+                                    <span class="email">{{ review.email }}</span>
+                                </div>
+                            </div>
+                            <div class="review-rating">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="rating-number">{{ review.rating }}/5</span>
+                            </div>
+                        </div>
+
+                        <div class="review-content">
+                            <p>{{ review.comment }}</p>
+                        </div>
+
+                        <div class="review-footer">
+                            <span class="review-date">
+                                <i class="fas fa-calendar"></i>
+                                {{ review.created_at|date:"d M Y - h:i A" }}
+                            </span>
+                            <div class="review-actions">
+                                <a href="{% url 'approve_review' review.id %}" 
+                                class="btn-approve"
+                                onclick="return confirm('هل تريد الموافقة على هذا التقييم؟')">
+                                    <i class="fas fa-check"></i> موافقة
+                                </a>
+                                <button class="btn-reject-ajax" 
+                                        onclick="deleteSingleReview({{ review.id }}, this)">
+                                    <i class="fas fa-times"></i> رفض
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-data">
+                    <i class="fas fa-inbox"></i>
+                    <p>لا توجد تقييمات معلقة</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- ===== التقييمات المعتمدة ===== -->
+        <div class="approved-reviews-container">
+            <div class="subsection-header">
+                <h3 class="subsection-title">
+                    <i class="fas fa-check-circle"></i> التقييمات المعتمدة ({{ approved_reviews.count }})
+                </h3>
+                {% if approved_reviews %}
+                <div class="select-all-wrapper">
+                    <label class="custom-checkbox-label">
+                        <input type="checkbox" id="select-all-approved" onchange="toggleSelectAll('approved', this.checked)">
+                        <span class="custom-checkbox"></span>
+                        تحديد الكل
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if approved_reviews %}
+                <div class="reviews-grid">
+                    {% for review in approved_reviews %}
+                    <div class="review-card approved" id="review-card-{{ review.id }}" data-status="approved">
+
+                        <!-- Checkbox -->
+                        <div class="review-select">
+                            <label class="custom-checkbox-label">
+                                <input type="checkbox" 
+                                    class="review-checkbox approved-checkbox" 
+                                    value="{{ review.id }}"
+                                    onchange="updateBulkBar()">
+                                <span class="custom-checkbox"></span>
+                            </label>
+                        </div>
+
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <i class="fas fa-user-circle"></i>
+                                <div>
+                                    <strong>{{ review.name }}</strong>
+                                    <span class="email">{{ review.email }}</span>
+                                </div>
+                            </div>
+                            <div class="review-rating">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="rating-number">{{ review.rating }}/5</span>
+                            </div>
+                        </div>
+
+                        <div class="review-content">
+                            <p>{{ review.comment }}</p>
+                        </div>
+
+                        <div class="review-footer">
+                            <span class="review-date">
+                                <i class="fas fa-calendar"></i>
+                                {{ review.created_at|date:"d M Y - h:i A" }}
+                            </span>
+                            <span class="approved-badge">
+                                <i class="fas fa-check-circle"></i> معتمد
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-data">
+                    <i class="fas fa-inbox"></i>
+                    <p>لا توجد تقييمات معتمدة بعد</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
     
     <div class="container">
         <!-- Header -->
@@ -826,135 +1014,6 @@
     </div>
 </div>
 
-</div>
-
-<!-- ✅ أضف هذا القسم قبل نهاية الـ container في صفحة dashboard.html -->
-<h1> قسم ادارة التقييمات</h1>
-<!-- ==================== قسم إدارة التقييمات ==================== -->
-<div class="reviews-management-section">
-    <div class="section-header">
-        <h2><i class="fas fa-star"></i> إدارة التقييمات</h2>
-    </div>
-
-    <!-- التقييمات المعلقة (في انتظار الموافقة) -->
-    <div class="pending-reviews-container">
-        <h3 class="subsection-title">
-            <i class="fas fa-clock"></i> التقييمات المعلقة ({{ pending_reviews.count }})
-        </h3>
-        
-        {% if pending_reviews %}
-            <div class="reviews-grid">
-                {% for review in pending_reviews %}
-                <div class="review-card pending">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <i class="fas fa-user-circle"></i>
-                            <div>
-                                <strong>{{ review.name }}</strong>
-                                <span class="email">{{ review.email }}</span>
-                            </div>
-                        </div>
-                        <div class="review-rating">
-                            {% for i in "12345" %}
-                                {% if forloop.counter <= review.rating %}
-                                    <i class="fas fa-star"></i>
-                                {% else %}
-                                    <i class="far fa-star"></i>
-                                {% endif %}
-                            {% endfor %}
-                            <span class="rating-number">{{ review.rating }}/5</span>
-                        </div>
-                    </div>
-                    
-                    <div class="review-content">
-                        <p>{{ review.comment }}</p>
-                    </div>
-                    
-                    <div class="review-footer">
-                        <span class="review-date">
-                            <i class="fas fa-calendar"></i>
-                            {{ review.created_at|date:"d M Y - h:i A" }}
-                        </span>
-                        
-                        <div class="review-actions">
-                            <a href="{% url 'approve_review' review.id %}" 
-                               class="btn-approve"
-                               onclick="return confirm('هل تريد الموافقة على هذا التقييم؟')">
-                                <i class="fas fa-check"></i> موافقة
-                            </a>
-                            <a href="{% url 'reject_review' review.id %}" 
-                               class="btn-reject"
-                               onclick="return confirm('هل تريد حذف هذا التقييم نهائياً؟')">
-                                <i class="fas fa-times"></i> رفض
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="no-data">
-                <i class="fas fa-inbox"></i>
-                <p>لا توجد تقييمات معلقة</p>
-            </div>
-        {% endif %}
-    </div>
-
-    <hr class="section-divider">
-
-    <!-- التقييمات المعتمدة -->
-    <div class="approved-reviews-container">
-        <h3 class="subsection-title">
-            <i class="fas fa-check-circle"></i> التقييمات المعتمدة ({{ approved_reviews.count }})
-        </h3>
-        
-        {% if approved_reviews %}
-            <div class="reviews-grid">
-                {% for review in approved_reviews %}
-                <div class="review-card approved">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <i class="fas fa-user-circle"></i>
-                            <div>
-                                <strong>{{ review.name }}</strong>
-                                <span class="email">{{ review.email }}</span>
-                            </div>
-                        </div>
-                        <div class="review-rating">
-                            {% for i in "12345" %}
-                                {% if forloop.counter <= review.rating %}
-                                    <i class="fas fa-star"></i>
-                                {% else %}
-                                    <i class="far fa-star"></i>
-                                {% endif %}
-                            {% endfor %}
-                            <span class="rating-number">{{ review.rating }}/5</span>
-                        </div>
-                    </div>
-                    
-                    <div class="review-content">
-                        <p>{{ review.comment }}</p>
-                    </div>
-                    
-                    <div class="review-footer">
-                        <span class="review-date">
-                            <i class="fas fa-calendar"></i>
-                            {{ review.created_at|date:"d M Y - h:i A" }}
-                        </span>
-                        <span class="approved-badge">
-                            <i class="fas fa-check-circle"></i> معتمد
-                        </span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="no-data">
-                <i class="fas fa-inbox"></i>
-                <p>لا توجد تقييمات معتمدة بعد</p>
-            </div>
-        {% endif %}
-    </div>
 </div>
 <style>
 /* ==================== الألوان الرئيسية ==================== */
