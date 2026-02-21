@@ -13,6 +13,127 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 </head>
+<script>
+const CSRF_TOKEN = "{{ csrf_token }}";
+const BULK_DELETE_URL = "{% url 'bulk_delete_reviews' %}";
+
+// تحديث شريط الحذف الجماعي
+function updateBulkBar() {
+    const selected = document.querySelectorAll('.review-checkbox:checked');
+    const bar = document.getElementById('bulk-actions-bar');
+    const count = document.getElementById('selected-count');
+
+    // تحديث الكروت المحددة بصرياً
+    document.querySelectorAll('.review-checkbox').forEach(cb => {
+        const card = cb.closest('.review-card');
+        card.classList.toggle('selected', cb.checked);
+    });
+
+    count.textContent = selected.length;
+    bar.style.display = selected.length > 0 ? 'flex' : 'none';
+}
+
+// تحديد / إلغاء تحديد الكل
+function toggleSelectAll(group, checked) {
+    const className = group === 'pending' ? '.pending-checkbox' : '.approved-checkbox';
+    document.querySelectorAll(className).forEach(cb => {
+        cb.checked = checked;
+    });
+    updateBulkBar();
+}
+
+// إلغاء كل التحديدات
+function clearAllSelections() {
+    document.querySelectorAll('.review-checkbox').forEach(cb => cb.checked = false);
+    document.querySelectorAll('#select-all-pending, #select-all-approved').forEach(cb => cb.checked = false);
+    updateBulkBar();
+}
+
+// حذف تقييم واحد بدون تحديث الصفحة
+function deleteSingleReview(reviewId, btn) {
+    if (!confirm('هل تريد حذف هذا التقييم نهائياً؟')) return;
+
+    const card = document.getElementById('review-card-' + reviewId);
+    card.classList.add('deleting');
+
+    fetch(BULK_DELETE_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': CSRF_TOKEN
+        },
+        body: `review_ids[]=${reviewId}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            card.style.transition = 'all 0.4s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            setTimeout(() => card.remove(), 400);
+            updateBulkBar();
+        } else {
+            card.classList.remove('deleting');
+            alert('حدث خطأ، يرجى المحاولة مرة أخرى');
+        }
+    })
+    .catch(() => {
+        card.classList.remove('deleting');
+        alert('حدث خطأ في الاتصال');
+    });
+}
+
+// الحذف الجماعي
+function bulkDeleteReviews() {
+    const selected = document.querySelectorAll('.review-checkbox:checked');
+    if (selected.length === 0) return;
+
+    if (!confirm(`هل تريد حذف ${selected.length} تقييم؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
+
+    const ids = Array.from(selected).map(cb => cb.value);
+    const body = ids.map(id => `review_ids[]=${id}`).join('&');
+
+    // تمييز الكروت المحددة بأنها تُحذف
+    ids.forEach(id => {
+        document.getElementById('review-card-' + id)?.classList.add('deleting');
+    });
+
+    fetch(BULK_DELETE_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': CSRF_TOKEN
+        },
+        body: body
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            ids.forEach(id => {
+                const card = document.getElementById('review-card-' + id);
+                if (card) {
+                    card.style.transition = 'all 0.4s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.9)';
+                    setTimeout(() => card.remove(), 400);
+                }
+            });
+            clearAllSelections();
+        } else {
+            ids.forEach(id => {
+                document.getElementById('review-card-' + id)?.classList.remove('deleting');
+            });
+            alert('حدث خطأ، يرجى المحاولة مرة أخرى');
+        }
+    })
+    .catch(() => {
+        ids.forEach(id => {
+            document.getElementById('review-card-' + id)?.classList.remove('deleting');
+        });
+        alert('حدث خطأ في الاتصال');
+    });
+}
+</script>
 <body>
     <!-- ✅ أضف هذا القسم قبل نهاية الـ container في صفحة dashboard.html -->
     <h1> قسم ادارة التقييمات</h1>
@@ -2163,6 +2284,175 @@
     .close {
         display: none !important;
     }
+    /* ===== Bulk Actions Bar ===== */
+.bulk-actions-bar {
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, var(--dark-blue), var(--primary-blue));
+    color: white;
+    padding: 14px 22px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.bulk-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.bulk-info i { font-size: 1.2rem; }
+
+#selected-count {
+    background: white;
+    color: var(--dark-blue);
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+}
+
+.bulk-buttons { display: flex; gap: 10px; }
+
+.btn-bulk-delete {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.3s;
+}
+.btn-bulk-delete:hover { background: #c0392b; transform: translateY(-2px); }
+
+.btn-bulk-cancel {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 9px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.3s;
+}
+.btn-bulk-cancel:hover { background: rgba(255,255,255,0.35); }
+
+/* ===== Subsection Header ===== */
+.subsection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0 15px;
+}
+
+.subsection-header .subsection-title { margin: 0; }
+
+.select-all-wrapper {
+    background: var(--light-blue);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 7px 15px;
+}
+
+/* ===== Custom Checkbox ===== */
+.custom-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    user-select: none;
+}
+
+.custom-checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.custom-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--primary-blue);
+    border-radius: 4px;
+    background: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.custom-checkbox-label input[type="checkbox"]:checked + .custom-checkbox {
+    background: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+.custom-checkbox-label input[type="checkbox"]:checked + .custom-checkbox::after {
+    content: '✓';
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* ===== Review Select Area ===== */
+.review-select {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+}
+
+/* الكارد لما يتحدد */
+.review-card.selected {
+    border-color: var(--primary-blue) !important;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.25);
+}
+
+/* زرار الرفض بـ AJAX */
+.btn-reject-ajax {
+    padding: 8px 14px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    background: var(--danger);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+.btn-reject-ajax:hover { background: #c0392b; transform: translateY(-2px); }
+
+/* كارد بيتحذف */
+.review-card.deleting {
+    opacity: 0.5;
+    pointer-events: none;
+    transform: scale(0.97);
+    transition: all 0.3s;
+}
 }
 </style>
 
